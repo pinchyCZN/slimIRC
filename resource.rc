@@ -1,0 +1,368 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_LIST DIALOG DISCARDABLE  0, 0, 288, 145
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Servers"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Add",IDC_ADD,238,0,50,14
+    PUSHBUTTON      "Edit",IDC_EDIT,238,21,50,14
+    PUSHBUTTON      "Delete",IDC_DELETE,238,45,50,14
+    PUSHBUTTON      "Join",IDC_JOIN,238,68,50,14
+    PUSHBUTTON      "EXIT",IDCANCEL,238,100,50,14
+END
+
+IDD_SERVER DIALOG DISCARDABLE  0, 0, 186, 118
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Server info"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Network group",IDC_STATIC,0,4,52,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_NETWORK,52,0,134,17,ES_AUTOHSCROLL
+    CTEXT           "Server",IDC_STATIC,8,23,44,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_SERVER,52,18,134,17,ES_AUTOHSCROLL
+    CTEXT           "Ports",IDC_STATIC,14,39,38,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_PORTS,52,36,134,17,ES_AUTOHSCROLL
+    CONTROL         "SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,52,
+                    57,34,10
+    CONTROL         "Connect at startup",IDC_CONNECT_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,107,57,76,10
+    CTEXT           "Password",IDC_STATIC,8,75,44,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PASSWORD,52,76,133,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,0,104,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,99,104,50,14
+END
+
+IDD_CHANNEL DIALOG DISCARDABLE  0, 0, 186, 94
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Channel info"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Channel name",IDC_STATIC,0,2,58,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CHANNEL,58,2,128,14,ES_AUTOHSCROLL
+    CTEXT           "Network group",IDC_STATIC,10,28,48,10,SS_CENTERIMAGE
+    COMBOBOX        IDC_NETWORK,58,27,128,124,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Join on connect",IDC_JOIN_CONNECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,44,71,10
+    CTEXT           "Password",IDC_STATIC,11,63,47,9,SS_CENTERIMAGE
+    EDITTEXT        IDC_PASSWORD,58,60,127,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,0,79,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,122,79,50,14
+END
+
+IDD_SETTINGS DIALOG DISCARDABLE  0, 0, 186, 142
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    RTEXT           "Nick",IDC_STATIC,0,2,37,13
+    EDITTEXT        IDC_NICK,42,1,144,14,ES_AUTOHSCROLL
+    RTEXT           "Quit msg",IDC_STATIC,3,20,38,11
+    EDITTEXT        IDC_QUIT_MSG,43,17,144,14,ES_AUTOHSCROLL
+    CONTROL         "Show joins",IDC_SHOWJOINS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,43,38,61,10
+    CONTROL         "enable logs",IDC_ENABLELOG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,104,39,52,10
+    RTEXT           "word watch",IDC_STATIC,0,57,41,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_WORDWATCH,43,55,143,14,ES_AUTOHSCROLL
+    LTEXT           "user name",IDC_STATIC,9,76,34,8
+    EDITTEXT        IDC_USERNAME,43,74,142,14,ES_AUTOHSCROLL
+    LTEXT           "real name",IDC_STATIC,11,92,32,8
+    EDITTEXT        IDC_REALNAME,43,90,142,14,ES_AUTOHSCROLL
+    CONTROL         "debug",IDC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    43,112,36,10
+    EDITTEXT        IDC_POSTCONNECT,159,108,27,14,ES_AUTOHSCROLL
+    LTEXT           "post connect command",IDC_STATIC_PCC,167,108,19,27
+    DEFPUSHBUTTON   "OK",IDOK,0,128,50,14
+    PUSHBUTTON      "Open INI",IDC_OPENINI,104,110,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,104,128,50,14
+END
+
+IDD_CUSTOM_RESOURCE DIALOG DISCARDABLE  0, 0, 281, 234
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "placeholder for custom control ID's"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        MDI_STATIC,0,0,102,71,ES_AUTOHSCROLL
+    LISTBOX         MDI_LIST,135,0,64,70,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        MDI_EDIT,1,74,197,18,ES_AUTOHSCROLL
+    PUSHBUTTON      "switchbar",IDC_SWITCHBAR,4,103,50,14
+    PUSHBUTTON      "MDI_CLIENT",IDC_MDI_CLIENT,75,103,50,14
+    PUSHBUTTON      "SERVER_WINDOW",SERVER_WINDOW,203,2,78,14
+    PUSHBUTTON      "CHANNEL_WINDOW",CHANNEL_WINDOW,203,24,78,14
+    PUSHBUTTON      "PRIVMSG_WINDOW",PRIVMSG_WINDOW,203,47,78,14
+    PUSHBUTTON      "IDC_SWITCHBUTTON",IDC_SWITCHBUTTON,3,124,103,14
+    PUSHBUTTON      "IDC_ADD_BUTTON",IDC_ADD_BUTTON,3,147,99,14
+    PUSHBUTTON      "IDC_LISTVIEW",IDC_LISTVIEW,203,102,75,19
+END
+
+IDD_USER_INPUT DIALOG DISCARDABLE  0, 0, 184, 42
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Input"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_USER_EDIT,7,7,170,13,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,20,50,15
+    PUSHBUTTON      "Cancel",IDCANCEL,127,20,50,15
+END
+
+IDD_TEXTSEARCH DIALOG DISCARDABLE  0, 0, 186, 42
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "search text (ctrl/shift+enter srch down)"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_SEARCH_BOX,0,0,186,25,ES_AUTOHSCROLL
+    PUSHBUTTON      "up",IDC_SEARCH_UP,0,28,50,14
+    PUSHBUTTON      "down",IDC_SEARCH_DOWN,69,28,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,136,28,50,14
+END
+
+IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 186, 58
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Warning"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,37,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,37,50,14
+    CTEXT           "",IDC_MESSAGETEXT,7,7,172,29
+END
+
+IDD_CHANNELMODES DIALOG DISCARDABLE  0, 0, 200, 142
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Channel modes"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Topic",IDC_STATIC,0,1,45,8
+    EDITTEXT        IDC_TOPIC,0,11,200,14,ES_AUTOHSCROLL
+    LTEXT           "Ban list",IDC_STATIC,0,26,24,8
+    LISTBOX         IDC_BANLIST,0,36,200,33,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Only ops set topic",IDC_ONLYOPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,0,72,72,10
+    CONTROL         "No external messages",IDC_NOEXTERNAL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,0,86,85,10
+    CONTROL         "Invite only",IDC_INVITEONLY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,0,100,48,10
+    CONTROL         "Moderated",IDC_MODERATED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,0,114,50,10
+    CONTROL         "Key",IDC_REQUIRESKEY,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,90,73,28,10
+    EDITTEXT        IDC_KEY,116,71,62,14,ES_AUTOHSCROLL | ES_READONLY
+    CONTROL         "Limit to",IDC_LIMITTO,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,90,87,38,10
+    EDITTEXT        IDC_USERS,127,86,40,14,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    LTEXT           "users",IDC_STATIC1,171,87,18,8
+    CONTROL         "Private",IDC_PRIVATE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,90,101,38,10
+    CONTROL         "Secret",IDC_SECRET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,90,115,37,10
+    DEFPUSHBUTTON   "OK",IDOK,0,128,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,128,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU DISCARDABLE 
+BEGIN
+    MENUITEM "Servers",                     ID_SERVERS
+    MENUITEM "Channels",                    ID_CHANNELS
+    MENUITEM "Settings",                    ID_SETTINGS
+    MENUITEM "Connect",                     ID_CONNECT
+    MENUITEM "Disconnect",                  ID_DISCONNECT
+    POPUP "Window"
+    BEGIN
+        MENUITEM "List",                        ID_WINDOW_LIST
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_LIST, DIALOG
+    BEGIN
+        RIGHTMARGIN, 287
+    END
+
+    IDD_SERVER, DIALOG
+    BEGIN
+        VERTGUIDE, 52
+        BOTTOMMARGIN, 89
+    END
+
+    IDD_CHANNEL, DIALOG
+    BEGIN
+        VERTGUIDE, 58
+        BOTTOMMARGIN, 93
+    END
+
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        VERTGUIDE, 43
+        VERTGUIDE, 104
+    END
+
+    IDD_CUSTOM_RESOURCE, DIALOG
+    BEGIN
+        VERTGUIDE, 203
+    END
+
+    IDD_USER_INPUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 177
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 35
+        HORZGUIDE, 20
+    END
+
+    IDD_MESSAGEBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 51
+    END
+
+    IDD_CHANNELMODES, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 141
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "slimirc.ico"
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "CZN\0"
+            VALUE "FileDescription", "slimIRC\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "slimIRC\0"
+            VALUE "LegalCopyright", "Copyright © 2012\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "slimIRC.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "CZN slimIRC\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
