@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\libirc\\" /FI"pragma.h" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /FR /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\libirc\\" /I ".\ssl\include\\" /I "." /FI"pragma.h" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /FR /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -73,7 +73,8 @@ PostBuild_Cmds=copy .\release\slimIRC.exe C:\PROGRA~1\slimIRC\slimIRC.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /I ".\ssl\include\\" /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /FR /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /I ".\ssl\include\\" /I "." /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /FR /FD /GZ /c
+# SUBTRACT CPP /u
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -107,6 +108,8 @@ SOURCE=.\libirc\src\portable.c
 
 !IF  "$(CFG)" == "slimIRC - Win32 Release"
 
+# PROP Exclude_From_Build 1
+
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
@@ -119,6 +122,8 @@ SOURCE=.\libirc\src\portable.c
 SOURCE=.\libirc\src\ssl.c
 
 !IF  "$(CFG)" == "slimIRC - Win32 Release"
+
+# PROP Exclude_From_Build 1
 
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
 
