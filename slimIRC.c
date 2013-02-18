@@ -25,6 +25,7 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static HWND grippy=0;
 	static int entry_num=-1;
 	static char old_server[80]={0};
+	static int help_active=FALSE;
 	switch(msg)
 	{
 	case WM_INITDIALOG:
@@ -40,10 +41,18 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		else
 			SetDlgItemText(hwnd,IDC_NETWORK,"default");
+		help_active=FALSE;
 		break;
 	case WM_SIZE:
 		grippy_move(hwnd,grippy);
 		reposition_controls(hwnd,add_server_anchors);
+		break;
+	case WM_HELP:
+		if(!help_active){
+			help_active=TRUE;
+			MessageBox(hwnd,"use # in front of server name for SSL, ## to verify certs","Help",MB_OK);
+			help_active=FALSE;
+		}
 		break;
 	case WM_COMMAND:
 		switch(LOWORD(wparam))
@@ -658,6 +667,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return 0;
 		break;
 	case WM_ENDSESSION:
+		if(!wparam)
+			break;
+		if(lparam!=0)
+			break;
 	case WM_CLOSE:
 		exit_irc(FALSE);
         break;

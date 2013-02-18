@@ -15,44 +15,17 @@
 
 #if defined (ENABLE_SSL)
 
-// Nonzero if OpenSSL has been initialized
-static SSL_CTX * ssl_context = 0;
+#include "polarssl/config.h"
+
+#include "polarssl/net.h"
+#include "polarssl/ssl.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/error.h"
+
 
 #if defined (_WIN32)
 #include <windows.h>
-// This array will store all of the mutexes available to OpenSSL
-static CRITICAL_SECTION * mutex_buf = 0;
-
-// OpenSSL callback to utilize static locks
-static void cb_openssl_locking_function( int mode, int n, const char * file, int line )
-{
-    if ( mode & CRYPTO_LOCK)
-        EnterCriticalSection( &mutex_buf[n] );
-    else
-        LeaveCriticalSection( &mutex_buf[n] );
-}
-
-// OpenSSL callback to get the thread ID
-static unsigned long cb_openssl_id_function()
-{
-    return ((unsigned long) GetCurrentThreadId() );
-}
-
-static int alloc_mutexes( unsigned int total )
-{
-	int i;
-	
-	// Enable thread safety in OpenSSL
-	mutex_buf = (CRITICAL_SECTION*) malloc( total * sizeof(CRITICAL_SECTION) );
-
-	if ( !mutex_buf )
-		return -1;
-
-	for ( i = 0;  i < total;  i++)
-		InitializeCriticalSection( &(mutex_buf[i]) );
-	
-	return 0;
-}
 
 
 #else
@@ -60,20 +33,7 @@ static int alloc_mutexes( unsigned int total )
 // This array will store all of the mutexes available to OpenSSL
 static pthread_mutex_t * mutex_buf = 0;
 
-// OpenSSL callback to utilize static locks
-static void cb_openssl_locking_function( int mode, int n, const char * file, int line )
-{
-    if ( mode & CRYPTO_LOCK)
-        pthread_mutex_lock( &mutex_buf[n] );
-    else
-        pthread_mutex_unlock( &mutex_buf[n] );
-}
 
-// OpenSSL callback to get the thread ID
-static unsigned long cb_openssl_id_function()
-{
-    return ((unsigned long) pthread_self() );
-}
 
 static int alloc_mutexes( unsigned int total )
 {
@@ -94,73 +54,65 @@ static int alloc_mutexes( unsigned int total )
 #endif
 
 // Initializes the SSL context. Must be called after the socket is created.
-static int ssl_init( irc_session_t * session )
+static int libirc_ssl_init( irc_session_t * session )
 {
-	if ( !ssl_context )
-	{
-		// Load the strings and init the library
-		SSL_load_error_strings();
 
-		// Enable thread safety in OpenSSL
-		if ( alloc_mutexes( CRYPTO_num_locks() ) )
-			return LIBIRC_ERR_NOMEM;
-
-		// Register our callbacks
-		CRYPTO_set_id_callback( cb_openssl_id_function );
-		CRYPTO_set_locking_callback( cb_openssl_locking_function );
-
-		// Init it
-		if ( !SSL_library_init() )
-			return LIBIRC_ERR_SSL_INIT_FAILED;
-
-		if ( RAND_status() == 0 )
-			return LIBIRC_ERR_SSL_INIT_FAILED;
-
-		// Create an SSL context; currently a single context is used for all connections
-		ssl_context = SSL_CTX_new( SSLv23_method() );
-
-		if ( !ssl_context )
-			return LIBIRC_ERR_SSL_INIT_FAILED;
-
-		// Disable SSLv2 as it is unsecure
-		if ( (SSL_CTX_set_options( ssl_context, SSL_OP_NO_SSLv2) & SSL_OP_NO_SSLv2) == 0 )
-			return LIBIRC_ERR_SSL_INIT_FAILED;
-
-		// Enable only strong ciphers
-		if ( SSL_CTX_set_cipher_list( ssl_context, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" ) != 1 )
-			return LIBIRC_ERR_SSL_INIT_FAILED;
-
-		// Disable session caching
-		SSL_CTX_set_session_cache_mode( ssl_context, SSL_SESS_CACHE_OFF );
-
-		// Set the verification
-		if ( session->options & LIBIRC_OPTION_SSL_NO_VERIFY )
-			SSL_CTX_set_verify( ssl_context, SSL_VERIFY_NONE, 0 );
-		else
-			SSL_CTX_set_verify( ssl_context, SSL_VERIFY_PEER, 0 );
-
-		// Enable SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER so we can move the buffer during sending
-		SSL_CTX_set_mode( ssl_context, SSL_CTX_get_mode(ssl_context) | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_ENABLE_PARTIAL_WRITE );
-	}
+    memset(&session->ssl,0,sizeof(ssl_context));
 	
-	// Get the SSL context
-	session->ssl = SSL_new( ssl_context );
-
-	if ( !session->ssl )
-		return LIBIRC_ERR_SSL_INIT_FAILED;
-
-	// Let OpenSSL use our socket
-	if ( SSL_set_fd( session->ssl, session->sock) != 1 )
-		return LIBIRC_ERR_SSL_INIT_FAILED;
-	
-	// Since we're connecting on our own, tell openssl about it
-	SSL_set_connect_state( session->ssl );
-
 	return 0;
 }
+int DEBUG_LEVEL=5;
+int set_debug_level(int i)
+{ DEBUG_LEVEL=i;return 0; }
+void my_debug(void *ctx,int level,const char *str)
+{
+	if(level<DEBUG_LEVEL){
+		fprintf((FILE*)ctx,"%s",str);
+		fflush((FILE*)ctx);
+	}
+}
+static int libirc_ssl_connect(irc_session_t *session,char *host,int port)
+{
+	int ret;
+    unsigned char buf[1024];
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
+    ssl_session ssn;
+	int socket=0;
+    char *pers="irc connection";
 
+	memset(&ssn,0,sizeof(ssl_session));
+    entropy_init(&entropy);
+    if((ret=ctr_drbg_init(&ctr_drbg,entropy_func,&entropy,
+                               (unsigned char *)pers,strlen(pers)))!=0){
+		return LIBIRC_ERR_SSL_INIT_FAILED;
+    }
+	if((ret=net_connect(&socket,host,port))!=0)
+		return LIBIRC_ERR_CONNECT_SSL_FAILED;
+
+	if((ret=ssl_init(&session->ssl))!=0){
+		net_close(socket);
+		return LIBIRC_ERR_CONNECT_SSL_FAILED;
+	}
+	ssl_set_endpoint(&session->ssl,SSL_IS_CLIENT);
+	ssl_set_authmode(&session->ssl,session->options&LIBIRC_OPTION_SSL_NO_VERIFY ? SSL_VERIFY_NONE:SSL_VERIFY_REQUIRED);
+	ssl_set_authmode(&session->ssl,SSL_VERIFY_NONE);
+	
+	ssl_set_rng(&session->ssl,ctr_drbg_random,&ctr_drbg);
+	ssl_set_dbg(&session->ssl,my_debug,stdout);
+	ssl_set_bio(&session->ssl,net_recv,&socket,net_send,&socket);
+	session->sock=socket;
+	
+	ssl_set_ciphersuites(&session->ssl,ssl_default_ciphersuites);
+	ssl_set_session(&session->ssl,1,600,&ssn);
+	session->ssl.read_timeout=30;
+	get_ini_value("SSL_OPTIONS","read_timeout",&session->ssl.read_timeout);
+	return 0;
+
+}
 static void ssl_handle_error( irc_session_t * session, int ssl_error )
 {
+/*
 	if ( ERR_GET_LIB(ssl_error) == ERR_LIB_SSL )
 	{
 		if ( ERR_GET_REASON(ssl_error) == SSL_R_CERTIFICATE_VERIFY_FAILED )
@@ -175,22 +127,15 @@ static void ssl_handle_error( irc_session_t * session, int ssl_error )
 			return;
 		}
 	}
-
-#if defined (ENABLE_DEBUG)
-	if ( IS_DEBUG_ENABLED(session) )
-		fprintf (stderr, "[DEBUG] SSL error: %s\n\t(%d, %d)\n", 
-			 ERR_error_string( ssl_error, NULL),  ERR_GET_LIB( ssl_error), ERR_GET_REASON(ssl_error) );
-#endif
+*/
 }
 
 static int ssl_recv( irc_session_t * session )
 {
+	int count;
 	unsigned int amount = (sizeof (session->incoming_buf) - 1) - session->incoming_offset;
 	
-	ERR_clear_error();
-
-	// Read up to m_bufferLength bytes
-	int count = SSL_read( session->ssl, session->incoming_buf + session->incoming_offset, amount );
+	count=ssl_read(&session->ssl,session->incoming_buf+session->incoming_offset,amount);
 
     if ( count > 0 )
 		return count;
@@ -198,12 +143,13 @@ static int ssl_recv( irc_session_t * session )
 		return -1; // remote connection closed
 	else
 	{
-		int ssl_error = SSL_get_error( session->ssl, count );
+		int ssl_error = 0; //SSL_get_error( session->ssl, count );
 		
 		// Handle SSL error since not all of them are actually errors
         switch ( ssl_error )
         {
-            case SSL_ERROR_WANT_READ:
+/*
+		case SSL_ERROR_WANT_READ:
                 // This is not really an error. We received something, but
                 // OpenSSL gave nothing to us because all it read was
                 // internal data. Repeat the same read.
@@ -216,10 +162,11 @@ static int ssl_recv( irc_session_t * session )
                 // to wait for WRITE event, but call SSL_read() again.
                 session->flags |= SESSIONFL_SSL_READ_WANTS_WRITE;
 				return 0;
+*/
 		}
 
 		// This is an SSL error, handle it
-		ssl_handle_error( session, ERR_get_error() ); 
+		//ssl_handle_error( session, ERR_get_error() ); 
 	}
 	
 	return -1;
@@ -228,9 +175,9 @@ static int ssl_recv( irc_session_t * session )
 
 static int ssl_send( irc_session_t * session )
 {
-    ERR_clear_error();
+	int count;
 
-	int count = SSL_write( session->ssl, session->outgoing_buf, session->outgoing_offset );
+	count=ssl_write(&session->ssl,session->outgoing_buf,session->outgoing_offset);
 
     if ( count > 0 )
 		return count;
@@ -238,10 +185,11 @@ static int ssl_send( irc_session_t * session )
 		return -1;
     else
     {
-		int ssl_error = SSL_get_error( session->ssl, count );
+		int ssl_error = 0; //SSL_get_error( session->ssl, count );
 		
         switch ( ssl_error )
         {
+/*
             case SSL_ERROR_WANT_READ:
                 // This is not really an error. We sent some internal OpenSSL data,
                 // but now it needs to read more data before it can send anything.
@@ -254,10 +202,11 @@ static int ssl_send( irc_session_t * session )
                 // wants to send some internal data before sending ours.
                 // Repeat the same write.
 				return 0;
+*/
         }
         
 		// This is an SSL error, handle it
-		ssl_handle_error( session, ERR_get_error() ); 
+		//ssl_handle_error( session, ERR_get_error() ); 
     }
 
 	return -1;
@@ -275,7 +224,7 @@ static int session_socket_read( irc_session_t * session )
 	int length;
 
 #if defined (ENABLE_SSL)
-	if ( session->ssl )
+	if (session->flags & SESSIONFL_SSL_CONNECTION)
 	{
 		// Yes, I know this is tricky
 		if ( session->flags & SESSIONFL_SSL_READ_WANTS_WRITE )
@@ -309,7 +258,7 @@ static int session_socket_write( irc_session_t * session )
 	int length;
 
 #if defined (ENABLE_SSL)
-	if ( session->ssl )
+	if (session->flags & SESSIONFL_SSL_CONNECTION)
 	{
 		// Yep
 		if ( session->flags & SESSIONFL_SSL_WRITE_WANTS_READ )

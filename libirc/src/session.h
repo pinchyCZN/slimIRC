@@ -21,6 +21,15 @@
 #include "dcc.h"
 #include "libirc_events.h"
 
+#if defined (ENABLE_SSL)
+#include "polarssl/config.h"
+
+#include "polarssl/net.h"
+#include "polarssl/ssl.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/error.h"
+#endif
 
 // Session flags
 #define SESSIONFL_MOTD_RECEIVED			(0x00000001)
@@ -72,7 +81,7 @@ struct irc_session_s
 	irc_callbacks_t	callbacks;
 
 #if defined (ENABLE_SSL)
-	SSL 		 *	ssl;
+	ssl_context ssl;
 #endif
 
 	

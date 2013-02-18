@@ -67,6 +67,8 @@
 #define IDC_DEBUG                       1060
 #define IDC_POSTCONNECT                 1061
 #define IDC_STATIC_PCC                  1062
+#define IDC_BUTTON1                     1063
+#define MDI_MENU_OPENLOG                1064
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
@@ -80,7 +82,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1063
+#define _APS_NEXT_CONTROL_VALUE         1065
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

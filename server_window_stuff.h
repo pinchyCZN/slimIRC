@@ -46,7 +46,7 @@ int echo_server_window(void *session,const char *format,...)
 				}
 		}
 	}
-	if(lastsess!=0){
+	if((lastsess!=0) && (irc_windows[lastindex].hstatic!=0)){
 		char buf[1024];
 		va_list va_alist;
 		va_start(va_alist,format);
@@ -117,7 +117,7 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 	IRC_WINDOW *win=0;
 	SERVER_THREAD *thread=0;
 
-	if(ssl)
+	if(ssl && (serv[0]!='#'))
 		_snprintf(server,sizeof(server),"#%s",serv);
 	else
 		_snprintf(server,sizeof(server),"%s",serv);

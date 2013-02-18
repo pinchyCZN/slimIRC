@@ -511,11 +511,11 @@ void print_msg(int msg,int lparam,int wparam,int hwnd)
 		if(wm_names[i].name==0)
 			break;
 		if(wm_names[i].val==msg){
-			printf("%-20s lparam=%08X wparam=%08X x=%3i y=%3i %08X\n",wm_names[i].name,lparam,wparam,LOWORD(lparam),HIWORD(lparam),hwnd);
+			printf("%-20s lparam=%08X wparam=%08X %08X x=%3i y=%3i\n",wm_names[i].name,lparam,wparam,hwnd,LOWORD(lparam),HIWORD(lparam));
 			return;
 		}
 	}
-	printf("msg=%08X lparam=%08X wparam=%08X x=%3i y=%3i %08X\n",msg,lparam,wparam,LOWORD(lparam),HIWORD(lparam),hwnd);
+	printf("msg=%08X lparam=%08X wparam=%08X %08X x=%3i y=%3i\n",msg,lparam,wparam,hwnd,LOWORD(lparam),HIWORD(lparam));
 }
 int save_input(BYTE *keys,int inp)
 {

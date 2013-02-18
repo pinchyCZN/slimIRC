@@ -37,6 +37,8 @@ int post_message(HWND hwnd,char *str)
 			return FALSE;
 		handle_debug(str);
 		if(win->type==SERVER_WINDOW){
+			if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0)
+				goto sendprivmsg;
 			irc_send_raw(win->session,str);
 			add_history(str);
 		}
@@ -57,6 +59,16 @@ int post_message(HWND hwnd,char *str)
 					irc_cmd_me(win->session,channel,str+4);
 					_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
 					add_line_mdi(win,notice);
+				}
+				else if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0){
+					char pnick[20],pmsg[1024];
+sendprivmsg:
+					pnick[0]=0;pmsg[0]=0;
+					sscanf(str+sizeof("/msg ")-1,"%19s %1023s",pnick,pmsg);
+					pnick[sizeof(pnick)-1]=0;
+					pmsg[sizeof(pmsg)-1]=0;
+					irc_cmd_msg(win->session,pnick,pmsg);
+					echo_server_window(win->session,"PRIVMSG %s :%s",pnick,pmsg);
 				}
 				else if(strnicmp(str,"/discon",sizeof("/discon")-1)==0){
 					IRC_WINDOW *ser=find_server_window(win->server);

@@ -25,7 +25,7 @@ CFG=slimIRC - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
 # PROP Scc_LocalPath ""
-CPP=Cl.exe
+CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
@@ -51,9 +51,13 @@ RSC=rc.exe
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-LINK32=Link.exe
+LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib comctl32.lib Ws2_32.lib /nologo /subsystem:windows /machine:I386
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy .\release\slimIRC.exe C:\PROGRA~1\slimIRC\slimIRC.exe
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
 
@@ -69,7 +73,7 @@ LINK32=Link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /FR /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /I ".\ssl\include\\" /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /FR /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -77,7 +81,7 @@ LINK32=Link.exe
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-LINK32=Link.exe
+LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib comctl32.lib Ws2_32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 
@@ -97,6 +101,188 @@ LINK32=Link.exe
 
 SOURCE=.\libirc\src\libircclient.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\libirc\src\portable.c
+
+!IF  "$(CFG)" == "slimIRC - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\libirc\src\ssl.c
+
+!IF  "$(CFG)" == "slimIRC - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Group "ssl"
+
+# PROP Default_Filter "*.c;*.h"
+# Begin Group "library"
+
+# PROP Default_Filter "*.c;*.h"
+# Begin Source File
+
+SOURCE=.\ssl\library\aes.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\arc4.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\asn1parse.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\base64.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\bignum.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\camellia.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\certs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\cipher.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\cipher_wrap.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\ctr_drbg.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\debug.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\des.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\dhm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\entropy.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\entropy_poll.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\error.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\havege.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\md.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\md2.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\md4.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\md5.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\md_wrap.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\net.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\padlock.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\pem.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\pkcs11.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\rsa.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\sha1.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\sha2.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\sha4.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\ssl_cli.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\ssl_srv.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\ssl_tls.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\timing.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\version.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\x509parse.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssl\library\xtea.c
+# End Source File
+# End Group
 # End Group
 # Begin Source File
 

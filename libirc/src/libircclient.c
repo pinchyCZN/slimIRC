@@ -214,14 +214,21 @@ int irc_connect (irc_session_t * session,
 	// Init the SSL stuff
 	if ( session->flags & SESSIONFL_SSL_CONNECTION )
 	{
-		int rc = ssl_init( session );
-		
-		if ( rc != 0 )
-		{
-			session->lasterror = rc;
+		int ret = libirc_ssl_init( session );
+		if ( ret != 0 ){
+			session->lasterror=ret;
 			return 1;
 		}
+		ret=libirc_ssl_connect(session,server,port);
+		if(ret!=0){
+			session->lasterror=ret;
+			return 1;
+		}
+		session->state = LIBIRC_STATE_CONNECTING;
+		session->flags = SESSIONFL_SSL_CONNECTION; //reset in case of reconnect
+		return 0;
 	}
+	else
 #endif
 	
     // and connect to the IRC server
@@ -232,7 +239,7 @@ int irc_connect (irc_session_t * session,
     }
 
     session->state = LIBIRC_STATE_CONNECTING;
-    session->flags = SESSIONFL_USES_IPV6; // reset in case of reconnect
+    session->flags = 0; // reset in case of reconnect
 	return 0;
 }
 
@@ -376,7 +383,7 @@ int irc_connect6 (irc_session_t * session,
 	// Init the SSL stuff
 	if ( session->flags & SESSIONFL_SSL_CONNECTION )
 	{
-		int rc = ssl_init( session );
+		int rc = libirc_ssl_init( session );
 		
 		if ( rc != 0 )
 			return rc;
@@ -391,7 +398,7 @@ int irc_connect6 (irc_session_t * session,
     }
 
     session->state = LIBIRC_STATE_CONNECTING;
-    session->flags = 0; // reset in case of reconnect
+    session->flags = SESSIONFL_USES_IPV6; // reset in case of reconnect
 	return 0;
 #else
 	session->lasterror = LIBIRC_ERR_NOIPV6;

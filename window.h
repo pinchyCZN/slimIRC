@@ -68,6 +68,7 @@ void hide_console()
 int create_mdi_window(HWND hclient,HINSTANCE hinstance,IRC_WINDOW *win)
 {
 	HWND hstatic,hedit,hlist=0;
+	HMENU hmenu;
 	if(win==0)
 		return FALSE;
 	hstatic=CreateWindowEx(WS_EX_STATICEDGE,RICHEDIT_CLASS,"",
@@ -82,10 +83,15 @@ int create_mdi_window(HWND hclient,HINSTANCE hinstance,IRC_WINDOW *win)
         0, 0, 0, 0, hclient, MDI_EDIT, hinstance, 0);
 
 	if(win->type==CHANNEL_WINDOW){
+		char str[80];
 		hlist=CreateWindowEx(WS_EX_STATICEDGE,"listbox","", 
 		  WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_VSCROLL|
 		  LBS_NOTIFY|LBS_SORT|LBS_EXTENDEDSEL|LBS_WANTKEYBOARDINPUT|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS,
 			0, 0, 0, 0, hclient, MDI_LIST, hinstance, 0);
+		hmenu=GetSystemMenu(hclient,FALSE);
+		_snprintf(str,sizeof(str),"open logfile %s.%s.log",win->channel,win->network);
+		InsertMenu(hmenu,0,MF_BYPOSITION|MF_STRING,MDI_MENU_OPENLOG,str);
+		InsertMenu(hmenu,1,MF_BYPOSITION|MF_SEPARATOR,0,0);
 	}
 	win->hwnd=hclient;
 	win->hstatic=hstatic;

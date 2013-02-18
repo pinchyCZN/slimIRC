@@ -427,7 +427,7 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 	irc_cmd_me(session,channel,slap);
 	win=find_channel_window(session,channel);
 	if(win!=0){
-		char str[255];
+		char str[sizeof(slap)+40];
 		_snprintf(str,sizeof(str),"* %s %s",win->nick,slap);
 		add_line_mdi(win,str);
 	}

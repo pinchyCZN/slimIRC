@@ -49,8 +49,8 @@ enum {
 	CMD_VOICE,
 	CMD_DEVOICE,
 	CMD_BAN,
-	CMD_UNBAN,
 	CMD_KICK,
+	CMD_KICKBAN,
 	CMD_REFRESH_LIST,
 	CMD_TSEARCH,
 	CMD_CLEAR,
@@ -432,8 +432,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		//lParam handle of control
 		switch(LOWORD(wparam)){
 		case CMD_BAN:
-		case CMD_UNBAN:
 		case CMD_KICK:
+		case CMD_KICKBAN:
 		case CMD_DEVOICE:
 		case CMD_VOICE:
 		case CMD_DEOP:
@@ -443,6 +443,15 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		case CMD_SLAP:
 		case CMD_WHOIS:
 			do_cmd_on_list(hwnd,LOWORD(wparam));
+			break;
+		case MDI_MENU_OPENLOG:
+			win=find_window_by_hwnd(hwnd);
+			if(win!=0){
+				char str[MAX_PATH]={0};
+				create_log_directory(str,sizeof(str));
+				_snprintf(str,sizeof(str),"%s%s.%s.log",str,win->channel,win->network);
+				ShellExecute(0,"open","notepad.exe",str,NULL,SW_SHOWNORMAL);
+			}
 			break;
 		case MDI_LIST:
 			if(HIWORD(wparam)==LBN_DBLCLK){
@@ -1010,9 +1019,12 @@ int do_cmd_on_list(HWND hwnd,int cmd)
 							SendMessage(win->hlist,LB_RESETCONTENT,0,0);
 							irc_cmd_names(win->session,win->channel);
 							break;
-						case CMD_UNBAN:
-							_snprintf(str,sizeof(str),"-b %s",nick);
+						case CMD_KICKBAN:
+							irc_send_raw(win->session,"KICK %s %s kick-it",win->channel,nick);
+							_snprintf(str,sizeof(str),"+b %s",nick);
 							irc_cmd_channel_mode(win->session,win->channel,str);
+							SendMessage(win->hlist,LB_RESETCONTENT,0,0);
+							irc_cmd_names(win->session,win->channel);
 							break;
 						case CMD_BAN:
 							_snprintf(str,sizeof(str),"+b %s",nick);
@@ -1196,9 +1208,9 @@ int create_popup_menus()
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_DEOP,"de-op");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_VOICE,"voice");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_DEVOICE,"de-voice");
-		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_BAN,"ban");
-		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_UNBAN,"un-ban");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_KICK,"kick");
+		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_BAN,"ban");
+		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_KICKBAN,"kick-ban");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_REFRESH_LIST,"refresh list");
 	}
