@@ -27,7 +27,34 @@
 #if defined (_WIN32)
 #include <windows.h>
 
+/*
+static int mycount=0;
+//#undef malloc
+#undef free
+int my_free(void *x)
+{
+	mycount--;
+	printf("my count=%i\n",mycount);
+	free(x);
+}
+//#define free my_free
 
+#undef malloc
+int my_malloc(int size)
+{
+	mycount++;
+	return malloc(size);
+}
+//#define malloc my_malloc
+
+#undef _strdup
+int mystrdup(char *s)
+{
+	mycount++;
+	return _strdup(s);
+}
+#define _strdup mystrdup
+*/
 #else
 
 // This array will store all of the mutexes available to OpenSSL
@@ -53,33 +80,35 @@ static int alloc_mutexes( unsigned int total )
 
 #endif
 
-// Initializes the SSL context. Must be called after the socket is created.
-static int libirc_ssl_init( irc_session_t * session )
-{
-
-    memset(&session->ssl,0,sizeof(ssl_context));
-	
-	return 0;
-}
-int DEBUG_LEVEL=-1;
+int DEBUG_LEVEL=1;
 int set_debug_level(int i)
 { DEBUG_LEVEL=i;return 0; }
 void my_debug(void *ctx,int level,const char *str)
 {
-	if(level<DEBUG_LEVEL){
+	if(level<=DEBUG_LEVEL){
 		fprintf((FILE*)ctx,"%s",str);
 		fflush((FILE*)ctx);
 	}
 }
-static int libirc_ssl_disconnect(irc_session_t *session)
+
+// Initializes the SSL context. Must be called after the socket is created.
+static int libirc_ssl_init(ssl_context *ssl)
 {
-	ssl_close_notify(&session->ssl);
-	net_close(session->ssl.p_recv);
-	ssl_free(&session->ssl);
+
+    memset(ssl,0,sizeof(ssl_context));
 	return 0;
 }
 
-static int libirc_ssl_connect(irc_session_t *session,char *host,int port)
+static int libirc_ssl_disconnect(ssl_context *ssl,int *socket)
+{
+	ssl_close_notify(ssl);
+	net_close(ssl->p_recv);
+	ssl_free(ssl);
+	socket[0]=-1;
+	return 0;
+}
+
+static int libirc_ssl_connect(ssl_context *ssl,const int options,const char *host,const int port,int *c_socket)
 {
 	int ret;
     unsigned char buf[1024];
@@ -98,23 +127,24 @@ static int libirc_ssl_connect(irc_session_t *session,char *host,int port)
 	if((ret=net_connect(&socket,host,port))!=0)
 		return LIBIRC_ERR_CONNECT_SSL_FAILED;
 
-	if((ret=ssl_init(&session->ssl))!=0){
+	if((ret=ssl_init(ssl))!=0){
 		net_close(socket);
 		return LIBIRC_ERR_CONNECT_SSL_FAILED;
 	}
-	ssl_set_endpoint(&session->ssl,SSL_IS_CLIENT);
-	ssl_set_authmode(&session->ssl,session->options&LIBIRC_OPTION_SSL_NO_VERIFY ? SSL_VERIFY_NONE:SSL_VERIFY_REQUIRED);
-	ssl_set_authmode(&session->ssl,SSL_VERIFY_NONE);
+	ssl_set_endpoint(ssl,SSL_IS_CLIENT);
+	ssl_set_authmode(ssl,options&LIBIRC_OPTION_SSL_NO_VERIFY ? SSL_VERIFY_NONE:SSL_VERIFY_REQUIRED);
+	ssl_set_authmode(ssl,SSL_VERIFY_NONE); //for now
 	
-	ssl_set_rng(&session->ssl,ctr_drbg_random,&ctr_drbg);
-	ssl_set_dbg(&session->ssl,my_debug,stdout);
-	ssl_set_bio(&session->ssl,net_recv,&socket,net_send,&socket);
-	session->sock=socket;
+	ssl_set_rng(ssl,ctr_drbg_random,&ctr_drbg);
+	ssl_set_dbg(ssl,my_debug,stdout);
+	ssl_set_bio(ssl,net_recv,&socket,net_send,&socket);
+	c_socket[0]=socket;
+	//socket_make_nonblocking(&socket);
 	
-	ssl_set_ciphersuites(&session->ssl,ssl_default_ciphersuites);
-	ssl_set_session(&session->ssl,1,600,&ssn);
-	session->ssl.read_timeout=30;
-	get_ini_value("SSL_OPTIONS","read_timeout",&session->ssl.read_timeout);
+	ssl_set_ciphersuites(ssl,ssl_default_ciphersuites);
+	ssl_set_session(ssl,1,600,&ssn);
+	ssl->read_timeout=30;
+	get_ini_value("SSL_OPTIONS","read_timeout",&ssl->read_timeout);
 	return 0;
 
 }

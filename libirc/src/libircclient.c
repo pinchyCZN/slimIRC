@@ -96,13 +96,10 @@ static void free_ircsession_strings (irc_session_t * session)
 void irc_destroy_session (irc_session_t * session)
 {
 	free_ircsession_strings( session );
-	
-	if ( session->sock >= 0 ){
-		if ( session->flags & SESSIONFL_SSL_CONNECTION )
-			libirc_ssl_disconnect(session);
-		else
+	if ( session->flags & SESSIONFL_SSL_CONNECTION )
+		libirc_ssl_disconnect(&session->ssl,&session->sock);	
+	else if ( session->sock >= 0 )
 			socket_close (&session->sock);
-	}
 
 #if defined (ENABLE_THREADS)
 	libirc_mutex_destroy (&session->mutex_session);
@@ -206,24 +203,17 @@ int irc_connect (irc_session_t * session,
 		memcpy (&saddr.sin_addr, hp->h_addr, (size_t) hp->h_length);
     }
 
-    // create the IRC server socket
-	if ( socket_create( PF_INET, SOCK_STREAM, &session->sock)
-	|| socket_make_nonblocking (&session->sock) )
-	{
-		session->lasterror = LIBIRC_ERR_SOCKET;
-		return 1;
-	}
 
 #if defined (ENABLE_SSL)
 	// Init the SSL stuff
 	if ( session->flags & SESSIONFL_SSL_CONNECTION )
 	{
-		int ret = libirc_ssl_init( session );
+		int ret = libirc_ssl_init( &session->ssl );
 		if ( ret != 0 ){
 			session->lasterror=ret;
 			return 1;
 		}
-		ret=libirc_ssl_connect(session,server,port);
+		ret=libirc_ssl_connect(&session->ssl,session->options,server,port,&session->sock);
 		if(ret!=0){
 			session->lasterror=ret;
 			return 1;
@@ -232,9 +222,14 @@ int irc_connect (irc_session_t * session,
 		session->flags = SESSIONFL_SSL_CONNECTION; //reset in case of reconnect
 		return 0;
 	}
-	else
 #endif
-	
+    // create the IRC server socket
+	if ( socket_create( PF_INET, SOCK_STREAM, &session->sock)
+	|| socket_make_nonblocking (&session->sock) )
+	{
+		session->lasterror = LIBIRC_ERR_SOCKET;
+		return 1;
+	}	
     // and connect to the IRC server
     if ( socket_connect (&session->sock, (struct sockaddr *) &saddr, sizeof(saddr)) )
     {
@@ -375,25 +370,34 @@ int irc_connect6 (irc_session_t * session,
 	}
 #endif
 	
+
+
+#if defined (ENABLE_SSL)
+	// Init the SSL stuff
+	if ( session->flags & SESSIONFL_SSL_CONNECTION )
+	{
+		int ret = libirc_ssl_init( &session->ssl );
+		if ( ret != 0 ){
+			session->lasterror=ret;
+			return 1;
+		}
+		ret=libirc_ssl_connect(&session->ssl,session->options,server,port,&session->sock);
+		if(ret!=0){
+			session->lasterror=ret;
+			return 1;
+		}
+		session->state = LIBIRC_STATE_CONNECTING;
+		session->flags = SESSIONFL_SSL_CONNECTION|SESSIONFL_USES_IPV6; //reset in case of reconnect
+		return 0;
+	}
+#endif
 	// create the IRC server socket
 	if ( socket_create( PF_INET6, SOCK_STREAM, &session->sock)
 	|| socket_make_nonblocking (&session->sock) )
 	{
 		session->lasterror = LIBIRC_ERR_SOCKET;
 		return 1;
-	}
-
-#if defined (ENABLE_SSL)
-	// Init the SSL stuff
-	if ( session->flags & SESSIONFL_SSL_CONNECTION )
-	{
-		int rc = libirc_ssl_init( session );
-		
-		if ( rc != 0 )
-			return rc;
-	}
-#endif
-	
+	}	
     // and connect to the IRC server
     if ( socket_connect (&session->sock, (struct sockaddr *) &saddr, sizeof(saddr)) )
     {
@@ -1197,7 +1201,7 @@ void * irc_get_ctx (irc_session_t * session)
 void irc_disconnect (irc_session_t * session)
 {
 	if ( session->flags & SESSIONFL_SSL_CONNECTION )
-		libirc_ssl_disconnect(session);
+		libirc_ssl_disconnect(&session->ssl,&session->sock);
 	else if ( session->sock >= 0 )
 		socket_close (&session->sock);
 
