@@ -97,8 +97,12 @@ void irc_destroy_session (irc_session_t * session)
 {
 	free_ircsession_strings( session );
 	
-	if ( session->sock >= 0 )
-		socket_close (&session->sock);
+	if ( session->sock >= 0 ){
+		if ( session->flags & SESSIONFL_SSL_CONNECTION )
+			libirc_ssl_disconnect(session);
+		else
+			socket_close (&session->sock);
+	}
 
 #if defined (ENABLE_THREADS)
 	libirc_mutex_destroy (&session->mutex_session);
