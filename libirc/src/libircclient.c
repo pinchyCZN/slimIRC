@@ -1192,7 +1192,9 @@ void * irc_get_ctx (irc_session_t * session)
 
 void irc_disconnect (irc_session_t * session)
 {
-	if ( session->sock >= 0 )
+	if ( session->flags & SESSIONFL_SSL_CONNECTION )
+		libirc_ssl_disconnect(session);
+	else if ( session->sock >= 0 )
 		socket_close (&session->sock);
 
 	session->sock = -1;

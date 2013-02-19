@@ -61,7 +61,7 @@ static int libirc_ssl_init( irc_session_t * session )
 	
 	return 0;
 }
-int DEBUG_LEVEL=5;
+int DEBUG_LEVEL=-1;
 int set_debug_level(int i)
 { DEBUG_LEVEL=i;return 0; }
 void my_debug(void *ctx,int level,const char *str)
@@ -71,6 +71,14 @@ void my_debug(void *ctx,int level,const char *str)
 		fflush((FILE*)ctx);
 	}
 }
+static int libirc_ssl_disconnect(irc_session_t *session)
+{
+	ssl_close_notify(&session->ssl);
+	net_close(session->ssl.p_recv);
+	ssl_free(&session->ssl);
+	return 0;
+}
+
 static int libirc_ssl_connect(irc_session_t *session,char *host,int port)
 {
 	int ret;
