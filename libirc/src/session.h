@@ -83,7 +83,7 @@ struct irc_session_s
 #if defined (ENABLE_SSL)
 	ssl_context ssl;
 #endif
-
+	void	*lua_context;
 	
 };
 

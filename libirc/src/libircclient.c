@@ -66,6 +66,7 @@ irc_session_t * irc_create_session (irc_callbacks_t	* callbacks)
 	if ( !session->callbacks.event_ctcp_req )
 		session->callbacks.event_ctcp_req = libirc_event_ctcp_internal;
 
+	lua_script_init(&session->lua_context);
 	return session;
 }
 
@@ -111,7 +112,8 @@ void irc_destroy_session (irc_session_t * session)
 	 */
 	while ( session->dcc_sessions )
 		libirc_remove_dcc_session (session, session->dcc_sessions, 0);
-
+	
+	lua_script_unload(&session->lua_context);
 	free (session);
 }
 
