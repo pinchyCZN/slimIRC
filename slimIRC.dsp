@@ -104,6 +104,10 @@ SOURCE=.\libirc\src\libircclient.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\libirc\lua_scripting.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\libirc\src\portable.c
 
 !IF  "$(CFG)" == "slimIRC - Win32 Release"
@@ -206,10 +210,6 @@ SOURCE=.\ssl\library\error.c
 # Begin Source File
 
 SOURCE=.\ssl\library\havege.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\lua_scripting.c
 # End Source File
 # Begin Source File
 
