@@ -289,6 +289,138 @@ SOURCE=.\ssl\library\xtea.c
 # End Source File
 # End Group
 # End Group
+# Begin Group "lua"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\lua\lapi.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lauxlib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lbaselib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lbitlib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lcode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lcorolib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lctype.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ldblib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ldebug.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ldo.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ldump.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lfunc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lgc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\linit.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\liolib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\llex.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lmathlib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lmem.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\loadlib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lobject.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lopcodes.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\loslib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lparser.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lstate.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lstring.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lstrlib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ltable.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ltablib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\ltm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lundump.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lvm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua\lzio.c
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\debug_print.c
