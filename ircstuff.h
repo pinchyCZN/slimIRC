@@ -32,40 +32,6 @@
 #include "libircclient.h"
 
 
-/*
- * We store data in IRC session context.
- */
-typedef struct
-{
-	char 	* channel;
-	char 	* nick;
-
-} irc_ctx_t;
-
-
-void addlog (const char * fmt, ...)
-{
-	FILE * fp;
-	char buf[1024];
-	va_list va_alist;
-
-	va_start (va_alist, fmt);
-#if defined (WIN32)
-	_vsnprintf (buf, sizeof(buf), fmt, va_alist);
-#else
-	vsnprintf (buf, sizeof(buf), fmt, va_alist);
-#endif
-	va_end (va_alist);
-
-	printf ("%s\n", buf);
-
-	if ( (fp = fopen ("irctest.log", "ab")) != 0 )
-	{
-		fprintf (fp, "%s\n", buf);
-		fclose (fp);
-	}
-}
-
 
 void dump_event(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
@@ -164,7 +130,8 @@ void event_channel(irc_session_t * session, const char * event, const char * ori
 }
 void event_privmsg(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
-	privmsg_event(session,origin,params[0],params[1],0);
+	if(lua_process_event(session,event,origin,params,count))
+		privmsg_event(session,origin,params[0],params[1],0);
 	printf ("PRIVMSG '%s' said me (%s): %s\n", 
 		origin ? origin : "someone",
 		params[0], params[1] );

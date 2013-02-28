@@ -25,6 +25,7 @@
 #include "colors.c"
 #include "dcc.c"
 #include "ssl.c"
+#include "lua_scripting.h"
 
 
 #ifdef _MSC_VER
@@ -113,7 +114,7 @@ void irc_destroy_session (irc_session_t * session)
 	while ( session->dcc_sessions )
 		libirc_remove_dcc_session (session, session->dcc_sessions, 0);
 	
-	lua_script_unload(&session->lua_context);
+	lua_script_unload(&session->lua_context,&session->lua_filenotify);
 	free (session);
 }
 
@@ -480,6 +481,11 @@ int irc_run (irc_session_t * session)
 
 		if ( irc_process_select_descriptors (session, &in_set, &out_set) )
 			return 1;
+		if(session->lua_filenotify!=0){
+			if(WaitForSingleObject(session->lua_filenotify,0)==WAIT_OBJECT_0){
+				lua_script_init(&session->lua_context,&session->lua_filenotify);
+			}
+		}
 	}
 
 	return 0;
