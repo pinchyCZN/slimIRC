@@ -20,6 +20,10 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 			lua_close(lua);
 			*L=0;
 		}
+		if(lua_pcall(lua,0,0,0)!=LUA_OK){
+			lua_close(lua);
+			*L=0;
+		}
 		else
 			*L=lua;
 	}
@@ -46,7 +50,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 		}
 		if(*lua_filenotify==0){
 			HANDLE fn;
-			fn=FindFirstChangeNotification(path,FILE_NOTIFY_CHANGE_FILE_NAME|FALSE,FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE);
+			fn=FindFirstChangeNotification(path,FALSE,FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_LAST_WRITE);
 			if(fn!=INVALID_HANDLE_VALUE)
 				*lua_filenotify=fn;
 		}
@@ -76,16 +80,12 @@ int lua_process_event(irc_session_t *session,
 	if(L==0)
 		return TRUE;
 	if(stricmp(event,"PRIVMSG")==0){
-		char str[1024]={0};
+		char str[1024+20]={0};
 		char *s=0;
 		lua_getglobal(L,"privmsg_event");
-		lua_pushstring(L,event);
 		lua_pushstring(L,origin);
-		if(count>0){
-			strncpy(str,params[0],sizeof(str));
-			str[sizeof(str)-1]=0;
-		}
-		lua_pushstring(L,str);
+		lua_pushstring(L,params[0]); //nick
+		lua_pushstring(L,params[1]); //msg
 		if(lua_pcall(L,3,3,0)!=LUA_OK)
 			return TRUE;
 		if(lua_toboolean(L,-2)){
