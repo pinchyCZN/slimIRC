@@ -84,6 +84,7 @@ struct irc_session_s
 	ssl_context ssl;
 #endif
 	void	*lua_context;
+	void	*lua_filenotify;
 	
 };
 

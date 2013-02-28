@@ -66,7 +66,7 @@ irc_session_t * irc_create_session (irc_callbacks_t	* callbacks)
 	if ( !session->callbacks.event_ctcp_req )
 		session->callbacks.event_ctcp_req = libirc_event_ctcp_internal;
 
-	lua_script_init(&session->lua_context);
+	lua_script_init(&session->lua_context,&session->lua_filenotify);
 	return session;
 }
 
