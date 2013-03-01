@@ -25,7 +25,6 @@
 #include "colors.c"
 #include "dcc.c"
 #include "ssl.c"
-#include "lua_scripting.h"
 
 
 #ifdef _MSC_VER
@@ -1286,4 +1285,13 @@ int irc_cmd_whois (irc_session_t * session, const char * nick)
 	}
 
 	return irc_send_raw (session, "WHOIS %s %s", nick, nick);
+}
+
+int lua_process_event(irc_session_t *session,
+					  const char *event,
+					  const char *origin,
+					  const char ** params,
+					  unsigned int count)
+{
+	return lua_handle_event(session->lua_context,session,event,origin,params,count);
 }

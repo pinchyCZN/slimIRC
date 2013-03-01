@@ -111,7 +111,6 @@ static int libirc_ssl_disconnect(ssl_context *ssl,int *socket)
 static int libirc_ssl_connect(ssl_context *ssl,const int options,const char *host,const int port,int *c_socket)
 {
 	int ret;
-    unsigned char buf[1024];
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_session ssn;

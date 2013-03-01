@@ -162,7 +162,7 @@ int get_button_count()
 	}
 	return count;
 }
-int button_sort(IRC_WINDOW **win1,IRC_WINDOW **win2)
+int button_sort(const IRC_WINDOW **win1,const IRC_WINDOW **win2)
 {
 	if(*win1!=0 && *win2!=0)
 		return stricmp((**win1).channel,(**win2).channel);

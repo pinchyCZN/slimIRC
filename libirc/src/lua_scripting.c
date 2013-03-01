@@ -1,7 +1,77 @@
-
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <libircclient.h>
+
+
+static int lua_irc_cmd_msg(lua_State *L)
+{
+	void *session;
+	const char *nch,*msg;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==3){
+		session=lua_touserdata(L,1);
+		if(session!=NULL){
+			nch=lua_tostring(L,2);
+			msg=lua_tostring(L,3);
+			if((nch!=NULL) && (msg!=NULL)){
+				result=irc_cmd_msg(session,nch,msg);
+			}
+		}
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_irc_cmd_me(lua_State *L)
+{
+	void *session;
+	const char *nch,*msg;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==3){
+		session=lua_touserdata(L,1);
+		if(session!=NULL){
+			nch=lua_tostring(L,2);
+			msg=lua_tostring(L,3);
+			if((nch!=NULL) && (msg!=NULL)){
+				result=irc_cmd_me(session,nch,msg);
+			}
+		}
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_post_message(lua_State *L)
+{
+	void *session;
+	const char *nch,*msg;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==3){
+		session=lua_touserdata(L,1);
+		if(session!=NULL){
+			nch=lua_tostring(L,2);
+			msg=lua_tostring(L,3);
+			if((nch!=NULL) && (msg!=NULL)){
+				void *hwnd;
+				hwnd=get_hwnd_by_session(session,nch);
+				if(hwnd!=0){
+					result=post_message(hwnd,msg);
+				}
+			}
+		}
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+int lua_register_c_functions(lua_State *L)
+{
+	lua_register(L,"irc_cmd_msg",lua_irc_cmd_msg);
+	lua_register(L,"irc_cmd_me",lua_irc_cmd_me);
+	lua_register(L,"post_message",lua_post_message);
+	return TRUE;
+}
+
+
+
 static int get_last_write_time(char *fname,FILETIME *ft)
 {
 	int result=FALSE;
@@ -57,10 +127,12 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 		if(lua!=0){
 			luaL_openlibs(lua);
 			if(luaL_loadfile(lua,fscript)!=LUA_OK){
+				printf("error loading script %i\n",rand());
 				lua_close(lua);
 				*L=0;
 			}
 			else{
+				lua_register_c_functions(lua);
 				if(lua_pcall(lua,0,0,0)!=LUA_OK){
 					lua_close(lua);
 					*L=0;
@@ -68,6 +140,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 				else{
 					*L=lua;
 					get_last_write_time(fscript,&ft);
+					printf("script loaded ok\n");
 				}
 			}
 		}
@@ -100,57 +173,44 @@ void lua_script_unload(lua_State **L,HANDLE **lua_filenotify)
 		*lua_filenotify=0;
 	}
 }
-
-int lua_process_event(irc_session_t *session,
+int lua_handle_event(lua_State *L,
+					  void *session,
 					  const char *event,
 					  const char *origin,
 					  const char ** params,
 					  unsigned int count)
 {
-	lua_State *L=session->lua_context;
 	if(L==0)
 		return TRUE;
-	if(stricmp(event,"PRIVMSG")==0){
-		char str[1024+20]={0};
-		char *s=0;
-		lua_getglobal(L,"privmsg_event");
+	if(stricmp(event,"CHECKIGNORE")==0){
+		lua_getglobal(L,"check_ignore");
+		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,3,3,0)!=LUA_OK)
+		if(lua_pcall(L,4,1,0)!=LUA_OK)
+			return FALSE;
+		return lua_tointeger(L,-1);
+	}
+	else if(stricmp(event,"PRIVMSG")==0){
+		lua_getglobal(L,"privmsg_event");
+		lua_pushlightuserdata(L,session);
+		lua_pushstring(L,origin);
+		lua_pushstring(L,params[0]); //nick
+		lua_pushstring(L,params[1]); //msg
+		if(lua_pcall(L,4,1,0)!=LUA_OK)
 			return TRUE;
-		if(lua_toboolean(L,-2)){
-			s=lua_tostring(L,-1);
-			if(s!=0){
-				strncpy(str,s,sizeof(str));
-				str[sizeof(str)-1]=0;
-				printf("new string:%s\n",str);
-			}
-		}
-		if(lua_isboolean(L,-3)){
-			return lua_toboolean(L,-3);
-		}
+		return lua_tointeger(L,-1);
 	}
 	else if(stricmp(event,"CHANNEL")==0){
-		char str[1024+20]={0};
-		char *s=0;
 		lua_getglobal(L,"channel_event");
+		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,3,3,0)!=LUA_OK)
+		if(lua_pcall(L,4,1,0)!=LUA_OK)
 			return TRUE;
-		if(lua_toboolean(L,-2)){
-			s=lua_tostring(L,-1);
-			if(s!=0){
-				strncpy(str,s,sizeof(str));
-				str[sizeof(str)-1]=0;
-				printf("new string:%s\n",str);
-			}
-		}
-		if(lua_isboolean(L,-3)){
-			return lua_toboolean(L,-3);
-		}
+		return lua_toboolean(L,-1);
 	}
 	return TRUE;
 }

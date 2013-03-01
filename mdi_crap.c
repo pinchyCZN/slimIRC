@@ -661,6 +661,18 @@ int find_window_by_hwnd(HWND hwnd)
 	return 0;
 }
 
+int get_hwnd_by_session(void *session,char *channel)
+{
+	int i;
+	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+		if(irc_windows[i].session==session){
+			if(stricmp(irc_windows[i].channel,channel)==0)
+				return irc_windows[i].hwnd;
+		}
+	}
+	return 0;
+}
+
 int trim_return(char *str)
 {
 	int i,len;

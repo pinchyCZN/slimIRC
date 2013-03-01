@@ -1477,6 +1477,14 @@ char * irc_color_convert_from_mirc (const char * message);
  */
 char * irc_color_convert_to_mirc (const char * message);
 
+/*
+	wrapper function for lua_handle_event in lua_scripting.c
+*/
+int lua_process_event(irc_session_t *session,
+					  const char *event,
+					  const char *origin,
+					  const char ** params,
+					  unsigned int count);
 #ifdef	__cplusplus
 }
 #endif

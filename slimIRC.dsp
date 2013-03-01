@@ -104,6 +104,10 @@ SOURCE=.\libirc\src\libircclient.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\libirc\src\lua_scripting.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\libirc\src\portable.c
 
 !IF  "$(CFG)" == "slimIRC - Win32 Release"
