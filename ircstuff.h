@@ -244,6 +244,7 @@ void event_numeric (irc_session_t * session, unsigned int event, const char * or
 			add_line_mdi(win,str);
 		}
 		break;
+	case 432: //erroneous nick
 	case 433: //nick allready used
 		{
 			char nick[20]={0};
@@ -457,7 +458,11 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 	}
 	get_ini_str("SETTINGS","user_name",user_name,sizeof(user_name));
 	get_ini_str("SETTINGS","real_name",real_name,sizeof(real_name));
-	if(irc_connect(s,srv,port,password,nick,user_name[0]==0?0:user_name,real_name[0]==0?0:real_name))
+	if(irc_connect(s,srv,port,
+		password[0]==0?0:password,
+		nick,
+		user_name[0]==0?0:user_name,
+		real_name[0]==0?0:real_name))
 	{
 		printf("Could not connect:%s\n",irc_strerror(irc_errno(s)));
 		return FALSE;
