@@ -444,6 +444,17 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static int help_active=FALSE;
 	int debug;
 	char str[255];
+	static DWORD tick=0;
+
+	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
+	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
+	{
+		if((GetTickCount()-tick)>500)
+			printf("--\n");
+		print_msg(msg,lparam,wparam,hwnd);
+		tick=GetTickCount();
+	}
+
 	switch(msg)
 	{
 	case WM_INITDIALOG:
@@ -451,6 +462,7 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		SendDlgItemMessage(hwnd,IDC_QUIT_MSG,EM_LIMITTEXT,128,0);
 		SendDlgItemMessage(hwnd,IDC_USERNAME,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_REALNAME,EM_LIMITTEXT,80,0);
+		SendDlgItemMessage(hwnd,IDC_DEBUG_LEVEL,EM_LIMITTEXT,16,0);
 		str[0]=0;
 		if(get_ini_str("SETTINGS","NICK",str,sizeof(str)))
 			SetWindowText(GetDlgItem(hwnd,IDC_NICK),str);
@@ -474,6 +486,8 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		get_ini_value("SETTINGS","DEBUG",&debug);
 		if(debug!=0)
 			CheckDlgButton(hwnd,IDC_DEBUG,BST_CHECKED);
+		else
+			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),SW_HIDE);
 		grippy=create_grippy(hwnd);
 		reposition_controls(hwnd,settings_list_anchors);
 		break;
@@ -491,6 +505,13 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_COMMAND:
 		switch(LOWORD(wparam))
 		{
+		case IDC_DEBUG_LEVEL:
+			str[0]=0;
+			GetWindowText(lparam,str,sizeof(str));
+			break;
+		case IDC_DEBUG:
+			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),IsDlgButtonChecked(hwnd,IDC_DEBUG));
+			break;
 		case IDC_OPENINI:
 			open_ini(hwnd);
 			break;
