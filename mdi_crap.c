@@ -68,7 +68,6 @@ static int buffer_pos=0;
 static char mouse_target[512]={0};
 int tab_continue=FALSE,tab_pos=0;
 char tab_word[20]={0};
-char word_watch[256]={0};
 #include "ircstuff.h"
 #include "chan_modes.h"
 #include "static_window.h"
@@ -1254,8 +1253,6 @@ int init_mdi_stuff()
 	init_log_files();
 	get_ini_value("SETTINGS","LIST_WIDTH",&list_width);
 	get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
-	memset(word_watch,0,sizeof(word_watch));
-	get_ini_str("SETTINGS","WORD_WATCH",word_watch,sizeof(word_watch)-1);
 	set_list_width(list_width);
 	create_popup_menus();
 	return TRUE;

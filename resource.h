@@ -7,7 +7,6 @@
 #define IDD_SERVER                      104
 #define IDD_CHANNEL                     105
 #define IDD_SETTINGS                    106
-#define IDD_SERVER_LIST                 107
 #define IDD_CUSTOM_RESOURCE             109
 #define IDD_USER_INPUT                  110
 #define IDD_TEXTSEARCH                  111
@@ -28,7 +27,6 @@
 #define IDC_NICK                        1015
 #define IDC_JOIN_CONNECT                1017
 #define MDI_LIST                        1018
-#define IDC_SERVER_LIST                 1022
 #define IDC_OPENINI                     1023
 #define IDC_CONNECT_STARTUP             1024
 #define MDI_STATIC                      1025
@@ -43,7 +41,6 @@
 #define IDC_PASSWORD                    1035
 #define IDC_LISTVIEW                    1037
 #define IDC_SHOWJOINS                   1038
-#define IDC_WORDWATCH                   1039
 #define IDC_SEARCH_UP                   1040
 #define IDC_SEARCH_DOWN                 1041
 #define IDC_SEARCH_BOX                  1042
@@ -65,10 +62,9 @@
 #define IDC_STATIC1                     1058
 #define IDC_ENABLELOG                   1059
 #define IDC_DEBUG                       1060
-#define IDC_POSTCONNECT                 1061
-#define IDC_STATIC_PCC                  1062
 #define IDC_BUTTON1                     1063
 #define MDI_MENU_OPENLOG                1064
+#define IDC_LUA_SCRIPT                  1065
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
@@ -82,7 +78,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1065
+#define _APS_NEXT_CONTROL_VALUE         1066
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

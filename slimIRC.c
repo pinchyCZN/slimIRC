@@ -439,7 +439,7 @@ join_channel:
 BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short settings_list_anchors[];
-	extern int show_joins,log_enable;
+	extern int show_joins,log_enable,lua_script_enable;
 	static HWND grippy=0;
 	static int help_active=FALSE;
 	int debug;
@@ -449,38 +449,31 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd,IDC_NICK,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_QUIT_MSG,EM_LIMITTEXT,128,0);
-		SendDlgItemMessage(hwnd,IDC_WORDWATCH,EM_LIMITTEXT,256,0);
 		SendDlgItemMessage(hwnd,IDC_USERNAME,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_REALNAME,EM_LIMITTEXT,80,0);
-		SendDlgItemMessage(hwnd,IDC_POSTCONNECT,EM_LIMITTEXT,255,0);
 		str[0]=0;
 		if(get_ini_str("SETTINGS","NICK",str,sizeof(str)))
 			SetWindowText(GetDlgItem(hwnd,IDC_NICK),str);
 		str[0]=0;
 		if(get_ini_str("SETTINGS","QUIT_MSG",str,sizeof(str)))
 			SetWindowText(GetDlgItem(hwnd,IDC_QUIT_MSG),str);
-
-		get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
-		CheckDlgButton(hwnd,IDC_SHOWJOINS,show_joins);
-		get_ini_value("SETTINGS","ENABLE_LOG",&log_enable);
-		CheckDlgButton(hwnd,IDC_ENABLELOG,log_enable);
-
-		str[0]=0;
-		if(get_ini_str("SETTINGS","WORD_WATCH",str,sizeof(str)))
-			SetWindowText(GetDlgItem(hwnd,IDC_WORDWATCH),str);
 		str[0]=0;
 		if(get_ini_str("SETTINGS","user_name",str,sizeof(str)))
 			SetWindowText(GetDlgItem(hwnd,IDC_USERNAME),str);
 		str[0]=0;
 		if(get_ini_str("SETTINGS","real_name",str,sizeof(str)))
 			SetWindowText(GetDlgItem(hwnd,IDC_REALNAME),str);
+
+		get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
+		CheckDlgButton(hwnd,IDC_SHOWJOINS,show_joins);
+		get_ini_value("SETTINGS","ENABLE_LOG",&log_enable);
+		CheckDlgButton(hwnd,IDC_ENABLELOG,log_enable);
+		get_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",&lua_script_enable);
+		CheckDlgButton(hwnd,IDC_LUA_SCRIPT,lua_script_enable);
 		debug=0;
 		get_ini_value("SETTINGS","DEBUG",&debug);
 		if(debug!=0)
 			CheckDlgButton(hwnd,IDC_DEBUG,BST_CHECKED);
-		str[0]=0;
-		if(get_ini_str("SETTINGS","post_connect_command",str,sizeof(str)))
-			SetWindowText(GetDlgItem(hwnd,IDC_POSTCONNECT),str);
 		grippy=create_grippy(hwnd);
 		reposition_controls(hwnd,settings_list_anchors);
 		break;
@@ -512,16 +505,30 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				str[0]=0;
 				GetWindowText(GetDlgItem(hwnd,IDC_QUIT_MSG),str,sizeof(str));
 				write_ini_str("SETTINGS","QUIT_MSG",str);
+				str[0]=0;
+				GetWindowText(GetDlgItem(hwnd,IDC_USERNAME),str,sizeof(str));
+				write_ini_str("SETTINGS","user_name",str);
+				str[0]=0;
+				GetWindowText(GetDlgItem(hwnd,IDC_REALNAME),str,sizeof(str));
+				write_ini_str("SETTINGS","real_name",str);
 				if(IsDlgButtonChecked(hwnd,IDC_SHOWJOINS)==BST_CHECKED)
 					show_joins=1;
 				else
 					show_joins=0;
 				write_ini_value("SETTINGS","SHOW_JOINS",show_joins);
+
 				if(IsDlgButtonChecked(hwnd,IDC_ENABLELOG)==BST_CHECKED)
 					log_enable=1;
 				else
 					log_enable=0;
-				write_ini_value("SETTINGS","ENABLE_LOG",log_enable);
+				write_ini_value("SETTINGS","SHOW_JOINS",lua_script_enable);
+
+				if(IsDlgButtonChecked(hwnd,IDC_LUA_SCRIPT)==BST_CHECKED)
+					lua_script_enable=1;
+				else
+					lua_script_enable=0;
+				write_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",lua_script_enable);
+
 				if(IsDlgButtonChecked(hwnd,IDC_DEBUG)==BST_CHECKED){
 					open_console();
 					debug=1;
@@ -531,19 +538,6 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					debug=0;
 				}
 				write_ini_value("SETTINGS","DEBUG",debug);
-				str[0]=0;
-				GetWindowText(GetDlgItem(hwnd,IDC_WORDWATCH),str,sizeof(str));
-				write_ini_str("SETTINGS","WORD_WATCH",str);
-				update_word_watch(str);
-				str[0]=0;
-				GetWindowText(GetDlgItem(hwnd,IDC_USERNAME),str,sizeof(str));
-				write_ini_str("SETTINGS","user_name",str);
-				str[0]=0;
-				GetWindowText(GetDlgItem(hwnd,IDC_REALNAME),str,sizeof(str));
-				write_ini_str("SETTINGS","real_name",str);
-				str[0]=0;
-				GetWindowText(GetDlgItem(hwnd,IDC_POSTCONNECT),str,sizeof(str));
-				write_ini_str("SETTINGS","post_connect_command",str);
 				EndDialog(hwnd,0);
 			}
 			else

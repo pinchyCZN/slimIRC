@@ -389,7 +389,6 @@ int channel_msg_event(void *session,char *origin,char *channel,char *msg,int typ
 			_snprintf(str,sizeof(str),"<%s> %s",nick,msg);
 		add_line_mdi(win,str);
 		highlight_button_text(win);
-		handle_word_watch(win,nick,channel,msg);
 	}
 	return TRUE;
 }
@@ -409,54 +408,5 @@ int update_channel_topic(void *session,char *nick,char *channel,char *topic,int 
 			highlight_button_text(win);
 		}
 	}
-	return TRUE;
-}
-int handle_word_watch(IRC_WINDOW *win,char *nick,char *channel,char *msg)
-{
-	int i,index,len,start=FALSE;
-	char word[80];
-	len=strlen(word_watch);
-	if(len>sizeof(word_watch))
-		len=sizeof(word_watch);
-	index=0;
-	for(i=0;i<len;i++){
-		if((index<(sizeof(word)-1)) && word_watch[i]!=','){
-			word[index++]=word_watch[i];
-			if(word_watch[i+1]==0)
-				goto doword;
-		}
-		else{
-doword:
-			word[index++]=0;
-			index=0;
-			if(strstri(msg,word)!=0){
-				if(win->session!=0){
-					if(irc_is_connected(win->session)){
-						IRC_WINDOW *privmsg_win;
-						char str[256];
-						privmsg_win=find_msg_window(win->session,win->nick);
-						if(privmsg_win!=0){
-							_snprintf(str,sizeof(str),"<%s> %s * %s %s",win->nick,nick,channel,msg);
-							str[sizeof(str)-1]=0;
-							add_line_mdi(privmsg_win,str);
-							highlight_button_text(privmsg_win);
-						}
-						else{
-							_snprintf(str,sizeof(str),"%s * %s %s",nick,channel,msg);
-							str[sizeof(str)-1]=0;
-							privmsg_event(win->session,win->nick,win->nick,str,0);
-						}
-					}
-				}
-				break;
-			}
-		}
-	}
-	return TRUE;
-}
-int update_word_watch(char *str)
-{
-	strncpy(word_watch,str,sizeof(word_watch));
-	word_watch[sizeof(word_watch)-1]=0;
 	return TRUE;
 }

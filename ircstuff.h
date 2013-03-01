@@ -96,26 +96,7 @@ void event_connect(irc_session_t * session, const char * event, const char * ori
 	update_chat_sessions(session);
 	autojoin_channels(session);
 	echo_server_window(session,"%s %s %s %s",event,origin,count>0?params[0]:"",count>1?params[1]:"");
-	if(get_ini_str("SETTINGS","post_connect_command",str,sizeof(str))){
-		int i,index=0,len=strlen(str);
-		char cmd[256];
-		for(i=0;i<len;i++){
-			if(str[i]==';'){
-				cmd[index++]=0;
-				if(strlen(cmd)>0)
-					irc_send_raw(session,cmd);
-				index=0;
-			}
-			else if(i==len-1){
-				cmd[index++]=str[i];
-				cmd[index++]=0;
-				if(strlen(cmd)>0)
-					irc_send_raw(session,cmd);
-			}
-			else
-				cmd[index++]=str[i];
-		}
-	}
+	lua_process_event(session,"POST_CONNECT",origin,params,count);
 }
 
 void event_channel(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)

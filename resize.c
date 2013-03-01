@@ -236,18 +236,14 @@ short settings_list_anchors[]={
 		XPOS,65,YPOS,28,
 		SIZE_WIDTH_OFF,-63,HEIGHT,23,
 		CONTROL_FINISH,-1,
-	CONTROL_ID,IDC_WORDWATCH,
-        XPOS,65,YPOS,89,
-        SIZE_WIDTH_OFF,-64,HEIGHT,23, /*w.off=64 h.off=208*/
- 		CONTROL_FINISH,-1,
-	CONTROL_ID,IDC_STATIC_PCC,
-        XPOS,251,YPOS,176, /*x.off=-28 y.off=-55*/
-        WIDTH,50,HEIGHT,44, /*w.off=-250 h.off=-187*/
-        CONTROL_FINISH,-1,
-	CONTROL_ID,IDC_POSTCONNECT,
-        XPOS,300,YPOS,176, /*x.off=-48 y.off=-23*/
-        SIZE_WIDTH_OFF,-300,HEIGHT,23, /*w.off=-231 h.off=-208*/
-        CONTROL_FINISH,-1,
+	CONTROL_ID,IDC_USERNAME,
+		XPOS,65,YPOS,60,
+		SIZE_WIDTH_OFF,-63,HEIGHT,23,
+		CONTROL_FINISH,-1,
+	CONTROL_ID,IDC_REALNAME,
+		XPOS,65,YPOS,90,
+		SIZE_WIDTH_OFF,-63,HEIGHT,23,
+		CONTROL_FINISH,-1,
 	RESIZE_FINISH
 };
 short chat_anchor_list[]={
@@ -347,6 +343,142 @@ short chan_mode_list[]={
 
 	RESIZE_FINISH
 };
+int get_word(char *str,int num,char *out,int olen)
+{
+	int i,len,count=0,index=0;
+	int start_found=FALSE;
+	len=strlen(str);
+	for(i=0;i<len;i++){
+		if(str[i]==','){
+			count++;
+			if(count>num){
+				out[index++]=0;
+				break;
+			}
+		}
+		if(!start_found){
+			if(count==num && str[i]>' ' && str[i]!=',')
+				start_found=TRUE;
+		}
+		if(start_found){
+			if(str[i]<' ' || str[i]=='/'){
+				out[index++]=0;
+				break;
+			}
+			if(str[i]>' ')
+				out[index++]=str[i];
+			if(i==len-1){
+				out[index++]=0;
+				break;
+			}
+		}
+		if(index>=olen-2){
+			out[index++]=0;
+			break;
+		}
+	}
+	return TRUE;
+}
+int modify_list(short *list)
+{
+	FILE *f;
+	char str[1024];
+	char *tags[]={
+	"CONTROL_ID",
+	"XPOS","YPOS",
+	"WIDTH","HEIGHT",
+	"HUG_L",
+	"HUG_R",
+	"HUG_T",
+	"HUG_B",
+	"HUG_CTRL_X",
+	"HUG_CTRL_Y",
+	"HUG_HEIGHT",
+	"HUG_WIDTH",
+	"HUG_CTRL_TXT_X",
+	"HUG_CTRL_TXT_Y",
+	"HUG_CTRL_TXT_X_",
+	"HUG_CTRL_TXT_Y_",
+	"SIZE_HEIGHT_OFF",
+	"SIZE_WIDTH_OFF",
+	"SIZE_HEIGHT_PER",
+	"SIZE_WIDTH_PER",
+	"SIZE_TEXT_CTRL",
+	"CONTROL_FINISH",
+	"RESIZE_FINISH",
+	0
+	};
+	if(list==0)
+		return;
+	f=fopen("rc.txt","rb");
+	if(f!=0){
+		int result=FALSE;
+		int index=0;
+		int done=FALSE;
+		printf("-------start---------\n");
+		do{
+			char *s;
+			int i,j;
+			str[0]=0;
+			result=fgets(str,sizeof(str),f);
+			s=strstr(str,"/");
+			if(s!=0)
+				s[0]=0;
+			for(i=0;i<10;i+=2){
+				char word[40]={0};
+				if(done)
+					break;
+				get_word(str,i,word,sizeof(word));
+				if(strlen(word)==0)
+					break;
+				if(strlen(word)>0){
+					for(j=0;j<100;j++){
+						if(tags[j]==0)
+							break;
+						if(strcmp(word,tags[j])==0){
+							int val;
+							if(strcmp(word,"CONTROL_ID")==0){
+								char w2[40]={0};
+								get_word(str,i+1,w2,sizeof(w2));
+								printf("%s,%s\n",word,w2);
+								index+=2;
+								break;
+							}
+							if(strcmp(word,"CONTROL_FINISH")==0){
+								index+=2;
+								break;
+							}
+							if(strcmp(word,"RESIZE_FINISH")==0){
+								done=TRUE;
+								break;
+							}
+							if(list[index]==RESIZE_FINISH){
+								done=TRUE;
+								break;
+							}
+							list[index++]=j;
+							printf("%s,",word);
+							word[0]=0;
+							get_word(str,i+1,word,sizeof(word));
+							printf("%s\n",word);
+							if(strlen(word)>0){
+								val=atoi(word);
+								list[index++]=val;
+							}
+							else
+								index=index;
+						}
+					}
+				}
+			}
+			if(done)
+				break;
+		}while(result);
+		fclose(f);
+	}
+	return TRUE;
+}
+
 int dump_sizes(HWND hwnd,short *IDC)
 {
 	int i;
@@ -465,6 +597,7 @@ int reposition_controls(HWND hwnd, int *list)
 {
 	RECT	rect;
 	GetClientRect(hwnd, &rect);
+//modify_list(list);
 	process_anchor_list(hwnd,list);
 	InvalidateRect(hwnd,&rect,TRUE);
 	return TRUE;

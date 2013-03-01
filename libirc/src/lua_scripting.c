@@ -3,6 +3,7 @@
 #include <lualib.h>
 #include <libircclient.h>
 
+int lua_script_enable=TRUE;
 
 static int lua_irc_cmd_msg(lua_State *L)
 {
@@ -62,11 +63,46 @@ static int lua_post_message(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+static int lua_send_privmsg(lua_State *L)
+{
+	void *session;
+	const char *origin,*mynick,*msg;
+	int type;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==5){
+		//(void *session,char *origin,char *mynick,char *msg,int type)
+		session=lua_touserdata(L,1);
+		origin=lua_tostring(L,2);
+		mynick=lua_tostring(L,3);
+		msg=lua_tostring(L,4);
+		type=lua_tounsigned(L,5);
+		if(session && origin && mynick && msg)
+			result=privmsg_event(session,origin,mynick,msg,type);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_irc_send_raw(lua_State *L)
+{
+	void *session;
+	const char *str;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==2){
+		session=lua_touserdata(L,1);
+		str=lua_tostring(L,2);
+		if(session && str)
+			result=irc_send_raw(session,str);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
 int lua_register_c_functions(lua_State *L)
 {
 	lua_register(L,"irc_cmd_msg",lua_irc_cmd_msg);
 	lua_register(L,"irc_cmd_me",lua_irc_cmd_me);
 	lua_register(L,"post_message",lua_post_message);
+	lua_register(L,"send_privmsg",lua_send_privmsg);
+	lua_register(L,"irc_send_raw",lua_irc_send_raw);
 	return TRUE;
 }
 
@@ -122,7 +158,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 			lua=*L=0;
 		}
 	}
-	if(lua==0){
+	if(lua==0 && lua_script_enable){
 		lua=luaL_newstate();
 		if(lua!=0){
 			luaL_openlibs(lua);
@@ -182,6 +218,8 @@ int lua_handle_event(lua_State *L,
 {
 	if(L==0)
 		return TRUE;
+	if(!lua_script_enable)
+		return TRUE;
 	if(stricmp(event,"CHECKIGNORE")==0){
 		lua_getglobal(L,"check_ignore");
 		lua_pushlightuserdata(L,session);
@@ -208,6 +246,16 @@ int lua_handle_event(lua_State *L,
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
+		if(lua_pcall(L,4,1,0)!=LUA_OK)
+			return TRUE;
+		return lua_toboolean(L,-1);
+	}
+	else if(stricmp(event,"POST_CONNECT")==0){
+		lua_getglobal(L,"post_connect_event");
+		lua_pushlightuserdata(L,session);
+		lua_pushstring(L,origin);
+		lua_pushstring(L,params[0]);
+		lua_pushstring(L,params[1]);
 		if(lua_pcall(L,4,1,0)!=LUA_OK)
 			return TRUE;
 		return lua_toboolean(L,-1);

@@ -1,3 +1,13 @@
+function get_nick(s)
+	i=string.find(s,"!")
+	if(i)then
+		nick=string.sub(s,0,i-1)
+	else
+		return s
+	end
+	return nick
+end
+
 
 function check_ignore(session,origin,nick,msg)
 	io.write("checking ignore list for:",origin,"\n")
@@ -18,24 +28,26 @@ function privmsg_event(session,origin,nick,msg)
 	return 1
 end
 
+
 function channel_event(session,origin,channel,msg)
-	process=true
-	replace=false
-	newstr="nope"
 	io.write("channel_event\n")
 	io.write(" origin=",origin," channel=",channel," msg=",msg,"\n")
-	if(string.find(msg,"test"))then
-		io.write("doing test\n")
-		post_message(session,channel,"jesus is mah niggah")
-
+	if(string.find(msg,"http") or string.find(msg,"pinch"))then
+		--post_message(session,channel,"jesus is mah niggah")
+		m="* "..get_nick(origin).." "..channel.." "..msg
+		send_privmsg(session,origin,origin,m,0)
 	end
 	if(string.find(msg,"xx"))then
-		io.write("doing test\n")
-		a="there was xx in "..msg
-		post_message(session,channel,a)
+--		post_message(session,channel,a)
 
 	end
 	return 1
 end
 
-io.write("file load\n")
+
+function post_connect_event(session,origin,t1,t2)
+	irc_send_raw(session,"playtrafficlog last")
+end
+
+io.write("file loaded\n")
+
