@@ -14,5 +14,18 @@ function privmsg_event(origin,nick,msg)
 	--return 1,2,3
 end
 
-a,b,c=privmsg_event('sjdfsdfjh ig45nore','567','234234')
-print("a=",a," b=",b," c=",c)
+function channel_event(origin,channel,msg)
+	process=true;
+	replace=false;
+	newstr="nope";
+	io.write("channel_event\n");
+	io.write(" origin=",origin," channel=",channel," msg=",msg,"\n");
+	if(string.find(origin,"621366"))then
+		io.write("ignoring\n");
+		process=false;
+	end
+	return process,replace,newstr
+	--return 1,2,3
+end
+
+io.write("file load\n");
