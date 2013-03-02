@@ -41,6 +41,20 @@ static int lua_irc_cmd_me(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+static int lua_irc_send_raw(lua_State *L)
+{
+	void *session;
+	const char *str;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==2){
+		session=lua_touserdata(L,1);
+		str=lua_tostring(L,2);
+		if(session && str)
+			result=irc_send_raw(session,str);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
 static int lua_post_message(lua_State *L)
 {
 	void *session;
@@ -82,26 +96,11 @@ static int lua_send_privmsg(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
-static int lua_irc_send_raw(lua_State *L)
-{
-	void *session;
-	const char *str;
-	int result=LIBIRC_ERR_INVAL;
-	if(lua_gettop(L)==2){
-		session=lua_touserdata(L,1);
-		str=lua_tostring(L,2);
-		if(session && str)
-			result=irc_send_raw(session,str);
-	}
-	lua_pushinteger(L,result);
-	return 1;
-}
 typedef struct{
 	char *lua_name;
 	int(*lua_func)(lua_State *L);
 }LUA_C_FUNC_MAP;
 LUA_C_FUNC_MAP lua_map[]={
-	{"irc_cmd_msg",lua_irc_cmd_msg},
 	{"irc_cmd_msg",lua_irc_cmd_msg},
 	{"irc_cmd_me",lua_irc_cmd_me},
 	{"irc_send_raw",lua_irc_send_raw},
