@@ -66,7 +66,7 @@ irc_session_t * irc_create_session (irc_callbacks_t	* callbacks)
 	if ( !session->callbacks.event_ctcp_req )
 		session->callbacks.event_ctcp_req = libirc_event_ctcp_internal;
 
-	lua_script_init(&session->lua_context,&session->lua_filenotify);
+	lua_script_init(&session->lua_context,&session->lua_filenotify,&session->lua_ft);
 	return session;
 }
 
@@ -482,7 +482,7 @@ int irc_run (irc_session_t * session)
 			return 1;
 		if(session->lua_filenotify!=0){
 			if(WaitForSingleObject(session->lua_filenotify,0)==WAIT_OBJECT_0){
-				lua_script_init(&session->lua_context,&session->lua_filenotify);
+				lua_script_init(&session->lua_context,&session->lua_filenotify,&session->lua_ft);
 			}
 		}
 	}
@@ -1294,4 +1294,12 @@ int lua_process_event(irc_session_t *session,
 					  unsigned int count)
 {
 	return lua_handle_event(session->lua_context,session,event,origin,params,count);
+}
+void lua_mutex_lock(port_mutex_t *mutex)
+{
+	libirc_mutex_lock(mutex);
+}
+void lua_mutex_unlock(port_mutex_t *mutex)
+{
+	libirc_mutex_unlock(mutex);
 }

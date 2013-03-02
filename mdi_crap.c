@@ -1245,7 +1245,7 @@ int create_popup_menus()
 
 int init_mdi_stuff()
 {
-	extern int show_joins;
+	extern int show_joins,lua_script_enable;
 	int list_width=60;
 	memset(irc_windows,0,sizeof(irc_windows));
 	memset(server_threads,0,sizeof(server_threads));
@@ -1253,6 +1253,7 @@ int init_mdi_stuff()
 	init_log_files();
 	get_ini_value("SETTINGS","LIST_WIDTH",&list_width);
 	get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
+	get_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",&lua_script_enable);
 	set_list_width(list_width);
 	create_popup_menus();
 	return TRUE;

@@ -122,26 +122,25 @@ int lua_register_c_functions(lua_State *L)
 
 
 
-static int get_last_write_time(char *fname,FILETIME *ft)
+static int get_last_write_time(char *fname,__int64 *ft)
 {
 	int result=FALSE;
 	HANDLE hf;
 	hf=CreateFile(fname,0,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(hf!=INVALID_HANDLE_VALUE){
-		result=GetFileTime(hf,NULL,NULL,ft);
+		result=GetFileTime(hf,NULL,NULL,(FILETIME*)ft);
 		if(result!=0)
 			result=TRUE;
 		CloseHandle(hf);
 	}
 	return result;
 }
-void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
+void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 {
 	extern char ini_file[];
 	lua_State *lua;
 	char path[MAX_PATH]={0};
 	char fscript[MAX_PATH];
-	static FILETIME ft={0,0};
 
 	if(ini_file[0]==0)
 		GetCurrentDirectory(sizeof(path),path);
@@ -164,10 +163,10 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 
 	lua=*L;
 	if(lua!=0){
-		FILETIME tt={0,0};
+		__int64 tt=0;
 		get_last_write_time(fscript,&tt);
-		if((tt.dwHighDateTime!=ft.dwHighDateTime)||(tt.dwLowDateTime!=ft.dwLowDateTime)){
-			ft=tt;
+		if(tt!=(*ft)){
+			*ft=tt;
 			lua_close(lua);
 			lua=*L=0;
 		}
@@ -190,7 +189,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 				}
 				else{
 					*L=lua;
-					get_last_write_time(fscript,&ft);
+					get_last_write_time(fscript,ft);
 				}
 			}
 		}
@@ -209,7 +208,6 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 		if(fn!=INVALID_HANDLE_VALUE)
 			*lua_filenotify=fn;
 	}
-
 }
 void lua_script_unload(lua_State **L,HANDLE **lua_filenotify)
 {

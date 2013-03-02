@@ -33,7 +33,7 @@ function channel_event(session,origin,channel,msg)
 	if(string.find(msg,"http") or string.find(msg,"pinch"))then
 		--post_message(session,channel,"jesus is mah niggah")
 		m="* "..get_nick(origin).." "..channel.." "..msg
-		send_privmsg(session,"word_watch",origin,m,0)
+		send_privmsg(session,"word_watch","word_watch",m,0)
 	end
 	if(string.find(msg,"xx"))then
 --		post_message(session,channel,a)

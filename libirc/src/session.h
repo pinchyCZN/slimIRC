@@ -85,6 +85,7 @@ struct irc_session_s
 #endif
 	void	*lua_context;
 	void	*lua_filenotify;
+	__int64 lua_ft;
 	
 };
 
