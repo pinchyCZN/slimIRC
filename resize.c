@@ -409,7 +409,7 @@ int modify_list(short *list)
 	0
 	};
 	if(list==0)
-		return;
+		return 0;
 	f=fopen("rc.txt","rb");
 	if(f!=0){
 		int result=FALSE;
@@ -593,7 +593,7 @@ int main_dlg_anchors[]={
 	RESIZE_FINISH
 */
 };
-int reposition_controls(HWND hwnd, int *list)
+int reposition_controls(HWND hwnd, short *list)
 {
 	RECT	rect;
 	GetClientRect(hwnd, &rect);

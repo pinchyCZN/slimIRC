@@ -10,16 +10,13 @@ end
 
 
 function check_ignore(session,origin,nick,msg)
-	io.write("checking ignore list for:",origin,"\n")
 	if(string.find(origin,"billy!"))then
-		io.write("ignoring ",origin)
-		return 1
-	--elseif(string.find(origin,"u0"))then
-	--	io.write("ignoring ",origin)
-	--	return 1
+--		io.write("ignoring ",origin)
+--		return 1
 	else
 		return 0
 	end
+	return 0
 end
 
 function privmsg_event(session,origin,nick,msg)
@@ -30,12 +27,13 @@ end
 
 
 function channel_event(session,origin,channel,msg)
-	io.write("channel_event\n")
-	io.write(" origin=",origin," channel=",channel," msg=",msg,"\n")
+	--io.write("channel_event\n")
+
+	--io.write(" origin=",origin," channel=",channel," msg=",msg,"\n")
 	if(string.find(msg,"http") or string.find(msg,"pinch"))then
 		--post_message(session,channel,"jesus is mah niggah")
 		m="* "..get_nick(origin).." "..channel.." "..msg
-		send_privmsg(session,origin,origin,m,0)
+		send_privmsg(session,"word_watch",origin,m,0)
 	end
 	if(string.find(msg,"xx"))then
 --		post_message(session,channel,a)

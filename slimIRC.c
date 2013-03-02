@@ -439,21 +439,11 @@ join_channel:
 BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short settings_list_anchors[];
-	extern int show_joins,log_enable,lua_script_enable;
+	extern int show_joins,log_enable,lua_script_enable,debug_level;
 	static HWND grippy=0;
 	static int help_active=FALSE;
 	int debug;
 	char str[255];
-	static DWORD tick=0;
-
-	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
-	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
-	{
-		if((GetTickCount()-tick)>500)
-			printf("--\n");
-		print_msg(msg,lparam,wparam,hwnd);
-		tick=GetTickCount();
-	}
 
 	switch(msg)
 	{
@@ -484,8 +474,11 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		CheckDlgButton(hwnd,IDC_LUA_SCRIPT,lua_script_enable);
 		debug=0;
 		get_ini_value("SETTINGS","DEBUG",&debug);
-		if(debug!=0)
+		if(debug!=0){
 			CheckDlgButton(hwnd,IDC_DEBUG,BST_CHECKED);
+			_snprintf(str,sizeof(str),"%i",debug_level);
+			SetWindowText(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),str);
+		}
 		else
 			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),SW_HIDE);
 		grippy=create_grippy(hwnd);
@@ -506,8 +499,14 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		switch(LOWORD(wparam))
 		{
 		case IDC_DEBUG_LEVEL:
-			str[0]=0;
-			GetWindowText(lparam,str,sizeof(str));
+			if(HIWORD(wparam)==EN_CHANGE){
+				str[0]=0;
+				GetWindowText(lparam,str,sizeof(str));
+				if(str[0]!=0){
+					debug_level=atoi(str);
+					printf("debug_level=%i\n",debug_level);
+				}
+			}
 			break;
 		case IDC_DEBUG:
 			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),IsDlgButtonChecked(hwnd,IDC_DEBUG));

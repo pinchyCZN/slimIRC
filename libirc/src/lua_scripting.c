@@ -96,13 +96,27 @@ static int lua_irc_send_raw(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+typedef struct{
+	char *lua_name;
+	int(*lua_func)(lua_State *L);
+}LUA_C_FUNC_MAP;
+LUA_C_FUNC_MAP lua_map[]={
+	{"irc_cmd_msg",lua_irc_cmd_msg},
+	{"irc_cmd_msg",lua_irc_cmd_msg},
+	{"irc_cmd_me",lua_irc_cmd_me},
+	{"irc_send_raw",lua_irc_send_raw},
+	{"post_message",lua_post_message},
+	{"send_privmsg",lua_send_privmsg},
+	0
+};
 int lua_register_c_functions(lua_State *L)
 {
-	lua_register(L,"irc_cmd_msg",lua_irc_cmd_msg);
-	lua_register(L,"irc_cmd_me",lua_irc_cmd_me);
-	lua_register(L,"post_message",lua_post_message);
-	lua_register(L,"send_privmsg",lua_send_privmsg);
-	lua_register(L,"irc_send_raw",lua_irc_send_raw);
+	int i;
+	for(i=0;i<sizeof(lua_map)/sizeof(LUA_C_FUNC_MAP);i++){
+		if(lua_map[i].lua_name==0)
+			break;
+		lua_register(L,lua_map[i].lua_name,lua_map[i].lua_func);
+	}
 	return TRUE;
 }
 
@@ -163,20 +177,20 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify)
 		if(lua!=0){
 			luaL_openlibs(lua);
 			if(luaL_loadfile(lua,fscript)!=LUA_OK){
-				printf("error loading script %i\n",rand());
+				printf("luaL_loadfile error:%s\n",lua_tostring(lua, -1));
 				lua_close(lua);
 				*L=0;
 			}
 			else{
 				lua_register_c_functions(lua);
 				if(lua_pcall(lua,0,0,0)!=LUA_OK){
+					printf("lua_pcall error:%s\n",lua_tostring(lua, -1));
 					lua_close(lua);
 					*L=0;
 				}
 				else{
 					*L=lua;
 					get_last_write_time(fscript,&ft);
-					printf("script loaded ok\n");
 				}
 			}
 		}
@@ -209,6 +223,32 @@ void lua_script_unload(lua_State **L,HANDLE **lua_filenotify)
 		*lua_filenotify=0;
 	}
 }
+enum{CHECK_IGNORE_FUNC,STANDARD_FUNC,NUMERIC_FUNC};
+typedef struct{
+	char *event;
+	char *lua_func;
+	int type;
+}LUA_FUNC_MAP;
+LUA_FUNC_MAP lua_funcs[]={
+	{"CHECKIGNORE","check_ignore",CHECK_IGNORE_FUNC},
+	{"PRIVMSG","privmsg_event",STANDARD_FUNC},
+	{"CHANNEL","channel_event",STANDARD_FUNC},
+	{"POST_CONNECT","post_connect_event",STANDARD_FUNC},
+	{"JOIN","join_event",STANDARD_FUNC},
+	{"NUMERIC","numeric_event",NUMERIC_FUNC},
+	0
+};
+int lua_get_func_index(const char *event)
+{
+	int i;
+	for(i=0;i<sizeof(lua_funcs)/sizeof(LUA_FUNC_MAP);i++){
+		if(lua_funcs[i].event==0)
+			break;
+		if(stricmp(event,lua_funcs[i].event)==0)
+			return i;
+	}
+	return -1;
+}
 int lua_handle_event(lua_State *L,
 					  void *session,
 					  const char *event,
@@ -216,12 +256,21 @@ int lua_handle_event(lua_State *L,
 					  const char ** params,
 					  unsigned int count)
 {
+	int index;
 	if(L==0)
 		return TRUE;
 	if(!lua_script_enable)
 		return TRUE;
-	if(stricmp(event,"CHECKIGNORE")==0){
-		lua_getglobal(L,"check_ignore");
+	index=lua_get_func_index(event);
+
+	if(index<0)
+		return TRUE;
+
+	switch(lua_funcs[index].type){
+	default:
+		return TRUE;
+	case CHECK_IGNORE_FUNC:
+		lua_getglobal(L,lua_funcs[index].lua_func);
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
@@ -229,36 +278,31 @@ int lua_handle_event(lua_State *L,
 		if(lua_pcall(L,4,1,0)!=LUA_OK)
 			return FALSE;
 		return lua_tointeger(L,-1);
-	}
-	else if(stricmp(event,"PRIVMSG")==0){
-		lua_getglobal(L,"privmsg_event");
+		break;
+	case STANDARD_FUNC:
+		lua_getglobal(L,lua_funcs[index].lua_func);
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,4,1,0)!=LUA_OK)
+		if(lua_pcall(L,4,1,0)!=LUA_OK){
+			printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
 			return TRUE;
+		}
 		return lua_tointeger(L,-1);
-	}
-	else if(stricmp(event,"CHANNEL")==0){
-		lua_getglobal(L,"channel_event");
+		break;
+	case NUMERIC_FUNC:
+		lua_getglobal(L,lua_funcs[index].lua_func);
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,4,1,0)!=LUA_OK)
+		if(lua_pcall(L,4,1,0)!=LUA_OK){
+			printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
 			return TRUE;
-		return lua_toboolean(L,-1);
-	}
-	else if(stricmp(event,"POST_CONNECT")==0){
-		lua_getglobal(L,"post_connect_event");
-		lua_pushlightuserdata(L,session);
-		lua_pushstring(L,origin);
-		lua_pushstring(L,params[0]);
-		lua_pushstring(L,params[1]);
-		if(lua_pcall(L,4,1,0)!=LUA_OK)
-			return TRUE;
-		return lua_toboolean(L,-1);
+		}
+		return lua_tointeger(L,-1);
+		break;
 	}
 	return TRUE;
 }

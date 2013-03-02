@@ -32,12 +32,23 @@
 #include "libircclient.h"
 
 
-
+int debug_level=0;
+int dprintf(int level,char *fmt,...)
+{
+	va_list args;
+	if(level<debug_level){
+		va_start(args,fmt);
+		vprintf(fmt,args);
+	}
+	return 0;
+}
 void dump_event(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
 	char buf[512];
 	int cnt;
 
+	if(debug_level<2)
+		return;
 	buf[0] = '\0';
 
 	for(cnt=0;cnt<count;cnt++)
@@ -85,6 +96,7 @@ void event_join(irc_session_t * session, const char * event, const char * origin
 {
 	join_channel_event(session,origin,params[0]);
 	echo_server_window(session,"%s %s %s",event,origin,params[0]);
+	lua_process_event(session,event,origin,params,count);
 	dump_event(session,event,origin,params,count);
 }
 
@@ -110,7 +122,7 @@ void event_channel(irc_session_t * session, const char * event, const char * ori
 	else
 		privmsg_event(session,origin,params[0],params[1],0);
 	lua_process_event(session,event,origin,params,count);
-	printf("'%s' said in channel %s: %s\n",origin?origin:"someone",params[0],params[1]);
+	dprintf(1,"'%s' said in channel %s: %s\n",origin?origin:"someone",params[0],params[1]);
 }
 void event_privmsg(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
@@ -118,20 +130,20 @@ void event_privmsg(irc_session_t * session, const char * event, const char * ori
 		return;
 	privmsg_event(session,origin,params[0],params[1],0);
 	lua_process_event(session,event,origin,params,count);
-	printf ("PRIVMSG '%s' said me (%s): %s\n", 
+	dprintf(1,"PRIVMSG '%s' said me (%s): %s\n", 
 		origin ? origin : "someone",
 		params[0], params[1] );
 }
 
 void irc_event_dcc_chat(irc_session_t * session, const char * nick, const char * addr, irc_dcc_t dccid)
 {
-	printf("DCC chat [%d] requested from '%s' (%s)\n", dccid, nick, addr);
+	dprintf(0,"DCC chat [%d] requested from '%s' (%s)\n", dccid, nick, addr);
 	echo_server_window(session,"DCC chat [%d] requested from '%s' (%s)", dccid, nick, addr);
 	irc_dcc_decline(session,dccid);
 }
 void irc_event_dcc_send(irc_session_t * session, const char * nick, const char * addr, const char * filename, unsigned long size, irc_dcc_t dccid)
 {
-	printf("DCC send [%d] of %s requested from '%s' (%s)\n",dccid,filename,nick,addr);
+	dprintf(0,"DCC send [%d] of %s requested from '%s' (%s)\n",dccid,filename,nick,addr);
 	echo_server_window(session,"DCC send [%d] of %s requested from '%s' (%s)",dccid,filename,nick,addr);
 	irc_dcc_decline(session,dccid);
 }
@@ -162,11 +174,12 @@ void event_numeric (irc_session_t * session, unsigned int event, const char * or
 {
 	IRC_WINDOW *win=0;
 	char buf[24];
-	sprintf (buf, "%d", event);
-	dump_event (session, buf, origin, params, count);
+	sprintf(buf, "%d", event);
+	dump_event(session, buf, origin, params, count);
 	echo_server_window(session,"%s %s %s %s %s %s %s",buf,
 		count>1?params[1]:"",count>2?params[2]:"",count>3?params[3]:"",count>4?params[4]:"",count>5?params[5]:"",
 		count>6?params[6]:"");
+	lua_process_event(session,"NUMERIC",buf,params,count);
 	switch(event){
 //	case 461: //need more parameters
 //		break;
@@ -345,7 +358,7 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 		}
 		if(count>=sizeof(prev)){
 			memset(prev,0,sizeof(prev));
-			printf("prev reset\n");
+			dprintf(1,"prev reset\n");
 		}
 
 		memset(list,0,sizeof(list));
@@ -354,19 +367,19 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 				list[index++]=i+1;
 		}
 		if(index==0){
-			printf("index is zero\n");
+			dprintf(1,"index is zero\n");
 			index=sizeof(prev);
 		}
-		printf("count=%i\n",index);
+		dprintf(1,"count=%i\n",index);
 		rnd=rand();
 		rnd=rnd%index;
 		index=list[rnd];
 		index--;
 		if(index<0 || index>=(sizeof(randoms)/sizeof(char *))){
 			index=0;
-			printf("index out of range\n");
+			dprintf(1,"index out of range\n");
 		}
-		printf("index=%i\n",index);
+		dprintf(1,"index=%i\n",index);
 		_snprintf(slap,sizeof(slap),"slaps %s %s",nick,randoms[index]);
 		prev[index]=1;
 		for(i=0;i<sizeof(prev);i++){
@@ -447,7 +460,7 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		user_name[0]==0?0:user_name,
 		real_name[0]==0?0:real_name))
 	{
-		printf("Could not connect:%s\n",irc_strerror(irc_errno(s)));
+		dprintf(0,"Could not connect:%s\n",irc_strerror(irc_errno(s)));
 		return FALSE;
 	}
 	irc_run(s);
