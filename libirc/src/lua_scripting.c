@@ -319,6 +319,7 @@ int lua_help(int(*mdi_window)(void *,char *),void *win)
 	int i;
 	if(mdi_window==0 || win==0)
 		return 0;
+	lua_error_msg=0;
 	mdi_window(win,"\r\nlua func args:(session,origin,nch,msg)");
 	for(i=0;i<sizeof(lua_funcs)/sizeof(LUA_FUNC_MAP);i++){
 		char str[80];
