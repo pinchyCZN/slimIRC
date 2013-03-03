@@ -64,7 +64,7 @@ int post_message(HWND hwnd,char *str)
 					char pnick[20],pmsg[1024];
 sendprivmsg:
 					pnick[0]=0;pmsg[0]=0;
-					sscanf(str+sizeof("/msg ")-1,"%19s %1023s",pnick,pmsg);
+					sscanf(str+sizeof("/msg ")-1,"%19s %1023[^\n\r]s",pnick,pmsg);
 					pnick[sizeof(pnick)-1]=0;
 					pmsg[sizeof(pmsg)-1]=0;
 					irc_cmd_msg(win->session,pnick,pmsg);
