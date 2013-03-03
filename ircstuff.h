@@ -275,6 +275,8 @@ void event_mode(irc_session_t * session, const char * event, const char * origin
 	char nick[20]={0};
 	char str[255]={0};
 	dump_event(session,event,origin,params,count);
+	if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
+		return;
 	_snprintf(str,sizeof(str),"%s %s",event,origin);
 	for(i=0;i<count;i++)
 		_snprintf(str,sizeof(str),"%s %s",str,params[i]);

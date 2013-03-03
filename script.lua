@@ -9,7 +9,12 @@ function get_nick(s)
 end
 
 
-function check_ignore(session,origin,nick,msg)
+function check_ignore(session,origin,nch,msg)
+	io.write("check ignore origin=",origin," nch=",nch," msg=",msg,"\n")
+	n=get_nick(origin)
+	if(n=="romney666") and (nch=="#1")then
+		return 1
+	end
 	if(string.find(origin,"billy!"))then
 --		io.write("ignoring ",origin)
 --		return 1
