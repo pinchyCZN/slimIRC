@@ -63,6 +63,7 @@
 #define IDC_ENABLELOG                   1059
 #define IDC_DEBUG                       1060
 #define IDC_BUTTON1                     1063
+#define IDC_OPEN_INI_FOLDER             1063
 #define MDI_MENU_OPENLOG                1064
 #define IDC_LUA_SCRIPT                  1065
 #define IDC_DEBUG_LEVEL                 1066

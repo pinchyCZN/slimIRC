@@ -167,6 +167,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 		if(tt!=(*ft)){
 			*ft=tt;
 			lua_close(lua);
+			printf("lua close\n");
 			lua=*L=0;
 		}
 	}

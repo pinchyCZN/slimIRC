@@ -182,14 +182,22 @@ install:
 	return 0;
 }
 
-int open_ini(HWND hwnd)
+int open_ini(HWND hwnd,int explore)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE h;
 	char str[MAX_PATH+80];
 	if(h=FindFirstFile(ini_file,&fd)!=INVALID_HANDLE_VALUE){
 		FindClose(h);
-		ShellExecute(0,"open","notepad.exe",ini_file,NULL,SW_SHOWNORMAL);
+		if(explore)
+		{
+			char drive[_MAX_DRIVE],dir[_MAX_DIR];
+			_splitpath(ini_file,drive,dir,NULL,NULL);
+			_snprintf(str,sizeof(str),"%s%s",drive,dir);
+			ShellExecute(hwnd,"explore",str,NULL,NULL,SW_SHOWNORMAL);
+		}
+		else
+			ShellExecute(hwnd,"open","notepad.exe",ini_file,NULL,SW_SHOWNORMAL);
 	}
 	else if(hwnd!=0){
 		memset(str,0,sizeof(str));

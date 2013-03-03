@@ -511,8 +511,11 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case IDC_DEBUG:
 			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),IsDlgButtonChecked(hwnd,IDC_DEBUG));
 			break;
+		case IDC_OPEN_INI_FOLDER:
+			open_ini(hwnd,TRUE);
+			break;
 		case IDC_OPENINI:
-			open_ini(hwnd);
+			open_ini(hwnd,FALSE);
 			break;
 		case WM_DESTROY:
 			EndDialog(hwnd,0);
