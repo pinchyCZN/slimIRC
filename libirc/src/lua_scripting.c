@@ -100,13 +100,14 @@ static int lua_send_privmsg(lua_State *L)
 typedef struct{
 	char *lua_name;
 	int(*lua_func)(lua_State *L);
+	char *descrip;
 }LUA_C_FUNC_MAP;
 LUA_C_FUNC_MAP lua_map[]={
-	{"irc_cmd_msg",lua_irc_cmd_msg},
-	{"irc_cmd_me",lua_irc_cmd_me},
-	{"irc_send_raw",lua_irc_send_raw},
-	{"post_message",lua_post_message},
-	{"send_privmsg",lua_send_privmsg},
+	{"irc_cmd_msg",lua_irc_cmd_msg,"(session,nch,msg)"},
+	{"irc_cmd_me",lua_irc_cmd_me,"(session,nch,msg)"},
+	{"irc_send_raw",lua_irc_send_raw,"(session,str)"},
+	{"post_message",lua_post_message,"(session,nch,msg)"},
+	{"send_privmsg",lua_send_privmsg,"(session,origin,mynick,msg,type)"},
 	0
 };
 int lua_register_c_functions(lua_State *L)
@@ -311,4 +312,31 @@ int lua_handle_event(lua_State *L,
 		break;
 	}
 	return TRUE;
+}
+
+int lua_help(int(*mdi_window)(void *,char *),void *win)
+{
+	int i;
+	if(mdi_window==0 || win==0)
+		return 0;
+	mdi_window(win,"\r\nlua func args:(session,origin,nch,msg)");
+	for(i=0;i<sizeof(lua_funcs)/sizeof(LUA_FUNC_MAP);i++){
+		char str[80];
+		if(lua_funcs[i].event==0)
+			break;
+		_snprintf(str,sizeof(str)-1,"event:%s lua_func:%s",
+			lua_funcs[i].event,lua_funcs[i].lua_func);
+		str[sizeof(str)-1]=0;
+		mdi_window(win,str);
+	}
+	mdi_window(win,"\r\n avail C functions for lua:");
+	for(i=0;i<sizeof(lua_map)/sizeof(LUA_C_FUNC_MAP);i++){
+		char str[80];
+		if(lua_map[i].lua_name==0)
+			break;
+		_snprintf(str,sizeof(str)-1,"%s %s",lua_map[i].lua_name,lua_map[i].descrip);
+		str[sizeof(str)-1]=0;
+		mdi_window(win,str);
+	}
+	return 0;
 }

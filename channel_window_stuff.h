@@ -80,6 +80,13 @@ sendprivmsg:
 				else if(strnicmp(str,"/recon",sizeof("/recon")-1)==0){
 					irc_disconnect(win->session);
 				}
+				else if(strnicmp(str,"/help lua",sizeof("/help lua")-1)==0){
+					lua_help(add_line_mdi,win);
+				}
+				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
+					add_line_mdi(win,"/msg /me /discon (disconnect)"
+						"/recon (reconnect) /help lua (list lua commands)");
+				}
 				else
 					irc_send_raw(win->session,str+1);
 				add_history(str);
