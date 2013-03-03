@@ -4,6 +4,7 @@
 #include <libircclient.h>
 
 int lua_script_enable=TRUE;
+int lua_error_msg=0;
 
 static int lua_irc_cmd_msg(lua_State *L)
 {
@@ -190,6 +191,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 				else{
 					*L=lua;
 					get_last_write_time(fscript,ft);
+					lua_error_msg=0;
 				}
 			}
 		}
@@ -284,7 +286,10 @@ int lua_handle_event(lua_State *L,
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
 		if(lua_pcall(L,4,1,0)!=LUA_OK){
-			printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
+			if(lua_error_msg<5){
+				printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
+				lua_error_msg++;
+			}
 			return TRUE;
 		}
 		return lua_tointeger(L,-1);
@@ -296,7 +301,10 @@ int lua_handle_event(lua_State *L,
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
 		if(lua_pcall(L,4,1,0)!=LUA_OK){
-			printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
+			if(lua_error_msg<5){
+				printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
+				lua_error_msg++;
+			}
 			return TRUE;
 		}
 		return lua_tointeger(L,-1);
