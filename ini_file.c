@@ -17,6 +17,20 @@ int is_path_directory(char *path)
 	else
 		return FALSE;
 }
+int get_ini_path(char *path,int size)
+{
+	char drive[_MAX_DRIVE],dir[_MAX_DIR];
+	if((ini_file[0]==0) || (size<=0)){
+		if(size>0)
+			path[0]=0;
+		return FALSE;
+	}
+	_splitpath(ini_file,drive,dir,NULL,NULL);
+	_snprintf(path,size,"%s%s",drive,dir);
+	add_trail_slash(path,size);
+	path[size-1]=0;
+	return TRUE;
+}
 int get_ini_value(char *section,char *key,int *val)
 {
 	char str[255];
@@ -61,11 +75,11 @@ int write_ini_str(char *section,char *key,char *str)
 	else
 		return FALSE;
 }
-int add_trail_slash(char *path)
+int add_trail_slash(char *path,int size)
 {
 	int i;
 	i=strlen(path);
-	if(i>0 && path[i-1]!='\\')
+	if((i<(size-1)) && i>0 && path[i-1]!='\\')
 		strcat(path,"\\");
 	return TRUE;
 }
@@ -79,12 +93,14 @@ int does_file_exist(char *fname)
 	}
 	return FALSE;
 }
-int get_appdata_folder(char *path)
+int get_appdata_folder(char *path,int size)
 {
 	int found=FALSE;
 	ITEMIDLIST *pidl;
 	IMalloc	*palloc;
 	HWND hwindow=0;
+	if(size<MAX_PATH)
+		return found;
 	if(SHGetSpecialFolderLocation(hwindow,CSIDL_APPDATA,&pidl)==NOERROR){
 		if(SHGetPathFromIDList(pidl,path)){
 			found=TRUE;
@@ -120,8 +136,8 @@ int init_ini_file()
 			goto install;
 	}
 	else{
-		if(get_appdata_folder(path)){
-			add_trail_slash(path);
+		if(get_appdata_folder(path,sizeof(path))){
+			add_trail_slash(path,sizeof(path));
 			strcat(path,"SlimIRC\\");
 			_snprintf(str,sizeof(str)-1,"%s%s",path,INI_FNAME);
 			if((!is_path_directory(path)) || (!does_file_exist(str))){
@@ -165,7 +181,7 @@ install:
 		}
 
 	}
-	add_trail_slash(path);
+	add_trail_slash(path,sizeof(path));
 	_snprintf(ini_file,sizeof(ini_file)-1,"%s%s",path,INI_FNAME);
 	f=fopen(ini_file,"rb");
 	if(f==0){
@@ -189,15 +205,14 @@ int open_ini(HWND hwnd,int explore)
 	char str[MAX_PATH+80];
 	if(h=FindFirstFile(ini_file,&fd)!=INVALID_HANDLE_VALUE){
 		FindClose(h);
-		if(explore)
-		{
-			char drive[_MAX_DRIVE],dir[_MAX_DIR];
-			_splitpath(ini_file,drive,dir,NULL,NULL);
-			_snprintf(str,sizeof(str),"%s%s",drive,dir);
-			ShellExecute(hwnd,"explore",str,NULL,NULL,SW_SHOWNORMAL);
+		if(explore){
+			if(get_ini_path(str,sizeof(str)))
+				ShellExecute(hwnd,"explore",str,NULL,NULL,SW_SHOWNORMAL);
 		}
-		else
-			ShellExecute(hwnd,"open","notepad.exe",ini_file,NULL,SW_SHOWNORMAL);
+		else{
+			if(ini_file[0]!=0)
+				ShellExecute(hwnd,"open","notepad.exe",ini_file,NULL,SW_SHOWNORMAL);
+		}
 	}
 	else if(hwnd!=0){
 		memset(str,0,sizeof(str));

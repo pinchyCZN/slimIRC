@@ -56,20 +56,8 @@ int close_old_files()
 }
 int create_log_directory(char *dir,int len)
 {
-	extern char ini_file[];
-	if(ini_file[0]==0)
-		GetCurrentDirectory(len,dir);
-	else
-		strncpy(dir,ini_file,len);
+	get_ini_path(dir,len);
 	if(dir[0]!=0){
-		int i;
-		for(i=strlen(dir);i>0;i--){
-			if(dir[i]=='\\'){
-				dir[i+1]=0;
-				break;
-			}
-		}
-		add_trail_slash(dir);
 		_snprintf(dir,len,"%slogs",dir);
 		if(is_path_directory(dir))
 			return TRUE;

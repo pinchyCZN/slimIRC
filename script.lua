@@ -1,56 +1,31 @@
-function get_nick(s)
-	i=string.find(s,"!")
-	if(i)then
-		nick=string.sub(s,0,i-1)
-	else
-		return s
-	end
-	return nick
-end
+-- external C functions available:
+-- irc_cmd_msg (session,nch,msg)
+-- irc_cmd_me (session,nch,msg)
+-- irc_send_raw (session,str)
+-- post_message (session,nch,msg)
+-- send_privmsg (session,origin,mynick,msg,type)
 
 
-function check_ignore(session,origin,nch,msg)
-	io.write("check ignore origin=",origin," nch=",nch," msg=",msg,"\n")
-	n=get_nick(origin)
-	if(n=="romney666") and (nch=="#1")then
-		return 1
-	end
-	if(string.find(origin,"billy!"))then
---		io.write("ignoring ",origin)
---		return 1
-	else
-		return 0
-	end
-	return 0
-end
+-- lua functions that get called after certain events
+ -- session=irc session pointer
+ -- origin=full nick (billy!~test@example.com)
+ -- nch=nick or channel
+ -- msg=message body
 
-function privmsg_event(session,origin,nick,msg)
-	io.write("privmsg_event\n")
-	io.write(" origin=",origin," nick=",nick," msg=",msg,"\n")
-	return 1
-end
+-- function check_ignore(session,origin,nch,msg)
+-- end
 
+-- function privmsg_event(session,origin,nch,msg)
+-- end
 
-function channel_event(session,origin,channel,msg)
-	--io.write("channel_event\n")
+-- function channel_event(session,origin,nch,msg)
+-- end
 
-	--io.write(" origin=",origin," channel=",channel," msg=",msg,"\n")
-	if(string.find(msg,"http") or string.find(msg,"pinch"))then
-		--post_message(session,channel,"jesus is mah niggah")
-		m="* "..get_nick(origin).." "..channel.." "..msg
-		send_privmsg(session,"word_watch","word_watch",m,0)
-	end
-	if(string.find(msg,"xx"))then
---		post_message(session,channel,a)
+-- function post_connect_event(session,origin,nch,msg)
+-- end
 
-	end
-	return 1
-end
+-- function join_event(session,origin,nch,msg)
+-- end
 
-
-function post_connect_event(session,origin,t1,t2)
-	irc_send_raw(session,"playtrafficlog last")
-end
-
-io.write("file loaded\n")
-
+-- function numeric_event(session,origin,nch,msg)
+-- end

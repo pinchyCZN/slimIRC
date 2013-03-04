@@ -84,8 +84,12 @@ sendprivmsg:
 					lua_help(add_line_mdi,win);
 				}
 				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
-					add_line_mdi(win,"/msg /me /discon (disconnect)"
-						"/recon (reconnect) /help lua (list lua commands)");
+					add_line_mdi(win,"/msg /me /discon (disconnect) "
+						"/recon (reconnect) /help lua (list lua commands) "
+						"/lua create (make new script file)");
+				}
+				else if(strnicmp(str,"/lua create",sizeof("/lua create")-1)==0){
+					lua_create_default_file(add_line_mdi,win);
 				}
 				else
 					irc_send_raw(win->session,str+1);

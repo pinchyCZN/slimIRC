@@ -5,7 +5,7 @@
 
 int lua_script_enable=TRUE;
 int lua_error_msg=0;
-
+#define LUA_SCRIPT_NAME "script.lua"
 static int lua_irc_cmd_msg(lua_State *L)
 {
 	void *session;
@@ -138,29 +138,13 @@ static int get_last_write_time(char *fname,__int64 *ft)
 }
 void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 {
-	extern char ini_file[];
 	lua_State *lua;
 	char path[MAX_PATH]={0};
 	char fscript[MAX_PATH];
 
-	if(ini_file[0]==0)
-		GetCurrentDirectory(sizeof(path),path);
-	else
-		strncpy(path,ini_file,sizeof(path));
-	path[sizeof(path)-1]=0;
-	if(path[0]!=0){
-		int i;
-		for(i=strlen(path);i>0;i--){
-			if(path[i]=='\\'){
-				path[i+1]=0;
-				break;
-			}
-		}
-	}
-	else
-		return;
+	get_ini_path(path,sizeof(path));
 
-	_snprintf(fscript,sizeof(fscript),"%s%s",path,"script.lua");
+	_snprintf(fscript,sizeof(fscript),"%s%s",path,LUA_SCRIPT_NAME);
 
 	lua=*L;
 	if(lua!=0){
@@ -340,4 +324,45 @@ int lua_help(int(*mdi_window)(void *,char *),void *win)
 		mdi_window(win,str);
 	}
 	return 0;
+}
+int lua_create_default_file(int(*mdi_window)(void *,char *),void *win)
+{
+	FILE *f;
+	char path[MAX_PATH]={0};
+	get_ini_path(path,sizeof(path));
+	_snprintf(path,sizeof(path),"%s%s",path,LUA_SCRIPT_NAME);
+	if(does_file_exist(path)){
+		if(mdi_window && win){
+			mdi_window(win,"file allready exists:");
+			mdi_window(win,path);
+		}
+		return FALSE;
+	}
+	f=fopen(path,"wb");
+	if(f!=0){
+		int i;
+		fprintf(f,"-- external C functions available:\n");
+		for(i=0;i<sizeof(lua_map)/sizeof(LUA_C_FUNC_MAP);i++){
+			if(lua_map[i].lua_name==0)
+				break;
+			fprintf(f,"-- %s %s\n",lua_map[i].lua_name,lua_map[i].descrip);
+		}
+		fprintf(f,"\n\n-- lua functions that get called after certain events\n"
+				" -- session=irc session pointer\n"
+				" -- origin=full nick (billy!~test@example.com)\n"
+				" -- nch=nick or channel\n"
+				" -- msg=message body\n");
+		for(i=0;i<sizeof(lua_funcs)/sizeof(LUA_FUNC_MAP);i++){
+			if(lua_funcs[i].event==0)
+				break;
+			fprintf(f,"\n-- function %s(session,origin,nch,msg)\n",lua_funcs[i].lua_func);
+			fprintf(f,"-- end\n");
+		}
+		fclose(f);
+		if(mdi_window && win){
+			mdi_window(win,"created file:");
+			mdi_window(win,path);
+		}
+	}
+	return FALSE;
 }
