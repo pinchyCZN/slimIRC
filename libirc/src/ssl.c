@@ -80,8 +80,8 @@ static int alloc_mutexes( unsigned int total )
 
 #endif
 
-int DEBUG_LEVEL=1;
-int set_debug_level(int i)
+static int DEBUG_LEVEL=1;
+int set_ssl_debug_level(int i)
 { DEBUG_LEVEL=i;return 0; }
 void my_debug(void *ctx,int level,const char *str)
 {

@@ -32,7 +32,10 @@
 #include "libircclient.h"
 
 
-int debug_level=0;
+static int debug_level=0;
+int set_irc_debug_level(int i){debug_level=i;return 0;}
+int get_irc_debug_level(void){return debug_level;}
+
 int dprintf(int level,char *fmt,...)
 {
 	va_list args;
@@ -442,21 +445,32 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 	char real_name[80]={0},user_name[80]={0};
 	int ssl_no_verify=FALSE;
 	char *srv=server;
+	int (*irc_connect_ptr) (irc_session_t * session,
+				const char * server, 
+				unsigned short port,
+				const char * server_password,
+				const char * nick,
+				const char * username,
+				const char * realname)=irc_connect;
 
+	if(strnicmp(srv,"IPV6:",sizeof("IPV6:")-1)==0){
+		irc_connect_ptr=irc_connect6;
+		srv+=sizeof("IPV6:")-1;
+	}
 	// If the port number is specified in the server string, use the port 0 so it gets parsed
-	if(strchr(server,':')!=0)
+	if(strchr(srv,':')!=0)
 		port=0;
 
 	// To handle the "SSL certificate verify failed" from command line we allow passing ## in front 
 	// of the server name, and in this case tell libircclient not to verify the cert
-	if(server[0]=='#' && server[1]=='#')
+	if(srv[0]=='#' && srv[1]=='#')
 	{
 		irc_option_set(s,LIBIRC_OPTION_SSL_NO_VERIFY);
-		srv=server+1;
+		srv=srv+1;
 	}
 	get_ini_str("SETTINGS","user_name",user_name,sizeof(user_name));
 	get_ini_str("SETTINGS","real_name",real_name,sizeof(real_name));
-	if(irc_connect(s,srv,port,
+	if(irc_connect_ptr(s,srv,port,
 		password[0]==0?0:password,
 		nick,
 		user_name[0]==0?0:user_name,

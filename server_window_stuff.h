@@ -97,8 +97,11 @@ quit:
 				session=thread->session=0;
 				break;
 			}
-			//if(GetTickCount()-tick<5000)
-			//	Sleep(5000);
+			while((GetTickCount()-tick)<5000){
+				Sleep(500);
+				if(win!=0 && (win->disconnect || (win->hwnd==0)))
+					break;
+			}
 		};
 		free(callbacks);
 	}

@@ -439,7 +439,7 @@ join_channel:
 BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short settings_list_anchors[];
-	extern int show_joins,log_enable,lua_script_enable,debug_level;
+	extern int show_joins,log_enable,lua_script_enable;
 	static HWND grippy=0;
 	static int help_active=FALSE;
 	int debug;
@@ -476,7 +476,7 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		get_ini_value("SETTINGS","DEBUG",&debug);
 		if(debug!=0){
 			CheckDlgButton(hwnd,IDC_DEBUG,BST_CHECKED);
-			_snprintf(str,sizeof(str),"%i",debug_level);
+			_snprintf(str,sizeof(str),"%i",get_irc_debug_level());
 			SetWindowText(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),str);
 		}
 		else
@@ -503,8 +503,8 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				str[0]=0;
 				GetWindowText(lparam,str,sizeof(str));
 				if(str[0]!=0){
-					debug_level=atoi(str);
-					printf("debug_level=%i\n",debug_level);
+					set_irc_debug_level(atoi(str));
+					printf("debug_level=%i\n",get_irc_debug_level());
 				}
 			}
 			break;
@@ -723,6 +723,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_ini_file();
 	get_ini_value("SETTINGS","DEBUG",&debug);
 	if(debug!=0){
+		set_irc_debug_level(debug);
 		open_console();
 		move_console();
 	}
