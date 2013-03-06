@@ -137,10 +137,9 @@ int handle_debug(char *s)
 
 				}
 				else if(stricmp(p2,"LEVEL")==0){
-					if(p3[0]!=0)
+					if(p3[0]!=0 && p3[0]!='?')
 						set_irc_debug_level(atoi(p3));
-					else
-						printf("irc_debug_level=%i\n",get_irc_debug_level());
+					printf("irc_debug_level=%i\n",get_irc_debug_level());
 				}
 			}
 		}
