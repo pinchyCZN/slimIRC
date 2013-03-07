@@ -36,13 +36,7 @@ int post_message(HWND hwnd,char *str)
 		if(win->session==0 || (!irc_is_connected(win->session)))
 			return FALSE;
 		handle_debug(str);
-		if(win->type==SERVER_WINDOW){
-			if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0)
-				goto sendprivmsg;
-			irc_send_raw(win->session,str);
-			add_history(str);
-		}
-		else{
+		{
 			int start,len,index,lines;
 			char msg[512+20],tmp[512];
 			char channel[40]={0};
@@ -60,15 +54,19 @@ int post_message(HWND hwnd,char *str)
 					_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
 					add_line_mdi(win,notice);
 				}
+				else if(strnicmp(str,"/ctcp ",sizeof("/ctcp ")-1)==0){
+					channel[0]=0;msg[0]=0;
+					sscanf(str+sizeof("/ctcp ")-1,"%39s %511[^\n\r]s",channel,msg);
+					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
+					irc_cmd_ctcp_request(win->session,channel,msg);
+					echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+				}
 				else if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0){
-					char pnick[20],pmsg[1024];
-sendprivmsg:
-					pnick[0]=0;pmsg[0]=0;
-					sscanf(str+sizeof("/msg ")-1,"%19s %1023[^\n\r]s",pnick,pmsg);
-					pnick[sizeof(pnick)-1]=0;
-					pmsg[sizeof(pmsg)-1]=0;
-					irc_cmd_msg(win->session,pnick,pmsg);
-					echo_server_window(win->session,"PRIVMSG %s :%s",pnick,pmsg);
+					channel[0]=0;msg[0]=0;
+					sscanf(str+sizeof("/msg ")-1,"%39s %511[^\n\r]s",channel,msg);
+					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
+					irc_cmd_msg(win->session,channel,msg);
+					echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
 				}
 				else if(strnicmp(str,"/discon",sizeof("/discon")-1)==0){
 					IRC_WINDOW *ser=find_server_window(win->server);
@@ -84,7 +82,7 @@ sendprivmsg:
 					lua_help(add_line_mdi,win);
 				}
 				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
-					add_line_mdi(win,"/msg /me /discon (disconnect) "
+					add_line_mdi(win,"/msg /me /ctcp /discon (disconnect) "
 						"/recon (reconnect) /help lua (list lua commands) "
 						"/lua create (make new script file)");
 				}
@@ -93,6 +91,11 @@ sendprivmsg:
 				}
 				else
 					irc_send_raw(win->session,str+1);
+				add_history(str);
+				return TRUE;
+			}
+			else if(win->type==SERVER_WINDOW){
+				irc_send_raw(win->session,str);
 				add_history(str);
 				return TRUE;
 			}
