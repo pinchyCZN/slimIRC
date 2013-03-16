@@ -683,11 +683,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		resize_switchbar(hwnd,ghmdiclient,ghswitchbar,switch_height);
 		return 0;
 		break;
+	case WM_QUERYENDSESSION:
+		return 1; //ok to end session
+		break;
 	case WM_ENDSESSION:
-		if(!wparam)
-			break;
-		if(lparam!=0)
-			break;
+		if(wparam){
+			exit_irc(FALSE);
+			wait_for_disconnect();
+		}
+		return 0;
 	case WM_CLOSE:
 		exit_irc(FALSE);
         break;
