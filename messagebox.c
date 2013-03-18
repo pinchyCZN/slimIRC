@@ -113,7 +113,7 @@ static char tt_text[1024]={0};
 int hide_tooltip()
 {
 	extern HWND ghmainframe;
-	PostMessage(ghmainframe,WM_USER+1,FALSE,0);
+	PostMessage(ghmainframe,WM_USER+2,0,0);
 	return TRUE;
 }
 int show_tooltip(char *msg)
@@ -121,14 +121,13 @@ int show_tooltip(char *msg)
 	extern HWND ghmainframe;
 	strncpy(tt_text,msg,sizeof(tt_text));
 	tt_text[sizeof(tt_text)-1]=0;
-	PostMessage(ghmainframe,WM_USER+1,TRUE,0);
+	PostMessage(ghmainframe,WM_USER+1,0,0);
 	return TRUE;
 }
-int create_tooltip(HWND hwnd,int show)
+int create_tooltip(HWND hwnd)
 {
 	TOOLINFO ti;
-	destroy_tooltip(hwndTT);
-	if(show && (tt_text[0]!=0)){
+	if((hwndTT==0) && (tt_text[0]!=0)){
 		hwndTT=CreateWindowEx(WS_EX_TOPMOST,
 			TOOLTIPS_CLASS,NULL,
 			WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,        
@@ -146,7 +145,7 @@ int create_tooltip(HWND hwnd,int show)
 			ti.lpszText = tt_text;
 			SendMessage(hwndTT,TTM_ADDTOOLW,0,&ti);
 			SendMessage(hwndTT,TTM_UPDATETIPTEXTA,0,&ti);
-			SendMessage(hwndTT,TTM_TRACKACTIVATE,show,&ti);
+			SendMessage(hwndTT,TTM_TRACKACTIVATE,TRUE,&ti);
 			x=y=0;
 			SendMessage(hwndTT,TTM_TRACKPOSITION,0,MAKELONG(x,y)); 
 		}
@@ -154,12 +153,11 @@ int create_tooltip(HWND hwnd,int show)
 	return hwndTT;
 
 }
-int destroy_tooltip(HWND hwnd)
+int destroy_tooltip()
 {
-	if((hwnd!=0) && (hwnd==hwndTT)){
+	if(hwndTT!=0){
 		DestroyWindow(hwndTT);
 		hwndTT=0;
-		tt_text[0]=0;
 	}
 	return hwndTT;
 }

@@ -142,24 +142,25 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 	char path[MAX_PATH]={0};
 	char fscript[MAX_PATH];
 
-
 	get_ini_path(path,sizeof(path));
 
 	_snprintf(fscript,sizeof(fscript),"%s%s",path,LUA_SCRIPT_NAME);
 
 	lua=*L;
-	if(lua!=0){
+	if(lua_script_enable){
 		__int64 tt=0;
 		get_last_write_time(fscript,&tt);
 		if(tt!=(*ft)){
 			*ft=tt;
-			lua_close(lua);
-			printf("lua close\n");
+			if(lua!=0){
+				lua_close(lua);
+				printf("lua close\n");
+			}
+			hide_tooltip();
 			lua=*L=0;
 		}
 	}
 	if(lua==0 && lua_script_enable){
-		hide_tooltip();
 		lua=luaL_newstate();
 		if(lua!=0){
 			luaL_openlibs(lua);
@@ -181,6 +182,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 					*L=lua;
 					get_last_write_time(fscript,ft);
 					lua_error_msg=0;
+					hide_tooltip();
 				}
 			}
 		}
