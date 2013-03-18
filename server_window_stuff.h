@@ -222,8 +222,9 @@ int disconnect_server(IRC_WINDOW *win)
 				get_ini_str("SETTINGS","QUIT_MSG",quitmsg,sizeof(quitmsg));
 			}
 			win->disconnect=TRUE;
-			if(irc_is_connected(win->session))
+			if(irc_is_connected(win->session)){
 				irc_cmd_quit(win->session,quitmsg);
+			}
 			timeout=0;
 		}
 		SendMessage(ghswitchbar,WM_USER+1,win->hbutton,0);
