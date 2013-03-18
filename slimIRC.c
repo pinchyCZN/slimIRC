@@ -623,6 +623,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_USER:
 		update_status_window(hwnd,ghmenu);
 		break;
+	case WM_USER+1:
+		create_tooltip(hwnd,wparam);
+		break;
+	case WM_NCACTIVATE: //could be user clicking on tooltip to close it
+		destroy_tooltip(lparam);
+		break;
 	case WM_ACTIVATE:
 		break;
 	case WM_RBUTTONDOWN:

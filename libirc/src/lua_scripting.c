@@ -142,6 +142,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 	char path[MAX_PATH]={0};
 	char fscript[MAX_PATH];
 
+
 	get_ini_path(path,sizeof(path));
 
 	_snprintf(fscript,sizeof(fscript),"%s%s",path,LUA_SCRIPT_NAME);
@@ -158,11 +159,13 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 		}
 	}
 	if(lua==0 && lua_script_enable){
+		hide_tooltip();
 		lua=luaL_newstate();
 		if(lua!=0){
 			luaL_openlibs(lua);
 			if(luaL_loadfile(lua,fscript)!=LUA_OK){
 				printf("luaL_loadfile error:%s\n",lua_tostring(lua, -1));
+				show_tooltip(lua_tostring(lua, -1));
 				lua_close(lua);
 				*L=0;
 			}
@@ -170,6 +173,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 				lua_register_c_functions(lua);
 				if(lua_pcall(lua,0,0,0)!=LUA_OK){
 					printf("lua_pcall error:%s\n",lua_tostring(lua, -1));
+					show_tooltip(lua_tostring(lua, -1));
 					lua_close(lua);
 					*L=0;
 				}

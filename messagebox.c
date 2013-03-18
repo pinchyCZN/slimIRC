@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include "resource.h"
 
 
@@ -105,4 +106,60 @@ int show_user_input(HWND hwnd,char *title,char *out,int size)
 	if(ret==IDOK)
 		strncpy(out,input_str,size);
 	return ret;
+}
+
+static HWND hwndTT=0;
+static char tt_text[1024]={0};
+int hide_tooltip()
+{
+	extern HWND ghmainframe;
+	PostMessage(ghmainframe,WM_USER+1,FALSE,0);
+	return TRUE;
+}
+int show_tooltip(char *msg)
+{
+	extern HWND ghmainframe;
+	strncpy(tt_text,msg,sizeof(tt_text));
+	tt_text[sizeof(tt_text)-1]=0;
+	PostMessage(ghmainframe,WM_USER+1,TRUE,0);
+	return TRUE;
+}
+int create_tooltip(HWND hwnd,int show)
+{
+	TOOLINFO ti;
+	destroy_tooltip(hwndTT);
+	if(show && (tt_text[0]!=0)){
+		hwndTT=CreateWindowEx(WS_EX_TOPMOST,
+			TOOLTIPS_CLASS,NULL,
+			WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,        
+			CW_USEDEFAULT,CW_USEDEFAULT,
+			CW_USEDEFAULT,CW_USEDEFAULT,
+			hwnd,NULL,NULL,NULL);
+		if(hwndTT!=0){
+			int x,y;
+			HDC hdc;
+			SIZE text_size;
+			ti.cbSize = sizeof(TOOLINFO);
+			ti.uFlags = TTF_IDISHWND|TTF_TRACK|TTF_ABSOLUTE;
+			ti.hwnd = hwndTT;
+			ti.uId = hwndTT;
+			ti.lpszText = tt_text;
+			SendMessage(hwndTT,TTM_ADDTOOLW,0,&ti);
+			SendMessage(hwndTT,TTM_UPDATETIPTEXTA,0,&ti);
+			SendMessage(hwndTT,TTM_TRACKACTIVATE,show,&ti);
+			x=y=0;
+			SendMessage(hwndTT,TTM_TRACKPOSITION,0,MAKELONG(x,y)); 
+		}
+	}
+	return hwndTT;
+
+}
+int destroy_tooltip(HWND hwnd)
+{
+	if((hwnd!=0) && (hwnd==hwndTT)){
+		DestroyWindow(hwndTT);
+		hwndTT=0;
+		tt_text[0]=0;
+	}
+	return hwndTT;
 }
