@@ -136,8 +136,6 @@ int create_tooltip(HWND hwnd)
 			hwnd,NULL,NULL,NULL);
 		if(hwndTT!=0){
 			int x,y;
-			HDC hdc;
-			SIZE text_size;
 			ti.cbSize = sizeof(TOOLINFO);
 			ti.uFlags = TTF_IDISHWND|TTF_TRACK|TTF_ABSOLUTE;
 			ti.hwnd = hwndTT;
