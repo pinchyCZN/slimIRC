@@ -761,6 +761,8 @@ int add_history(char *str)
 	for(i=MAX_EDIT_HISTORY-2;i>=0;i--){
 		strncpy(edit_buffer[i+1],edit_buffer[i],sizeof(edit_buffer[i]));
 	}
+	strncpy(edit_buffer[1],str,sizeof(edit_buffer[1]));
+	edit_buffer[1][sizeof(edit_buffer[1])-1]=0;
 	memset(edit_buffer[0],0,sizeof(edit_buffer[0]));
 	return TRUE;
 }

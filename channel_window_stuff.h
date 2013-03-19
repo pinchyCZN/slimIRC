@@ -107,8 +107,6 @@ int post_message(HWND hwnd,char *str)
 						tmp[index++]=0;
 						_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
 						add_line_mdi(win,msg);
-						strncpy(edit_buffer[0],tmp,sizeof(edit_buffer[0]));
-						edit_buffer[0][sizeof(edit_buffer[0])-1]=0;
 						add_history(tmp);
 						irc_cmd_msg(win->session,channel,tmp);
 						start=FALSE;
