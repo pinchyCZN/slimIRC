@@ -51,7 +51,7 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 	return DefWindowProc(hwnd,msg,wparam,lparam);
 	//return DefFrameProc(hwnd, ghmdiclient, msg, wparam, lparam);
 }
-int create_switchbar(HWND hwnd,HWND hinstance)
+int create_switchbar(HWND hwnd,HINSTANCE hinstance)
 {
 	//extern LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 	WNDCLASS wndclass;

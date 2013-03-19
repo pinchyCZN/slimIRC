@@ -106,7 +106,6 @@ void event_join(irc_session_t * session, const char * event, const char * origin
 
 void event_connect(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
-	char str[256];
 	dump_event(session,event,origin,params,count);
 	update_chat_sessions(session);
 	autojoin_channels(session);

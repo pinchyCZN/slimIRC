@@ -156,7 +156,7 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	RECT rect,mainrect;
 	POINTL p;
 	FINDTEXT ftext;
-	HWND hdc;
+	HDC hdc;
 	int pos,fpos,dir;
 	static int fontheight=0;
 	print_msg(msg,lparam,wparam,hwnd);
@@ -480,6 +480,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				str[MAX_EDIT_LENGTH-1]=0;
 				GetWindowText(lparam,str,sizeof(str)-1);
 				strncpy(edit_buffer[0],str,sizeof(edit_buffer[0]));
+				edit_buffer[0][sizeof(edit_buffer[0])-1]=0;
 				scroll_history_pos=0;
 				tab_continue=FALSE;
 				}
@@ -744,6 +745,7 @@ int resort_history(char *str,int index)
 		strncpy(edit_buffer[i+1],edit_buffer[i],sizeof(edit_buffer[i]));
 	}
 	strncpy(edit_buffer[1],str,sizeof(edit_buffer[i]));
+	edit_buffer[1][sizeof(edit_buffer[1])-1]=0;
 	return TRUE;
 }
 int add_history(char *str)
@@ -751,7 +753,7 @@ int add_history(char *str)
 	int i;
 	scroll_history_pos=0;
 	for(i=1;i<MAX_EDIT_HISTORY;i++){
-		if(strcmp(edit_buffer[i],str)==0){
+		if(strncmp(edit_buffer[i],str,sizeof(edit_buffer[i]))==0){
 			resort_history(str,i);
 			return TRUE;
 		}

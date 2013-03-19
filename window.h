@@ -135,7 +135,7 @@ int resize_mdi_window(HWND hclient)
 	return FALSE;
 }
 
-int create_mdiclient(HWND hwnd,HMENU hmenu,HWND hinstance)
+int create_mdiclient(HWND hwnd,HMENU hmenu,HINSTANCE hinstance)
 {
 	CLIENTCREATESTRUCT MDIClientCreateStruct;
 	HWND hmdiclient;
@@ -151,7 +151,7 @@ int create_mdiclient(HWND hwnd,HMENU hmenu,HWND hinstance)
 	return hmdiclient;
 }
 
-int create_mainwindow(void *wndproc,HMENU hmenu,HWND hinstance)
+int create_mainwindow(void *wndproc,HMENU hmenu,HINSTANCE hinstance)
 {
 	WNDCLASS wndclass;
 	HWND hframe=0;	
