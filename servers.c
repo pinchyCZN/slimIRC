@@ -645,7 +645,7 @@ enum{
 };
 int create_channel_dlg_menu(HWND hwnd)
 {
-	HWND chan_dlg_menu=0;
+	HMENU chan_dlg_menu=0;
 	if(chan_dlg_menu=CreatePopupMenu()){
 		InsertMenu(chan_dlg_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_JOIN_CONNECT_SET,"set join on connect");
 		InsertMenu(chan_dlg_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);
@@ -655,7 +655,7 @@ int create_channel_dlg_menu(HWND hwnd)
 }
 int create_server_dlg_menu(HWND hwnd)
 {
-	HWND server_dlg_menu=0;
+	HMENU server_dlg_menu=0;
 	if(server_dlg_menu=CreatePopupMenu()){
 		InsertMenu(server_dlg_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_CONNECT_STARTUP_SET,"set connect on startup");
 		InsertMenu(server_dlg_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);

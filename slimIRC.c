@@ -84,7 +84,8 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	extern short server_list_anchors[];
 	static int dir=FALSE,col=0;
 	static DWORD tick;
-	static HWND grippy=0,server_dlg_menu=0;
+	static HWND grippy=0;
+	static HMENU server_dlg_menu=0;
 	if(FALSE)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
@@ -288,7 +289,8 @@ BOOL CALLBACK channel_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	extern short server_list_anchors[];
 	static int dir=FALSE,col=0;
 	static DWORD tick;
-	static HWND grippy=0,chan_dlg_menu=0;
+	static HWND grippy=0;
+	static HMENU chan_dlg_menu=0;
 	if(FALSE)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
