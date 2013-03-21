@@ -141,7 +141,7 @@ int create_tooltip(HWND hwnd)
 			ti.hwnd = hwndTT;
 			ti.uId = hwndTT;
 			ti.lpszText = tt_text;
-			SendMessage(hwndTT,TTM_ADDTOOLW,0,&ti);
+			SendMessage(hwndTT,TTM_ADDTOOL,0,&ti);
 			SendMessage(hwndTT,TTM_UPDATETIPTEXTA,0,&ti);
 			SendMessage(hwndTT,TTM_TRACKACTIVATE,TRUE,&ti);
 			x=y=0;
