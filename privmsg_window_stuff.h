@@ -22,7 +22,7 @@ int acquire_privmsg_window(char *network,char *channel)
 {
 	return acquire_channel_window(network,channel,PRIVMSG_WINDOW);
 }
-int find_msg_window(char *session,char *nick)
+int find_msg_window(void *session,char *nick)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){

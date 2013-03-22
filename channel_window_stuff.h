@@ -1,4 +1,4 @@
-int find_channel_window(char *session,char *channel)
+int find_channel_window(void *session,char *channel)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -48,10 +48,11 @@ int post_message(HWND hwnd,char *str)
 				strncpy(channel,win->channel,sizeof(channel));
 			len=strlen(str);
 			if(len>4 && str[0]=='/' && str[1]!='/'){
-				char notice[256];
 				if(strnicmp(str,"/me",3)==0){
+					char notice[256];
 					irc_cmd_me(win->session,channel,str+4);
 					_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
+					notice[sizeof(notice)-1]=0;
 					add_line_mdi(win,notice);
 				}
 				else if(strnicmp(str,"/ctcp ",sizeof("/ctcp ")-1)==0){
@@ -84,10 +85,14 @@ int post_message(HWND hwnd,char *str)
 				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
 					add_line_mdi(win,"/msg /me /ctcp /discon (disconnect) "
 						"/recon (reconnect) /help lua (list lua commands) "
-						"/lua create (make new script file)");
+						"/lua -create (make new script file) /lua xzy (call lua user_function with xzy paramter)");
 				}
-				else if(strnicmp(str,"/lua create",sizeof("/lua create")-1)==0){
+				else if(strnicmp(str,"/lua -create",sizeof("/lua -create")-1)==0){
 					lua_create_default_file(add_line_mdi,win);
+				}
+				else if(strnicmp(str,"/lua ",sizeof("/lua ")-1)==0){
+					char *params[2]={win->channel,str+sizeof("/lua ")-1};
+					lua_process_event(win->session,"USER_CALLED",win->nick,&params,2);
 				}
 				else
 					irc_send_raw(win->session,str+1);
