@@ -127,6 +127,22 @@ static int lua_add_line_mdi(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+static int lua_irc_cmd_ctcp_reply(lua_State *L)
+{
+	const void *session;
+	const char *nick,*reply;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==3){
+		//(void *session,char *nick,char *reply)
+		session=lua_touserdata(L,1);
+		nick=lua_tostring(L,2);
+		reply=lua_tostring(L,3);
+		if(session && nick && reply)
+			result=irc_cmd_ctcp_reply(session,nick,reply);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
 typedef struct{
 	char *lua_name;
 	int(*lua_func)(lua_State *L);
@@ -136,6 +152,7 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"irc_cmd_msg",lua_irc_cmd_msg,"(session,nch,msg)"},
 	{"irc_cmd_me",lua_irc_cmd_me,"(session,nch,msg)"},
 	{"irc_send_raw",lua_irc_send_raw,"(session,str)"},
+	{"irc_cmd_ctcp_reply",lua_irc_cmd_ctcp_reply,"(session,nick,reply)"},
 	{"post_message",lua_post_message,"(session,nch,msg)"},
 	{"send_privmsg",lua_send_privmsg,"(session,origin,mynick,msg,type)"},
 	{"find_channel_window",lua_find_channel_window,"(session,channel)"},
@@ -254,6 +271,7 @@ typedef struct{
 }LUA_FUNC_MAP;
 LUA_FUNC_MAP lua_funcs[]={
 	{"CHECKIGNORE","check_ignore",CHECK_IGNORE_FUNC},
+	{"CTCP","ctcp_event",CHECK_IGNORE_FUNC},
 	{"PRIVMSG","privmsg_event",STANDARD_FUNC},
 	{"CHANNEL","channel_event",STANDARD_FUNC},
 	{"POST_CONNECT","post_connect_event",STANDARD_FUNC},
