@@ -2,6 +2,7 @@
 -- irc_cmd_msg (session,nch,msg)
 -- irc_cmd_me (session,nch,msg)
 -- irc_send_raw (session,str)
+-- irc_cmd_ctcp_reply (session,nick,reply)
 -- post_message (session,nch,msg)
 -- send_privmsg (session,origin,mynick,msg,type)
 -- find_channel_window (session,channel)
@@ -15,6 +16,9 @@
  -- msg=message body
 
 -- function check_ignore(session,origin,nch,msg)
+-- end
+
+-- function ctcp_event(session,origin,nch,msg)
 -- end
 
 -- function privmsg_event(session,origin,nch,msg)
