@@ -79,12 +79,15 @@ int post_message(HWND hwnd,char *str)
 				else if(strnicmp(str,"/recon",sizeof("/recon")-1)==0){
 					irc_disconnect(win->session);
 				}
+				else if(strnicmp(str,"/help ctcp",sizeof("/help ctcp")-1)==0){
+					add_line_mdi(win,"/ctcp nick VERSION|FINGER|PING|TIME");
+				}
 				else if(strnicmp(str,"/help lua",sizeof("/help lua")-1)==0){
 					lua_help(add_line_mdi,win);
 				}
 				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
 					add_line_mdi(win,"/msg /me /ctcp /discon (disconnect) "
-						"/recon (reconnect) /help lua (list lua commands) "
+						"/recon (reconnect) /help lua (list lua commands) /help ctcp "
 						"/lua -create (make new script file) /lua xzy (call lua user_function with xzy paramter)");
 				}
 				else if(strnicmp(str,"/lua -create",sizeof("/lua -create")-1)==0){
