@@ -760,6 +760,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	ghmdiclient=create_mdiclient(ghmainframe,ghmenu,ghinstance);
 	ghswitchbar=create_switchbar(ghmainframe,ghinstance);
+	
+	subclass_mdi_client(ghmdiclient);
 
 	ShowWindow(ghmainframe,nCmdShow);
 	UpdateWindow(ghmainframe);

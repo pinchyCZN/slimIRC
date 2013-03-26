@@ -276,6 +276,7 @@ quit:
 	}
 	return 0;
 }
+
 LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static int list_drag=FALSE,list_width=60;
@@ -1271,3 +1272,53 @@ int init_mdi_stuff()
 #include "server_window_stuff.h"
 #include "channel_window_stuff.h"
 #include "privmsg_window_stuff.h"
+
+WNDPROC *old_mdiclient=0;
+LRESULT CALLBACK mdiclient_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	static DWORD tick=0;
+	static int count=0;
+	int num_win=0;
+	if(FALSE)
+	if(/*msg!=WM_NCMOUSEMOVE&&*/msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
+		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
+	{
+		if((GetTickCount()-tick)>500)
+			printf("--\n");
+		printf("m");
+		print_msg(msg,lparam,wparam,hwnd);
+		tick=GetTickCount();
+	}
+	if(FALSE)
+	if(msg==WM_MDINEXT){
+		int i;
+		int index=0;
+		IRC_WINDOW *windows[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
+		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+			if(irc_windows[i].hbutton!=0){
+				windows[i]=&irc_windows[i];
+				num_win++;
+			}
+			else
+				windows[i]=0;
+		}
+		qsort(windows,sizeof(irc_windows)/sizeof(IRC_WINDOW),sizeof(IRC_WINDOW *),button_sort);
+		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+			if(windows[i]!=0 && windows[i]->hwnd!=0){
+				if(index==count){
+					wparam=windows[i]->hwnd;
+					count++;
+					if(count>=num_win)
+						count=0;
+					break;
+				}
+				index++;
+			}
+		}
+	}
+	CallWindowProc(old_mdiclient,hwnd,msg,wparam,lparam);
+}
+int subclass_mdi_client(HWND hwnd)
+{
+	old_mdiclient=SetWindowLong(hwnd,GWL_WNDPROC,mdiclient_proc);
+}
