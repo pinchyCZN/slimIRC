@@ -172,7 +172,7 @@ int button_sort(const IRC_WINDOW **win1,const IRC_WINDOW **win2)
 int resize_buttons(HWND hswitch)
 {
 	RECT rect;
-	int i,count=0;
+	int i,count;
 	int width,height;
 	IRC_WINDOW *windows[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
 	count=get_button_count();
@@ -185,19 +185,17 @@ int resize_buttons(HWND hswitch)
 		width=20;
 	if(height<20)
 		height=20;
-	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-		if(irc_windows[i].hbutton!=0)
-			windows[i]=&irc_windows[i];
-		else
-			windows[i]=0;
-	}
-	qsort(windows,sizeof(irc_windows)/sizeof(IRC_WINDOW),sizeof(IRC_WINDOW *),button_sort);
 	count=0;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-		if(windows[i]!=0 && windows[i]->hbutton!=0){
-			MoveWindow(windows[i]->hbutton,count*width,0,width,height,TRUE);
+		if(irc_windows[i].hbutton!=0){
+			windows[count]=&irc_windows[i];
 			count++;
 		}
+	}
+	qsort(windows,count,sizeof(IRC_WINDOW *),button_sort);
+	for(i=0;i<count;i++){
+		if(windows[i]!=0 && windows[i]->hbutton!=0)
+			MoveWindow(windows[i]->hbutton,i*width,0,width,height,TRUE);
 	}
 	return TRUE;
 }
