@@ -199,6 +199,54 @@ int resize_buttons(HWND hswitch)
 	}
 	return TRUE;
 }
+WNDPROC *old_mdiclient=0;
+LRESULT CALLBACK mdiclient_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	int num_win=0;
+	if(msg==WM_MDINEXT){
+		int i,index=0;
+		HWND hwndChild=wparam;
+		int fnext=lparam;
+
+		IRC_WINDOW *windows[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
+		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+			if(irc_windows[i].hwnd!=0){
+				windows[index]=&irc_windows[i];
+				index++;
+			}
+		}
+		num_win=index;
+		qsort(windows,num_win,sizeof(IRC_WINDOW *),button_sort);
+		for(i=0;i<num_win;i++){
+			if(windows[i]!=0 && windows[i]->hwnd!=0){
+				if(windows[i]->hwnd==hwndChild){
+					index=i;
+					if(!fnext){
+						if(i==num_win-1)
+							index=0;
+						else
+							index=i+1;
+					}
+					else{
+						if(i==0)
+							index=num_win-1;
+						else
+							index=i-1;
+					}
+					SendMessage(hwnd,WM_MDIACTIVATE,windows[index]->hwnd,0);
+					return 0;
+					break;
+				}
+			}
+		}
+	}
+	return CallWindowProc(old_mdiclient,hwnd,msg,wparam,lparam);
+}
+int subclass_mdi_client(HWND hwnd)
+{
+	old_mdiclient=SetWindowLong(hwnd,GWL_WNDPROC,mdiclient_proc);
+	return old_mdiclient;
+}
 int handle_switch_button(HWND hbutton,int top)
 {
 	int i,count=0;
