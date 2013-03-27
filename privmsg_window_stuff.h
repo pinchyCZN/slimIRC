@@ -66,7 +66,7 @@ int privmsg_event(void *session,char *origin,char *mynick,char *msg,int type)
 		}
 	}
 	if(privmsg_win!=0){
-		char str[256]={0};
+		char str[512+20]={0};
 		char nick[20]={0};
 		if(strlen(msg)>0){
 			extract_nick(origin,nick,sizeof(nick));
