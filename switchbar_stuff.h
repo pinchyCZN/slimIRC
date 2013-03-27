@@ -202,13 +202,12 @@ int resize_buttons(HWND hswitch)
 WNDPROC *old_mdiclient=0;
 LRESULT CALLBACK mdiclient_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	int num_win=0;
 	if(msg==WM_MDINEXT){
-		int i,index=0;
+		IRC_WINDOW *windows[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
 		HWND hwndChild=wparam;
 		int fnext=lparam;
+		int i,num_win=0,index=0;
 
-		IRC_WINDOW *windows[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
 		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 			if(irc_windows[i].hwnd!=0){
 				windows[index]=&irc_windows[i];
