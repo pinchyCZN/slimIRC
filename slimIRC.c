@@ -106,6 +106,7 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		sort_listview(ghlistview,dir,col);
 		if(server_dlg_menu==0)
 			server_dlg_menu=create_server_dlg_menu(hwnd);
+		SetFocus(GetDlgItem(hwnd,IDC_ADD));
 		break;
 	case WM_SIZE:
 		grippy_move(hwnd,grippy);
@@ -604,11 +605,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
 	case WM_CREATE:
 		{
-			int width,height,x=0,y=0;
+			int width=0,height=0,x=0,y=0;
 			load_icon(hwnd);
 			if(get_ini_value("SETTINGS","main_dlg_width",&width)&&
 				get_ini_value("SETTINGS","main_dlg_height",&height)){
-				SetWindowPos(hwnd,NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
+				if(width<0 || height<0)
+					PostMessage(hwnd,WM_SYSCOMMAND,SC_MAXIMIZE,0);
+				else if(width>0 && height>0)
+					SetWindowPos(hwnd,NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
 			}
 			get_ini_value("SETTINGS","main_dlg_xpos",&x);
 			get_ini_value("SETTINGS","main_dlg_ypos",&y);
@@ -708,12 +712,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         break;
 	case WM_DESTROY:
 		{
-			RECT rect;
-			GetWindowRect(hwnd,&rect);
-			write_ini_value("SETTINGS","main_dlg_width",rect.right-rect.left);
-			write_ini_value("SETTINGS","main_dlg_height",rect.bottom-rect.top);
-			write_ini_value("SETTINGS","main_dlg_xpos",rect.left);
-			write_ini_value("SETTINGS","main_dlg_ypos",rect.top);
+			RECT rect={0};
+			WINDOWPLACEMENT wp;
+			int w=0,h=0;
+			wp.showCmd=0;
+			wp.length=sizeof(wp);
+			GetWindowPlacement(hwnd,&wp);
+			if(wp.showCmd!=SW_SHOWMINIMIZED){
+				GetWindowRect(hwnd,&rect);
+				if(wp.showCmd==SW_SHOWMAXIMIZED){
+					w=h=-1;
+				}
+				else{
+					w=rect.right-rect.left;
+					h=rect.bottom-rect.top;
+				}
+				write_ini_value("SETTINGS","main_dlg_width",w);
+				write_ini_value("SETTINGS","main_dlg_height",h);
+				write_ini_value("SETTINGS","main_dlg_xpos",rect.left);
+				write_ini_value("SETTINGS","main_dlg_ypos",rect.top);
+			}
 		}
 		PostQuitMessage(0);
         break;
