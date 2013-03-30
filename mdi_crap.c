@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <richedit.h>
+#include <math.h>
 #include "libircclient.h"
 #include "resource.h"
 

@@ -186,7 +186,7 @@ int resize_buttons(HWND hswitch)
 	if(count==0)
 		return TRUE;
 	GetClientRect(hswitch,&rect);
-	width=rect.right/count;
+	width=(int)ceil(((double)rect.right/(double)count)-0.5);
 	height=rect.bottom;
 	if(width<20)
 		width=20;
