@@ -26,6 +26,13 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 	case WM_USER+1: //destroy button hwnd in wparam
 		DestroyWindow(wparam);
 		break;
+	case WM_USER+2:
+		resize_buttons(ghswitchbar);
+		break;
+	case WM_PARENTNOTIFY:
+		if(LOWORD(wparam)==WM_DESTROY)
+			PostMessage(hwnd,WM_USER+2,0,0); //resize buttons after ones destroy
+		break;
 	case WM_CREATE:
 		/*
 		hbrush=CreateHatchBrush(HS_BDIAGONAL,RGB(100,100,100));
