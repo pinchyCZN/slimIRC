@@ -449,15 +449,6 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		case CMD_WHOIS:
 			do_cmd_on_list(hwnd,LOWORD(wparam));
 			break;
-		case MDI_MENU_OPENLOG:
-			win=find_window_by_hwnd(hwnd);
-			if(win!=0){
-				char str[MAX_PATH]={0};
-				create_log_directory(str,sizeof(str));
-				_snprintf(str,sizeof(str),"%s%s.%s.log",str,win->channel,win->network);
-				ShellExecute(0,"open","notepad.exe",str,NULL,SW_SHOWNORMAL);
-			}
-			break;
 		case MDI_LIST:
 			if(HIWORD(wparam)==LBN_DBLCLK){
 				int sel=0;

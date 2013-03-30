@@ -89,7 +89,7 @@ int create_mdi_window(HWND hclient,HINSTANCE hinstance,IRC_WINDOW *win)
 		  LBS_NOTIFY|LBS_SORT|LBS_EXTENDEDSEL|LBS_WANTKEYBOARDINPUT|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS,
 			0, 0, 0, 0, hclient, MDI_LIST, hinstance, 0);
 		hmenu=GetSystemMenu(hclient,FALSE);
-		_snprintf(str,sizeof(str),"open logfile %s.%s.log",win->channel,win->network);
+		_snprintf(str,sizeof(str),"open (ctrl=explore) logfile %s.%s.log",win->channel,win->network);
 		InsertMenu(hmenu,0,MF_BYPOSITION|MF_STRING,MDI_MENU_OPENLOG,str);
 		InsertMenu(hmenu,1,MF_BYPOSITION|MF_SEPARATOR,0,0);
 	}

@@ -432,3 +432,27 @@ int update_channel_topic(void *session,char *nick,char *channel,char *topic,int 
 	}
 	return TRUE;
 }
+
+int handle_channel_menu(HWND hwnd,int wparam)
+{
+	IRC_WINDOW *win;
+	char str[MAX_PATH+40];
+	win=find_window_by_hwnd(hwnd);
+	if(win==0)
+		return FALSE;
+	switch(wparam){
+	case MDI_MENU_OPENLOG:
+		str[0]=0;
+		get_ini_path(str,sizeof(str));
+		if(GetKeyState(VK_CONTROL)&0x8000){
+			_snprintf(str,sizeof(str),"%slogs\\",str);
+			ShellExecute(hwnd,"explore",str,NULL,NULL,SW_SHOWNORMAL);
+		}
+		else{
+			_snprintf(str,sizeof(str),"%slogs\\%s.%s.log",str,win->channel,win->network);
+			ShellExecute(hwnd,"open",str,NULL,NULL,SW_SHOWNORMAL);
+		}
+		break;
+	}
+	return TRUE;
+}

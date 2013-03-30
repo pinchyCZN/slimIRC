@@ -687,7 +687,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			exit_irc(TRUE);
 			break;
 		case ID_WINDOW_LIST:
-			printf("made it\n");
+			break;
+		case MDI_MENU_OPENLOG:
+			{
+				HWND h=GetTopWindow(ghmdiclient);
+				handle_channel_menu(h,LOWORD(wparam));
+			}
 			break;
 		}
 		break;
