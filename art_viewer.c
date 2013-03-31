@@ -7,6 +7,7 @@
 
 extern HINSTANCE ghinstance;
 static HWND hstatic;
+static int chars_per_line=1;
 int color_lookup[16]={
 	0x000000,
 	0xFFFFFF,
@@ -52,6 +53,7 @@ int draw_edit_art(HDC hdc,int line)
 	cb=0;
 	x=y=0;
 	for(i=0;i<50;i++){
+		memset(str,0,sizeof(str));
 		str[0]=sizeof(str)-1;
 		str[1]=(sizeof(str)-1)>>8;
 		str[sizeof(str)-1]=0;
@@ -61,6 +63,7 @@ int draw_edit_art(HDC hdc,int line)
 			//printf("%s\n",str);
 			for(j=0;j<cpy;j++){
 				if(j==0 && i>0){
+					if(FALSE)
 					if(str[j]=='<'){// || str[j]=='*'){
 						cf=1;
 						cb=0;
@@ -68,8 +71,15 @@ int draw_edit_art(HDC hdc,int line)
 						y+=12;
 					}
 				}
-				if(str[j]=='\r')
+				if(str[j]=='\r'){
+					if(j<chars_per_line){
+						cf=1;
+						cb=0;
+						x=0;
+						y+=12;
+					}
 					continue;
+				}
 				else if(str[j]==0)
 					continue;
 				else if(str[j]==MIRC_COLOR){
@@ -145,7 +155,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static int line=0;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	if(FALSE)
+	//if(FALSE)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -188,17 +198,39 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		}
 		break;
+	case WM_VSCROLL:
+		{
+			int modifier=1;
+			int dir=0;
+			switch(LOWORD(wparam)){
+			case SB_PAGEDOWN:dir=1;modifier=10;break;
+			case SB_PAGEUP:dir=-1;modifier=10;break;
+			case SB_LINEUP:dir=-1;modifier=1;break;
+			case SB_LINEDOWN:dir=1;modifier=1;break;
+			}
+			if(line==0 && dir<0)
+				break;
+			line+=dir*modifier;
+			if(line<0)
+				line=0;
+			InvalidateRect(hwnd,NULL,TRUE);
+			set_title(hwnd,line);
+		}
+		break;
 	case WM_MOUSEWHEEL:
 		{
 			short y=HIWORD(wparam);
 			int modifier=(LOWORD(wparam)&MK_RBUTTON)?10:1;
+			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			if(y>0){
+				if(line==0)
+					break;
 				if(line<3)
 					line=0;
 				else
 					line-=3*modifier;
 			}
-			else
+			else if(line<count-6)
 				line+=3*modifier;
 			InvalidateRect(hwnd,NULL,TRUE);
 			set_title(hwnd,line);
@@ -216,12 +248,31 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	return 0;
 }
-
+int get_chars_per_line(HWND htext)
+{
+	RECT rect={0};
+	HDC hdc;
+	if(GetClientRect(htext,&rect)!=0){
+		SendMessage(htext,EM_GETRECT,0,&rect);
+		hdc=GetDC(htext);
+		if(hdc!=0){
+			TEXTMETRIC tm;
+			if(GetTextMetrics(hdc,&tm)!=0){
+				chars_per_line=(rect.right-rect.left)/(tm.tmAveCharWidth+1);
+				if(chars_per_line==0)
+					chars_per_line=1;
+				printf("chars per line=%i\n",chars_per_line);
+			}
+			ReleaseDC(htext,hdc);
+		}
+	}
+}
 int show_art_viewer(HWND hwnd,HWND htext)
 {
 	if(htext==0)
 		return 0;
 	hstatic=htext;
+	get_chars_per_line(htext);
 	DialogBox(ghinstance,MAKEINTRESOURCE(IDD_ARTVIEWER),hwnd,art_viewer);
 	return 0;
 }
