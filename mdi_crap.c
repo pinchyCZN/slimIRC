@@ -493,6 +493,13 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			break;
 		}
 		break;
+	case WM_HELP:
+		{
+		IRC_WINDOW *win=find_window_by_hwnd(hwnd);
+		if(win!=0 && win->hstatic!=0)
+			show_art_viewer(hwnd,win->hstatic);
+		}
+		break;
 	case WM_USER://custom edit input wparam=key
 		{
 		int scroll=-1;

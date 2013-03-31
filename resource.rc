@@ -217,6 +217,15 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,112,128,50,14
 END
 
+IDD_ARTVIEWER DIALOG DISCARDABLE  0, 0, 186, 94
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Ascii art viewer"
+FONT 8, "MS Sans Serif"
+BEGIN
+    SCROLLBAR       IDC_SCROLLBAR,176,0,10,85,SBS_VERT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

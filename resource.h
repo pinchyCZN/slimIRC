@@ -13,6 +13,7 @@
 #define IDD_MESSAGEBOX                  112
 #define IDD_CHANNELMODES                113
 #define IDI_ICON                        115
+#define IDD_ARTVIEWER                   116
 #define IDC_ADD                         1002
 #define IDC_DELETE                      1003
 #define IDC_EDIT                        1005
@@ -62,11 +63,11 @@
 #define IDC_STATIC1                     1058
 #define IDC_ENABLELOG                   1059
 #define IDC_DEBUG                       1060
-#define IDC_BUTTON1                     1063
 #define IDC_OPEN_INI_FOLDER             1063
 #define MDI_MENU_OPENLOG                1064
 #define IDC_LUA_SCRIPT                  1065
 #define IDC_DEBUG_LEVEL                 1066
+#define IDC_SCROLLBAR                   1067
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
@@ -78,9 +79,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        116
+#define _APS_NEXT_RESOURCE_VALUE        117
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1067
+#define _APS_NEXT_CONTROL_VALUE         1068
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
