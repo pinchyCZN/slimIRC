@@ -129,8 +129,6 @@ int post_message(HWND hwnd,char *str)
 						start=TRUE;
 					}
 				}
-				if(lines>10)
-					break;
 			}
 
 		}

@@ -275,10 +275,6 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
 		draw_edit_art(hdc,line,vlines);
-		if((GetTickCount()-tick)>500)
-			printf("--\n");
-		tick=GetTickCount();
-		printf("updated\n");
 		EndPaint(hwnd,&ps);
 		break;
 	case WM_CLOSE:
