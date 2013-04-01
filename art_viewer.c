@@ -7,7 +7,6 @@
 
 extern HINSTANCE ghinstance;
 static HWND hstatic;
-static int chars_per_line=1;
 int color_lookup[16]={
 	0x000000,
 	0xFFFFFF,
@@ -44,15 +43,15 @@ int draw_char(HDC hdc,char a,int x,int y,int cf,int cb)
 	}
 	return 0;
 }
-int draw_edit_art(HDC hdc,int line)
+int draw_edit_art(HDC hdc,int line,int line_count)
 {
 	char str[1024];
-	int i,cpy,x,y,state=0,count=0;
+	int i,cpy,x,y,state=0,count=0,out_line=0;
 	unsigned char cf,cb;
 	cf=1;
 	cb=0;
 	x=y=0;
-	for(i=0;i<50;i++){
+	for(i=0;i<100;i++){
 		memset(str,0,sizeof(str));
 		str[0]=sizeof(str)-1;
 		str[1]=(sizeof(str)-1)>>8;
@@ -72,16 +71,22 @@ int draw_edit_art(HDC hdc,int line)
 					}
 				}
 				if(str[j]=='\r'){
-					if(j<chars_per_line){
-						cf=1;
-						cb=0;
-						x=0;
-						y+=12;
-					}
+					cf=1;
+					cb=0;
+					x=0;
+					y+=12;
+					out_line++;
+					if(out_line>=line_count)
+						return 0;
 					continue;
 				}
 				else if(str[j]==0)
 					continue;
+				else if(str[j]==MIRC_REVERSE){
+					state=0;
+					cf=0;
+					cb=1;
+				}
 				else if(str[j]==MIRC_COLOR){
 					state=1;
 					count=0;
@@ -148,14 +153,24 @@ static int set_title(HWND hwnd,int line)
 	SetWindowText(hwnd,str);
 	return 0;
 }
+static int calc_scrollbar(HWND hwnd,int line)
+{
+	int count,ratio;
+	count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
+	if(count==0)count=line;
+	ratio=(float)line/(float)count*100.0;
+	SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETPOS,ratio,TRUE);
+	return 0;
+}
 BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HWND grippy=0;
 	static DWORD tick;
 	static int line=0;
+	static int vlines=30;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	//if(FALSE)
+	if(FALSE)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -173,9 +188,10 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if(GetWindowRect(GetParent(hstatic),&rect)!=0){
 				SetWindowPos(hwnd,NULL,rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,SWP_NOZORDER);
 			}
-			
+			SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		}
 		set_title(hwnd,line);
+		calc_scrollbar(hwnd,line);
 		break;
 	case WM_SIZE:
 		{
@@ -184,10 +200,13 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		if(GetClientRect(hwnd,&rect)!=0){
 			int x,y,w,h;
 			x=rect.right-20;
-			y=rect.top-20;
+			y=rect.top;
 			w=20;
-			h=rect.bottom-rect.top;
+			h=rect.bottom-rect.top-GetSystemMetrics(SM_CYCAPTION);
 			SetWindowPos(GetDlgItem(hwnd,IDC_SCROLLBAR),NULL,x,y,w,h,SWP_NOZORDER);
+			vlines=(rect.bottom-rect.top)/12;
+			if(vlines<=5)
+				vlines=5;
 		}
 		}
 		break;
@@ -207,6 +226,14 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			case SB_PAGEUP:dir=-1;modifier=10;break;
 			case SB_LINEUP:dir=-1;modifier=1;break;
 			case SB_LINEDOWN:dir=1;modifier=1;break;
+			case SB_BOTTOM:line=SendMessage(hstatic,EM_GETLINECOUNT,0,0);break;
+			case SB_TOP:line=0;break;
+			case SB_THUMBTRACK:
+				{
+				int pos=HIWORD(wparam);
+				int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
+				line=(float)pos*(float)count/100.0;
+				}
 			}
 			if(line==0 && dir<0)
 				break;
@@ -215,30 +242,34 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				line=0;
 			InvalidateRect(hwnd,NULL,TRUE);
 			set_title(hwnd,line);
+			calc_scrollbar(hwnd,line);
 		}
 		break;
 	case WM_MOUSEWHEEL:
 		{
 			short y=HIWORD(wparam);
+			int dir=0;
 			int modifier=(LOWORD(wparam)&MK_RBUTTON)?10:1;
 			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			if(y>0){
 				if(line==0)
 					break;
-				if(line<3)
-					line=0;
-				else
-					line-=3*modifier;
+				dir=-1;
 			}
-			else if(line<count-6)
-				line+=3*modifier;
+			else
+				dir=1;
+			if(line+dir*modifier<0)
+				line=0;
+			else
+				line+=dir*modifier*5;
 			InvalidateRect(hwnd,NULL,TRUE);
 			set_title(hwnd,line);
+			calc_scrollbar(hwnd,line);
 		}
 		break;
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
-		draw_edit_art(hdc,line);
+		draw_edit_art(hdc,line,vlines);
 		EndPaint(hwnd,&ps);
 		break;
 	case WM_CLOSE:
@@ -248,31 +279,11 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	return 0;
 }
-int get_chars_per_line(HWND htext)
-{
-	RECT rect={0};
-	HDC hdc;
-	if(GetClientRect(htext,&rect)!=0){
-		SendMessage(htext,EM_GETRECT,0,&rect);
-		hdc=GetDC(htext);
-		if(hdc!=0){
-			TEXTMETRIC tm;
-			if(GetTextMetrics(hdc,&tm)!=0){
-				chars_per_line=(rect.right-rect.left)/(tm.tmAveCharWidth+1);
-				if(chars_per_line==0)
-					chars_per_line=1;
-				printf("chars per line=%i\n",chars_per_line);
-			}
-			ReleaseDC(htext,hdc);
-		}
-	}
-}
 int show_art_viewer(HWND hwnd,HWND htext)
 {
 	if(htext==0)
 		return 0;
 	hstatic=htext;
-	get_chars_per_line(htext);
 	DialogBox(ghinstance,MAKEINTRESOURCE(IDD_ARTVIEWER),hwnd,art_viewer);
 	return 0;
 }

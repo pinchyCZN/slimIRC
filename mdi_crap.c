@@ -504,6 +504,18 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		{
 		int scroll=-1;
 		switch(wparam){
+			case 0x12: //ctrl-r
+				{
+				char str[2]={22,0};
+				SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
+				}
+				break;
+			case 0xB: //ctrl-k
+				{
+				char str[2]={3,0};
+				SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
+				}
+				break;
 			case 0x6: //ctr-f
 				hsearch=GetDlgItem(hwnd,MDI_STATIC);
 				DialogBox(ghinstance,MAKEINTRESOURCE(IDD_TEXTSEARCH),hwnd,text_search);
@@ -1130,6 +1142,8 @@ int custom_dispatch(MSG *msg)
 		case WM_CHAR:
 			if(type==MDI_EDIT){
 				switch(msg->wParam){
+				case 0x12: //ctrl-R
+				case 0xB: //ctrl-K
 				case 0x6: //ctr-f
 					msg->message=WM_USER;
 					msg->hwnd=GetParent(msg->hwnd);
