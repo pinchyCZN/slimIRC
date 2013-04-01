@@ -7,6 +7,7 @@
 
 extern HINSTANCE ghinstance;
 static HWND hstatic;
+int client_width=0,client_height=0;
 int color_lookup[16]={
 	0x000000,
 	0xFFFFFF,
@@ -43,6 +44,11 @@ int draw_char(HDC hdc,char a,int x,int y,int cf,int cb)
 	}
 	return 0;
 }
+int clear_screen(HDC hdc)
+{
+	BitBlt(hdc,0,0,client_width,client_height,hdc,0,0,BLACKNESS);
+	return 0;
+}
 int draw_edit_art(HDC hdc,int line,int line_count)
 {
 	char str[1024];
@@ -51,6 +57,7 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 	cf=1;
 	cb=0;
 	x=y=0;
+	clear_screen(hdc);
 	for(i=0;i<100;i++){
 		memset(str,0,sizeof(str));
 		str[0]=sizeof(str)-1;
@@ -61,15 +68,6 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 			int j;
 			//printf("%s\n",str);
 			for(j=0;j<cpy;j++){
-				if(j==0 && i>0){
-					if(FALSE)
-					if(str[j]=='<'){// || str[j]=='*'){
-						cf=1;
-						cb=0;
-						x=0;
-						y+=12;
-					}
-				}
 				if(str[j]=='\r'){
 					cf=1;
 					cb=0;
@@ -207,6 +205,9 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			vlines=(rect.bottom-rect.top)/12;
 			if(vlines<=5)
 				vlines=5;
+			InvalidateRect(hwnd,NULL,TRUE);
+			client_width=rect.right-rect.left-20;
+			client_height=rect.bottom-rect.top;
 		}
 		}
 		break;
@@ -234,15 +235,17 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 				line=(float)pos*(float)count/100.0;
 				}
+				break;
+			case SB_ENDSCROLL:return 0;
 			}
 			if(line==0 && dir<0)
 				break;
 			line+=dir*modifier;
 			if(line<0)
 				line=0;
-			InvalidateRect(hwnd,NULL,TRUE);
 			set_title(hwnd,line);
 			calc_scrollbar(hwnd,line);
+			InvalidateRect(hwnd,NULL,TRUE);
 		}
 		break;
 	case WM_MOUSEWHEEL:
@@ -262,14 +265,20 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				line=0;
 			else
 				line+=dir*modifier*5;
-			InvalidateRect(hwnd,NULL,TRUE);
 			set_title(hwnd,line);
 			calc_scrollbar(hwnd,line);
+			InvalidateRect(hwnd,NULL,TRUE);
 		}
 		break;
+	case WM_ERASEBKGND:
+		return TRUE;
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
 		draw_edit_art(hdc,line,vlines);
+		if((GetTickCount()-tick)>500)
+			printf("--\n");
+		tick=GetTickCount();
+		printf("updated\n");
 		EndPaint(hwnd,&ps);
 		break;
 	case WM_CLOSE:
