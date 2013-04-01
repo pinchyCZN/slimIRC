@@ -159,8 +159,10 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	FINDTEXT ftext;
 	HDC hdc;
 	int pos,fpos,dir;
-	static int fontheight=0;
+	static int fontheight=0,timer=0;
+#ifdef _DEBUG
 	print_msg(msg,lparam,wparam,hwnd);
+#endif
 	switch(msg){
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd,IDC_SEARCH_BOX,EM_LIMITTEXT,80,0);
@@ -244,6 +246,10 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				POINT point={0,0};
 				ClientToScreen(hsearch,&point);
 				SetWindowPos(hwnd,NULL,point.x,point.y,0,0,SWP_NOZORDER|SWP_NOSIZE);
+				if(timer==0){
+					show_tooltip("nothing found",point.x,point.y);
+					timer=SetTimer(hwnd,0x1337,550,NULL);
+				}
 				if(dir&FR_DOWN){
 					last_search_pos=0;
 					SendMessage(hsearch,WM_VSCROLL,SB_TOP,0);
@@ -254,16 +260,25 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				}
 			}
 			break;
-
-			break;
 		case WM_DESTROY:
 			goto quit;
 			break;
 		}
 		break;
+	case WM_TIMER:
+		if(timer!=0){
+			KillTimer(hwnd,timer);
+			timer=0;
+		}
+		hide_tooltip();
+		break;
 	case WM_CLOSE:
 	case WM_QUIT:
 quit:
+		if(timer!=0){
+			KillTimer(hwnd,timer);
+			timer=0;
+		}
 		GetWindowRect(ghmainframe,&mainrect);
 		GetWindowRect(hwnd,&rect);
 		xpos=rect.left-mainrect.left;

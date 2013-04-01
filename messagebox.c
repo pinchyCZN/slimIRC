@@ -142,8 +142,8 @@ int create_tooltip(HWND hwnd,int x, int y)
 			ti.lpszText = tt_text;
 			SendMessage(hwndTT,TTM_ADDTOOL,0,&ti);
 			SendMessage(hwndTT,TTM_UPDATETIPTEXTA,0,&ti);
-			SendMessage(hwndTT,TTM_TRACKACTIVATE,TRUE,&ti);
 			SendMessage(hwndTT,TTM_TRACKPOSITION,0,MAKELONG(x,y)); 
+			SendMessage(hwndTT,TTM_TRACKACTIVATE,TRUE,&ti);
 		}
 	}
 	return hwndTT;
