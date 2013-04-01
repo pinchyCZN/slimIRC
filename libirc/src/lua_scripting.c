@@ -215,7 +215,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 			luaL_openlibs(lua);
 			if(luaL_loadfile(lua,fscript)!=LUA_OK){
 				printf("luaL_loadfile error:%s\n",lua_tostring(lua, -1));
-				show_tooltip(lua_tostring(lua, -1));
+				show_tooltip(lua_tostring(lua, -1),0,0);
 				lua_close(lua);
 				*L=0;
 			}
@@ -223,7 +223,7 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 				lua_register_c_functions(lua);
 				if(lua_pcall(lua,0,0,0)!=LUA_OK){
 					printf("lua_pcall error:%s\n",lua_tostring(lua, -1));
-					show_tooltip(lua_tostring(lua, -1));
+					show_tooltip(lua_tostring(lua, -1),0,0);
 					lua_close(lua);
 					*L=0;
 				}

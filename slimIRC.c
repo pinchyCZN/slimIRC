@@ -631,7 +631,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		update_status_window(hwnd,ghmenu);
 		break;
 	case WM_USER+1:
-		create_tooltip(hwnd);
+		create_tooltip(hwnd,wparam,lparam);
 		break;
 	case WM_USER+2:
 		destroy_tooltip();
