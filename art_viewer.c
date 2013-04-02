@@ -222,18 +222,20 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			int modifier=1;
 			int dir=0;
+			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			switch(LOWORD(wparam)){
 			case SB_PAGEDOWN:dir=1;modifier=10;break;
 			case SB_PAGEUP:dir=-1;modifier=10;break;
 			case SB_LINEUP:dir=-1;modifier=1;break;
 			case SB_LINEDOWN:dir=1;modifier=1;break;
-			case SB_BOTTOM:line=SendMessage(hstatic,EM_GETLINECOUNT,0,0);break;
+			case SB_BOTTOM:line=count-1;break;
 			case SB_TOP:line=0;break;
 			case SB_THUMBTRACK:
 				{
 				int pos=HIWORD(wparam);
-				int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 				line=(float)pos*(float)count/100.0;
+				if(line>=count)
+					line=count-1;
 				}
 				break;
 			case SB_ENDSCROLL:return 0;
@@ -243,6 +245,10 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			line+=dir*modifier;
 			if(line<0)
 				line=0;
+			if(dir>0){
+				if(line>=count)
+					line=count-1;
+			}
 			set_title(hwnd,line);
 			calc_scrollbar(hwnd,line);
 			InvalidateRect(hwnd,NULL,TRUE);
@@ -261,10 +267,11 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			else
 				dir=1;
-			if(line+dir*modifier<0)
+			line+=dir*modifier*5;
+			if(line>=count)
+				line=count-1;
+			else if(line<0)
 				line=0;
-			else
-				line+=dir*modifier*5;
 			set_title(hwnd,line);
 			calc_scrollbar(hwnd,line);
 			InvalidateRect(hwnd,NULL,TRUE);
