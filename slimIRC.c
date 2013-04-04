@@ -520,6 +520,13 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case IDC_OPENINI:
 			open_ini(hwnd,FALSE);
 			break;
+		case IDC_LUASCRIPT:
+			{
+				char fname[MAX_PATH]={0};
+				get_lua_script_fname(fname,sizeof(fname));
+				GetContextMenu(hwnd,fname);
+			}
+			break;
 		case WM_DESTROY:
 			EndDialog(hwnd,0);
 			break;

@@ -129,7 +129,7 @@ static int lua_add_line_mdi(lua_State *L)
 }
 static int lua_irc_cmd_ctcp_reply(lua_State *L)
 {
-	const void *session;
+	void *session;
 	const char *nick,*reply;
 	int result=LIBIRC_ERR_INVAL;
 	if(lua_gettop(L)==3){
@@ -188,12 +188,9 @@ static int get_last_write_time(char *fname,__int64 *ft)
 void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 {
 	lua_State *lua;
-	char path[MAX_PATH]={0};
-	char fscript[MAX_PATH];
+	char fscript[MAX_PATH]={0};
 
-	get_ini_path(path,sizeof(path));
-
-	_snprintf(fscript,sizeof(fscript),"%s%s",path,LUA_SCRIPT_NAME);
+	get_lua_script_fname(fscript,sizeof(fscript));
 
 	lua=*L;
 	if(lua_script_enable){
@@ -246,6 +243,8 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 	}
 	if(*lua_filenotify==0){
 		HANDLE fn;
+		char path[MAX_PATH]={0};
+		get_ini_path(path,sizeof(path));
 		fn=FindFirstChangeNotification(path,FALSE,FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_LAST_WRITE);
 		if(fn!=INVALID_HANDLE_VALUE)
 			*lua_filenotify=fn;
@@ -382,20 +381,28 @@ int lua_help(int(*mdi_window)(void *,char *),void *win)
 	}
 	return 0;
 }
+int get_lua_script_fname(char *fname,int len)
+{
+	if(fname!=0 && len>0){
+		fname[0]=0;
+		get_ini_path(fname,len);
+		_snprintf(fname,len,"%s%s",fname,LUA_SCRIPT_NAME);
+	}
+	return 0;
+}
 int lua_create_default_file(int(*mdi_window)(void *,char *),void *win)
 {
 	FILE *f;
-	char path[MAX_PATH]={0};
-	get_ini_path(path,sizeof(path));
-	_snprintf(path,sizeof(path),"%s%s",path,LUA_SCRIPT_NAME);
-	if(does_file_exist(path)){
+	char fname[MAX_PATH]={0};
+	get_lua_script_fname(fname,sizeof(fname));
+	if(does_file_exist(fname)){
 		if(mdi_window && win){
 			mdi_window(win,"file allready exists:");
-			mdi_window(win,path);
+			mdi_window(win,fname);
 		}
 		return FALSE;
 	}
-	f=fopen(path,"wb");
+	f=fopen(fname,"wb");
 	if(f!=0){
 		int i;
 		fprintf(f,"-- external C functions available:\n");
@@ -418,7 +425,7 @@ int lua_create_default_file(int(*mdi_window)(void *,char *),void *win)
 		fclose(f);
 		if(mdi_window && win){
 			mdi_window(win,"created file:");
-			mdi_window(win,path);
+			mdi_window(win,fname);
 		}
 	}
 	return FALSE;

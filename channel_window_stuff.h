@@ -448,7 +448,7 @@ int handle_channel_menu(HWND hwnd,int wparam)
 		}
 		else{
 			_snprintf(str,sizeof(str),"%slogs\\%s.%s.log",str,win->channel,win->network);
-			ShellExecute(hwnd,"open",str,NULL,NULL,SW_SHOWNORMAL);
+			GetContextMenu(hwnd,str);
 		}
 		break;
 	}
