@@ -25,6 +25,13 @@ int get_wide_path(const char *fname,char *out_path,int psize,char *out_fname,int
 	mbstowcs(out_fname,tmp,fsize);
 	return 0;
 }
+int get_higher_context(IContextMenu *c)
+{
+	IContextMenu2 *c2=0;
+	IContextMenu3 *c3=0;
+	c->lpVtbl->QueryInterface(c,&IID_IContextMenu3,c2);
+//http://netez.com/2xExplorer/shellFAQ/bas_context.html
+}
 int GetContextMenu(HWND hwnd,char *fname)
 {
 	HRESULT hr;
