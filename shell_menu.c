@@ -20,17 +20,54 @@ int get_wide_path(const char *fname,char *out_path,int psize,char *out_fname,int
 	drive[0]=dir[0]=fn[0]=ext[0]=0;
 	_splitpath(fname,drive,dir,fn,ext);
 	_snprintf(tmp,sizeof(tmp),"%s%s",drive,dir);
-	mbstowcs(out_path,tmp,psize);
+	mbstowcs(out_path,tmp,psize/2); //size_t=number of wide chars
 	_snprintf(tmp,sizeof(tmp),"%s%s",fn,ext);
-	mbstowcs(out_fname,tmp,fsize);
+	mbstowcs(out_fname,tmp,fsize/2);
 	return 0;
 }
+static WNDPROC old_win_proc=0;
+static IContextMenu2 *context2=0;
 int get_higher_context(IContextMenu *c)
 {
-	IContextMenu2 *c2=0;
-	IContextMenu3 *c3=0;
-	c->lpVtbl->QueryInterface(c,&IID_IContextMenu3,c2);
-//http://netez.com/2xExplorer/shellFAQ/bas_context.html
+	int result=FALSE;
+	context2=0;
+	c->lpVtbl->QueryInterface(c,&IID_IContextMenu2,&context2);
+	if(context2!=0)
+		result=TRUE;
+	return result;
+}
+LRESULT CALLBACK subclass_proc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam)
+{
+	switch(msg){
+	case WM_DRAWITEM:
+	case WM_MEASUREITEM:
+		if(wparam)break; // not menu related
+	case WM_INITMENUPOPUP:
+		context2->lpVtbl->HandleMenuMsg(context2,msg,wparam,lparam);
+		return (msg==WM_INITMENUPOPUP ? 0 : TRUE); // handled
+		break;
+	}
+	return CallWindowProc(old_win_proc,hwnd,msg,wparam,lparam);
+}
+int subclass_window(IContextMenu *c,HWND hwnd,int release)
+{
+	if(release){
+		if(old_win_proc!=0){
+			SetWindowLong(hwnd,GWL_WNDPROC,old_win_proc);
+			old_win_proc=0;
+		}
+		if(context2!=0){
+			context2->lpVtbl->Release(context2);
+			context2=0;
+		}
+		return 0;
+	}
+	else{
+		get_higher_context(c);
+		if(context2!=0)
+			old_win_proc=SetWindowLong(hwnd,GWL_WNDPROC,subclass_proc);
+	}
+	return 0;
 }
 int GetContextMenu(HWND hwnd,char *fname)
 {
@@ -67,7 +104,9 @@ int GetContextMenu(HWND hwnd,char *fname)
 						POINT pt;
 						int menu_id=0;
 						GetCursorPos(&pt);
+						subclass_window(context,hwnd,FALSE);
 						menu_id=TrackPopupMenu(hmenu,TPM_RETURNCMD,pt.x+10,pt.y+10,0,hwnd,NULL);
+						subclass_window(context,hwnd,TRUE);
 						if(menu_id>=1 && menu_id<=0x7FFF)
 							invoke_command(context,menu_id,hwnd);
 					}
