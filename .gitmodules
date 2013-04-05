@@ -1,0 +1,3 @@
+[submodule "ssl"]
+	path = ssl
+	url = https://github.com/pinchyCZN/Polar_SSL.git
