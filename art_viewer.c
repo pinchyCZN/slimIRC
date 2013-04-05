@@ -156,7 +156,10 @@ static int calc_scrollbar(HWND hwnd,int line)
 	int count,ratio;
 	count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 	if(count==0)count=line;
-	ratio=(float)line/(float)count*100.0;
+	if(line==0)
+		ratio=0;
+	else
+		ratio=(float)line/(float)count*100.0;
 	SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETPOS,ratio,TRUE);
 	return 0;
 }
