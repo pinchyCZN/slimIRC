@@ -43,8 +43,10 @@ LRESULT CALLBACK subclass_proc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam)
 	case WM_MEASUREITEM:
 		if(wparam)break; // not menu related
 	case WM_INITMENUPOPUP:
-		context2->lpVtbl->HandleMenuMsg(context2,msg,wparam,lparam);
-		return (msg==WM_INITMENUPOPUP ? 0 : TRUE); // handled
+		if(context2!=0){
+			context2->lpVtbl->HandleMenuMsg(context2,msg,wparam,lparam);
+			return (msg==WM_INITMENUPOPUP ? 0 : TRUE); // handled
+		}
 		break;
 	}
 	return CallWindowProc(old_win_proc,hwnd,msg,wparam,lparam);
