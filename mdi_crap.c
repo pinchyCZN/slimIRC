@@ -1300,3 +1300,4 @@ int init_mdi_stuff()
 #include "server_window_stuff.h"
 #include "channel_window_stuff.h"
 #include "privmsg_window_stuff.h"
+#include "lua_specific_funcs.h"

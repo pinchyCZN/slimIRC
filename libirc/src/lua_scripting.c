@@ -118,13 +118,42 @@ static int lua_add_line_mdi(lua_State *L)
 	const char *str;
 	int result=LIBIRC_ERR_INVAL;
 	if(lua_gettop(L)==2){
-		//(void *win,char *channel)
+		//(void *win,char *str)
 		win=lua_touserdata(L,1);
 		str=lua_tostring(L,2);
 		if(win && str)
 			result=add_line_mdi(win,str);
 	}
 	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_get_win_linecount(lua_State *L)
+{
+	const void *win;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==1){
+		//(void *win)
+		win=lua_touserdata(L,1);
+		if(win)
+			result=get_win_linecount(win);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_get_win_line(lua_State *L)
+{
+	const void *win;
+	int line;
+	static char str[1024];
+	str[0]=0;
+	if(lua_gettop(L)==2){
+		//(void *win,int line)
+		win=lua_touserdata(L,1);
+		line=lua_tointeger(L,2);
+		if(win)
+			get_win_line(win,line,str,sizeof(str));
+	}
+	lua_pushstring(L,str);
 	return 1;
 }
 static int lua_irc_cmd_ctcp_reply(lua_State *L)
@@ -157,6 +186,8 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"send_privmsg",lua_send_privmsg,"(session,origin,mynick,msg,type)"},
 	{"find_channel_window",lua_find_channel_window,"(session,channel)"},
 	{"add_line_mdi",lua_add_line_mdi,"(win,str)"},
+	{"get_win_linecount",lua_get_win_linecount,"(win)"},
+	{"get_win_line",lua_get_win_line,"(win,line)"},
 	0
 };
 int lua_register_c_functions(lua_State *L)

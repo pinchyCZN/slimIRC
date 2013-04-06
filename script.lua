@@ -7,6 +7,8 @@
 -- send_privmsg (session,origin,mynick,msg,type)
 -- find_channel_window (session,channel)
 -- add_line_mdi (win,str)
+-- get_win_linecount (win)
+-- get_win_line (win,line)
 
 
 -- lua functions that get called after certain events
