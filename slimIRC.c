@@ -513,6 +513,8 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		case IDC_DEBUG:
 			ShowWindow(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),IsDlgButtonChecked(hwnd,IDC_DEBUG));
+			_snprintf(str,sizeof(str),"%i",get_irc_debug_level());
+			SetWindowText(GetDlgItem(hwnd,IDC_DEBUG_LEVEL),str);
 			break;
 		case IDC_OPEN_INI_FOLDER:
 			open_ini(hwnd,TRUE);
