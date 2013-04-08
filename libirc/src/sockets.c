@@ -1,14 +1,14 @@
-/* 
+/*
  * Copyright (C) 2004-2012 George Yunaev gyunaev@ulduzsoft.com
  *
- * This library is free software; you can redistribute it and/or modify it 
- * under the terms of the GNU Lesser General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or (at your 
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or (at your
  * option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public 
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
  * License for more details.
  */
 
@@ -18,7 +18,7 @@
 #if !defined (_WIN32)
 	#include <sys/socket.h>
 	#include <netdb.h>
-	#include <arpa/inet.h>	
+	#include <arpa/inet.h>
 	#include <netinet/in.h>
 	#include <fcntl.h>
 
@@ -43,12 +43,14 @@
 	#define _SS_ALIGNSIZE (sizeof (char*))
 	#define _SS_PAD1SIZE (_SS_ALIGNSIZE - (sizeof(unsigned char) + sizeof(sa_family_t)))
 	#define _SS_PAD2SIZE (_SS_MAXSIZE - (sizeof(unsigned char) + sizeof(sa_family_t)+_SS_PAD1SIZE + _SS_ALIGNSIZE))
+#ifndef	_GNU_H_WINDOWS32_SOCKETS
 	typedef struct sockaddr_storage {
 	  short   ss_family;
 	  char    __ss_pad1[_SS_PAD1SIZE];
 	  __int64 __ss_align;
 	  char    __ss_pad2[_SS_PAD2SIZE];
 	} SOCKADDR_STORAGE, *PSOCKADDR_STORAGE;
+
 	typedef struct addrinfo {
 	  int             ai_flags;
 	  int             ai_family;
@@ -59,6 +61,7 @@
 	  struct sockaddr  *ai_addr;
 	  struct addrinfo  *ai_next;
 	} ADDRINFOA, *PADDRINFOA;
+#endif
 	typedef int (__stdcall * getaddrinfo_ptr_t) (const char *nodename, const char *servname,const struct addrinfo * hints, struct addrinfo ** res);
 	typedef void (__stdcall * freeaddrinfo_ptr_t) (struct addrinfo * ai);
 
@@ -149,7 +152,7 @@ static int socket_recv (socket_t * sock, void * buf, size_t len)
 	while ( (length = recv (*sock, buf, len, 0)) < 0 )
 	{
 		int err = socket_error();
-		
+
 		if ( err != EINTR && err != EAGAIN )
 			break;
 	}
@@ -165,7 +168,7 @@ static int socket_send (socket_t * sock, const void *buf, size_t len)
 	while ( (length = send (*sock, buf, len, 0)) < 0 )
 	{
 		int err = socket_error();
-		
+
 		if ( err != EINTR && err != EAGAIN )
 			break;
 	}

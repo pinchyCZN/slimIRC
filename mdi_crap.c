@@ -69,7 +69,6 @@ static int buffer_pos=0;
 static char mouse_target[512]={0};
 int tab_continue=FALSE,tab_pos=0;
 char tab_word[20]={0};
-#include "ircstuff.h"
 #include "chan_modes.h"
 #include "static_window.h"
 #include "window.h"
@@ -107,14 +106,14 @@ int control_debug(char *type,char *set)
 	}
 	return FALSE;
 }
-int strstri(char *s1, char *s2) 
-{ 
-	int i,j,k; 
-	for(i=0;s1[i];i++) 
-		for(j=i,k=0;tolower(s1[j])==tolower(s2[k]);j++,k++) 
-			if(!s2[k+1]) 
-				return (s1+i); 
-	return NULL; 
+int strstri(char *s1, char *s2)
+{
+	int i,j,k;
+	for(i=0;s1[i];i++)
+		for(j=i,k=0;tolower(s1[j])==tolower(s2[k]);j++,k++)
+			if(!s2[k+1])
+				return (s1+i);
+	return NULL;
 }
 int handle_debug(char *s)
 {
@@ -218,7 +217,7 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			ftext.lpstrText=search_text;
 			if(last_search_pos>0)
 				pos=last_search_pos;
-		
+
 			ftext.chrg.cpMin=pos;
 			if(dir&FR_DOWN)
 				ftext.chrg.cpMax=-1;
@@ -313,7 +312,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
     {
 	case WM_CREATE:
 		{
-		LPCREATESTRUCT pcs = (LPCREATESTRUCT)lparam;        
+		LPCREATESTRUCT pcs = (LPCREATESTRUCT)lparam;
 		LPMDICREATESTRUCT pmdics = (LPMDICREATESTRUCT)(pcs->lpCreateParams);
 		create_mdi_window(hwnd,ghinstance,pmdics->lParam);
 		SendDlgItemMessage(hwnd,MDI_EDIT,EM_LIMITTEXT,MAX_EDIT_LENGTH,0);
@@ -371,7 +370,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			break;
 		}
 		break;
-		
+
 	case WM_CTLCOLORSTATIC:
 		/*{
 			RECT rect;
@@ -575,7 +574,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				}
 			case VK_UP:
 				restore_buffer(GetDlgItem(hwnd,MDI_EDIT),1);
-				break; 
+				break;
 			case VK_DOWN:
 				restore_buffer(GetDlgItem(hwnd,MDI_EDIT),-1);
 				break;
@@ -583,7 +582,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,0,-1);
 				SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,-1,-1);
 				break;
-		} 
+		}
 		if(scroll!=-1)
 			SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
 //			dump_scroll_info(GetDlgItem(hwnd,MDI_STATIC));
@@ -592,7 +591,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 	case WM_SIZE:
 		resize_mdi_window(hwnd);
 		break;
-			
+
     }
 	return DefMDIChildProc(hwnd, msg, wparam, lparam);
 }
@@ -1117,7 +1116,7 @@ int custom_dispatch(MSG *msg)
 	HWND hwnd;
 	int type=0;
 	static int mbutton_down=FALSE;
-	
+
 	hwnd=WindowFromPoint(msg->pt);
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].hedit==msg->hwnd){
@@ -1139,7 +1138,7 @@ int custom_dispatch(MSG *msg)
 		if(msg->message==WM_MOUSEWHEEL){
 			if(hwnd!=0){
 				if(irc_windows[i].hstatic==hwnd || irc_windows[i].hlist==hwnd){
-					msg->hwnd=hwnd;			
+					msg->hwnd=hwnd;
 					DispatchMessage(msg);
 					return TRUE;
 				}
@@ -1302,3 +1301,4 @@ int init_mdi_stuff()
 #include "channel_window_stuff.h"
 #include "privmsg_window_stuff.h"
 #include "lua_specific_funcs.h"
+#include "ircstuff.h"
