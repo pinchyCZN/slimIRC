@@ -279,6 +279,7 @@ quit:
 			KillTimer(hwnd,timer);
 			timer=0;
 		}
+		hide_tooltip();
 		GetWindowRect(ghmainframe,&mainrect);
 		GetWindowRect(hwnd,&rect);
 		xpos=rect.left-mainrect.left;
