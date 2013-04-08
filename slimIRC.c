@@ -50,7 +50,8 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_HELP:
 		if(!help_active){
 			help_active=TRUE;
-			MessageBox(hwnd,"use # in front of server name for SSL, ## to verify certs","Help",MB_OK);
+			MessageBox(hwnd,"add \"IPV6:\" in front of server name to use ipv6\r\n"
+				"## to verify SSL certs","Help",MB_OK);
 			help_active=FALSE;
 		}
 		break;
