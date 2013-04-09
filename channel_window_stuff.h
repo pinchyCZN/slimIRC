@@ -1,4 +1,4 @@
-int find_channel_window(void *session,char *channel)
+int find_channel_window(void *session,const char *channel)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -175,7 +175,7 @@ int add_nick(IRC_WINDOW *win,char *nick)
 	return index;
 }
 int show_joins=FALSE;
-int join_channel_event(void *session,char *origin,char *channel)
+int join_channel_event(void *session,const char *origin,const char *channel)
 {
 	IRC_WINDOW *server_win,*channel_win;
 	server_win=find_server_by_session(session);
@@ -265,7 +265,7 @@ int quit_irc_event(void *session,char *nick)
 	}
 	return TRUE;
 }
-int part_channel_event(void *session,char *origin,char *channel,char *msg)
+int part_channel_event(void *session,const char *origin,const char *channel,const char *msg)
 {
 	IRC_WINDOW *win;
 	win=find_channel_window(session,channel);
@@ -291,7 +291,7 @@ int part_channel(IRC_WINDOW *win)
 	}
 	return FALSE;
 }
-int list_names_event(void *session,char *channel,char *names)
+int list_names_event(void *session,const char *channel,const char *names)
 {
 	IRC_WINDOW *win;
 	win=find_channel_window(session,channel);
@@ -348,7 +348,7 @@ int get_subitem(char *list,char *out,int max,int item)
 	return found;
 }
 
-int update_nick_list(IRC_WINDOW *win,char **params,int count)
+int update_nick_list(IRC_WINDOW *win,const char **params,int count)
 {
 	int i,len,mode,set=FALSE;
 	char nick[20]={0};
@@ -356,7 +356,7 @@ int update_nick_list(IRC_WINDOW *win,char **params,int count)
 	if(count<3)
 		return FALSE;
 	if(win!=0){
-		char *m=params[1];
+		const char *m=params[1];
 		int index=2; //start of nick list
 		len=strlen(m);
 		for(i=0;i<len;i++){
@@ -368,7 +368,8 @@ int update_nick_list(IRC_WINDOW *win,char **params,int count)
 			case 'v':mode=m[i];break;
 			}
 			if(mode!=0 && (index<count)){
-				char fullnick[20],*pre="",*nick=params[index];
+				char fullnick[20],*pre="";
+				const char *nick=params[index];
 				if(set && mode=='v'){ //dont change @ to +
 					int row;
 					_snprintf(fullnick,sizeof(fullnick),"@%s",nick);
@@ -395,7 +396,7 @@ addnick:
 	return TRUE;
 }
 
-int channel_msg_event(void *session,char *origin,char *channel,char *msg,int type)
+int channel_msg_event(void *session,const char *origin,const char *channel,const char *msg,int type)
 {
 	IRC_WINDOW *win;
 	char nick[20]={0};
@@ -414,7 +415,7 @@ int channel_msg_event(void *session,char *origin,char *channel,char *msg,int typ
 }
 
 
-int update_channel_topic(void *session,char *nick,char *channel,char *topic,int echo_channel)
+int update_channel_topic(void *session,const char *nick,const char *channel,const char *topic,int echo_channel)
 {
 	IRC_WINDOW *win;
 	win=find_channel_window(session,channel);

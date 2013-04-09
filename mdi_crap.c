@@ -106,7 +106,7 @@ int control_debug(char *type,char *set)
 	}
 	return FALSE;
 }
-int strstri(char *s1, char *s2)
+int strstri(const char *s1,const char *s2)
 {
 	int i,j,k;
 	for(i=0;s1[i];i++)
@@ -640,7 +640,7 @@ int acquire_server_window(char *network,char *server,int port,int ssl)
 	}
 	return 0;
 }
-int acquire_channel_window(char *network,char *channel,int type)
+int acquire_channel_window(const char *network,const char *channel,int type)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -834,7 +834,7 @@ int extract_list_nick(char *list,char *nick,int size)
 	nick[index++]=0;
 	return TRUE;
 }
-int extract_nick(char *origin,char *nick,int size)
+int extract_nick(const char *origin,char *nick,int size)
 {
 	int i,len,index=0;
 	len=strlen(origin);
@@ -848,7 +848,7 @@ int extract_nick(char *origin,char *nick,int size)
 	nick[index++]=0;
 	return TRUE;
 }
-int update_nick_in_list(HWND hlist,char *oldnick,char *newnick)
+int update_nick_in_list(HWND hlist,const char *oldnick,const char *newnick)
 {
 	char tmp[25]={0};
 	char pre[3]={'@','+',0};
@@ -875,7 +875,7 @@ int update_nick_in_list(HWND hlist,char *oldnick,char *newnick)
 	}
 	return index;
 }
-int update_nick(void *session,char *oldnick,char *nick)
+int update_nick(void *session,const char *oldnick,const char *nick)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){

@@ -183,7 +183,7 @@ exit:
 	}
 	return 0;
 }
-int update_chan_mode_dlg(int event,char *origin,char **params,int count)
+int update_chan_mode_dlg(int event,const char *origin,const char **params,int count)
 {
 	
 	switch(event){

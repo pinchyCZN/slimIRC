@@ -22,7 +22,7 @@ int acquire_privmsg_window(char *network,char *channel)
 {
 	return acquire_channel_window(network,channel,PRIVMSG_WINDOW);
 }
-int find_msg_window(void *session,char *nick)
+int find_msg_window(void *session,const char *nick)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -37,7 +37,7 @@ int find_msg_window(void *session,char *nick)
 Event "PRIVMSG", origin: "ertert!234234@127.0.0.1", params: 2 [slimicy|678]
 'ertert!234234@127.0.0.1' said me (slimicy): 678
 */
-int privmsg_event(void *session,char *origin,char *mynick,char *msg,int type)
+int privmsg_event(void *session,const char *origin,const char *mynick,const char *msg,int type)
 {
 	IRC_WINDOW *server_win,*privmsg_win;
 	char nick[20]={0};
