@@ -146,59 +146,57 @@ int handle_debug(char *s)
 	}
 	return 0;
 }
-HWND hsearch=0;
+HWND hmdi_static=0;
 char search_text[80]={0};
-unsigned int last_search_pos=0;
 
 BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	int xpos,ypos;
-	RECT rect,mainrect;
-	POINTL p;
 	FINDTEXT ftext;
-	HDC hdc;
-	int pos,fpos,dir;
-	static int fontheight=0,timer=0;
+	int pos,dir,fpos;
+	static int fontheight=0,timer=0,last_search_pos=0,last_dir=0,at_top=FALSE;
 #ifdef _DEBUG
-	print_msg(msg,lparam,wparam,hwnd);
+	//print_msg(msg,lparam,wparam,hwnd);
 #endif
 	switch(msg){
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd,IDC_SEARCH_BOX,EM_LIMITTEXT,80,0);
-		GetWindowRect(ghmainframe,&mainrect);
-		xpos=ypos=0;
-		get_ini_value("SETTINGS","text_search_xpos",&xpos);
-		get_ini_value("SETTINGS","text_search_ypos",&ypos);
-		xpos=mainrect.left+xpos;
-		ypos=mainrect.top+ypos;
-		if(xpos<-10)
-			xpos=mainrect.left;
-		if(ypos<-10)
-			ypos=mainrect.top;
-		if(xpos>mainrect.right)
-			xpos=mainrect.left;
-		if(ypos>mainrect.bottom)
-			ypos=mainrect.top;
-		SetWindowPos(hwnd,NULL,xpos,ypos,0,0,SWP_NOZORDER|SWP_NOSIZE);
+		{
+		RECT rdlg,rstatic;
+		POINT p;
+		GetWindowRect(hmdi_static,&rstatic);
+		GetWindowRect(hwnd,&rdlg);
+		p.x=((rstatic.right-rstatic.left)/2)-((rdlg.right-rdlg.left)/2);
+		p.y=((rstatic.bottom-rstatic.top)/2)-((rdlg.bottom-rdlg.top)/2);
+		ClientToScreen(hmdi_static,&p);
+		SetWindowPos(hwnd,NULL,p.x,p.y,0,0,SWP_NOZORDER|SWP_NOSIZE);
+		}
 		last_search_pos=0;
+		at_top=FALSE;
 		search_text[0]=0;
 		get_ini_str("SETTINGS","text_search_last",search_text,sizeof(search_text)-1);
 		SetWindowText(GetDlgItem(hwnd,IDC_SEARCH_BOX),search_text);
 		SendMessage(GetDlgItem(hwnd,IDC_SEARCH_BOX),EM_SETSEL,0,80);
-		if(hsearch!=0){
-			hdc=GetDC(hsearch);
+		if(hmdi_static!=0){
+			HDC hdc;
+			hdc=GetDC(hmdi_static);
 			if(hdc!=0){
 				TEXTMETRIC tm;
 				if(GetTextMetrics(hdc,&tm)!=0)
 					fontheight=tm.tmHeight;
-				ReleaseDC(hsearch,hdc);
+				ReleaseDC(hmdi_static,hdc);
 			}
 		}
 		break;
 	case WM_COMMAND:
-		print_msg(msg,lparam,wparam,hwnd);
+		//print_msg(msg,lparam,wparam,hwnd);
 		switch(LOWORD(wparam))
 		{
+		case IDC_SEARCH_BOX:
+			if(HIWORD(wparam)==EN_CHANGE){
+				last_search_pos=0;
+				at_top=FALSE;
+			}
+			break;
 		case IDOK:
 			if((GetKeyState(VK_CONTROL)&0x8000)||(GetKeyState(VK_SHIFT)&0x8000))
 				wparam=IDC_SEARCH_DOWN;
@@ -212,52 +210,113 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			GetWindowText(GetDlgItem(hwnd,IDC_SEARCH_BOX),search_text,sizeof(search_text));
 			if(search_text[0]==0)
 				break;
-			p.x=p.y=0;
-			pos=SendMessage(hsearch,EM_CHARFROMPOS,0,&p);
-			ftext.lpstrText=search_text;
-			if(last_search_pos>0)
+			if(last_search_pos==0){
+				POINT p;
+				if(dir&FR_DOWN){
+					if(at_top)
+						pos=1;
+					else{
+						p.x=p.y=0;
+						pos=SendMessage(hmdi_static,EM_CHARFROMPOS,0,&p);
+					}
+				}
+				else{
+					RECT rect;
+					if(at_top){
+						pos=0;
+					}
+					else{
+						GetClientRect(hmdi_static,&rect);
+						p.x=rect.right-rect.left;
+						p.y=rect.bottom-rect.top;
+						pos=SendMessage(hmdi_static,EM_CHARFROMPOS,0,&p);
+					}
+				}
+			}
+			else{
 				pos=last_search_pos;
+				if(dir!=last_dir){
+					if(dir&FR_DOWN)
+						pos++;
+					else
+						pos--;
+				}
+				else if(dir&FR_DOWN)
+					pos++;
 
+			}
+			ftext.lpstrText=search_text;
 			ftext.chrg.cpMin=pos;
 			if(dir&FR_DOWN)
 				ftext.chrg.cpMax=-1;
 			else
 				ftext.chrg.cpMax=0;
-			fpos=SendMessage(hsearch,EM_FINDTEXT,dir,&ftext);
-			//printf("pos=%i fpos=%i last=%i\n",pos,fpos,last_search_pos);
+			fpos=SendMessage(hmdi_static,EM_FINDTEXT,dir,&ftext);
+			printf("pos=%i fpos=%i last=%i\n",pos,fpos,last_search_pos);
 			if(fpos>=0){
 				int line,line2;
-				POINT point={-1,-1};
-				line=SendMessage(hsearch,EM_LINEFROMCHAR,fpos,0);
-				line2=SendMessage(hsearch,EM_LINEFROMCHAR,pos,0);
-				SendMessage(hsearch,EM_LINESCROLL,0,line-line2);
-				SendMessage(hsearch,EM_POSFROMCHAR,&point,fpos+strlen(search_text));
-				if(point.x!=-1){
-					ClientToScreen(hsearch,&point);
+				RECT rect;
+				POINT point;
+				GetClientRect(hmdi_static,&rect);
+				point.y=0;
+				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos);
+				printf(" point.x=%i point.y=%i rect.bottom=%i\n",point.x,point.y,rect.bottom);
+				line2=SendMessage(hmdi_static,EM_GETFIRSTVISIBLELINE,0,0);
+				line=SendMessage(hmdi_static,EM_LINEFROMCHAR,fpos,0);
+				if(line-line2==0){
+					if(point.y<0){
+						line=0;line2=1;
+					}
+					else if(point.y>0 && point.y>rect.bottom-fontheight){
+						line=1;line2=0;
+					}
+				}
+				else{
+					if(point.y>0 && point.y<rect.bottom){
+						if(point.y>=rect.bottom-fontheight){
+							line=1;line2=0;
+						}
+						else{
+							line=0;line2=0;
+						}
+					}
+
+				}
+				SendMessage(hmdi_static,EM_LINESCROLL,0,line-line2);
+				point.y=-1;
+				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos+strlen(search_text));
+				if(point.y>=0 && point.x>=0 &&
+					point.y<=rect.bottom && point.x<=rect.right){
+					//printf("x=%i y=%i h=%i\n",point.x,point.y,rect.bottom-rect.top);
+					ClientToScreen(hmdi_static,&point);
 					SetWindowPos(hwnd,NULL,point.x,point.y+fontheight,0,0,SWP_NOZORDER|SWP_NOSIZE);
 				}
 				//printf("fpos=%i %i %i dif=%i\n",fpos,line,line2,line-line2);
 				last_search_pos=fpos;
-				if(dir&FR_DOWN)
-					last_search_pos++;
+				if(fpos==0)
+					at_top=TRUE;
+				else
+					at_top=FALSE;
+				printf(" last=%i\n",last_search_pos);
 			}
 			else{
 				POINT point={0,0};
-				ClientToScreen(hsearch,&point);
-				SetWindowPos(hwnd,NULL,point.x,point.y,0,0,SWP_NOZORDER|SWP_NOSIZE);
-				if(timer==0){
-					show_tooltip("nothing found",point.x,point.y);
-					timer=SetTimer(hwnd,0x1337,550,NULL);
-				}
 				if(dir&FR_DOWN){
-					last_search_pos=0;
-					SendMessage(hsearch,WM_VSCROLL,SB_TOP,0);
+					RECT rect;
+					GetWindowRect(hmdi_static,&rect);
+					point.x=rect.left;
+					point.y=rect.bottom;
 				}
 				else{
-					last_search_pos=MAXLONG;
-					SendMessage(hsearch,WM_VSCROLL,SB_BOTTOM,0);
+					ClientToScreen(hmdi_static,&point);
+				}
+//				SetWindowPos(hwnd,NULL,point.x,point.y,0,0,SWP_NOZORDER|SWP_NOSIZE);
+				if(timer==0){
+					show_tooltip("nothing more found",point.x,point.y);
+					timer=SetTimer(hwnd,0x1337,550,NULL);
 				}
 			}
+			last_dir=dir;
 			break;
 		case WM_DESTROY:
 			goto quit;
@@ -279,12 +338,6 @@ quit:
 			timer=0;
 		}
 		hide_tooltip();
-		GetWindowRect(ghmainframe,&mainrect);
-		GetWindowRect(hwnd,&rect);
-		xpos=rect.left-mainrect.left;
-		ypos=rect.top-mainrect.top;
-		write_ini_value("SETTINGS","text_search_xpos",xpos);
-		write_ini_value("SETTINGS","text_search_ypos",ypos);
 		GetWindowText(GetDlgItem(hwnd,IDC_SEARCH_BOX),search_text,sizeof(search_text));
 		write_ini_str("SETTINGS","text_search_last",search_text);
 		EndDialog(hwnd,0);
@@ -532,7 +585,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				}
 				break;
 			case 0x6: //ctr-f
-				hsearch=GetDlgItem(hwnd,MDI_STATIC);
+				hmdi_static=GetDlgItem(hwnd,MDI_STATIC);
 				DialogBox(ghinstance,MAKEINTRESOURCE(IDD_TEXTSEARCH),hwnd,text_search);
 				break;
 			case VK_TAB:
