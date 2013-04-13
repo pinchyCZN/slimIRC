@@ -252,7 +252,7 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			else
 				ftext.chrg.cpMax=0;
 			fpos=SendMessage(hmdi_static,EM_FINDTEXT,dir,&ftext);
-			printf("pos=%i fpos=%i last=%i\n",pos,fpos,last_search_pos);
+			//printf("pos=%i fpos=%i last=%i\n",pos,fpos,last_search_pos);
 			if(fpos>=0){
 				int line,line2;
 				RECT rect;
@@ -260,7 +260,7 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				GetClientRect(hmdi_static,&rect);
 				point.y=0;
 				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos);
-				printf(" point.x=%i point.y=%i rect.bottom=%i\n",point.x,point.y,rect.bottom);
+				//printf(" point.x=%i point.y=%i rect.bottom=%i\n",point.x,point.y,rect.bottom);
 				line2=SendMessage(hmdi_static,EM_GETFIRSTVISIBLELINE,0,0);
 				line=SendMessage(hmdi_static,EM_LINEFROMCHAR,fpos,0);
 				if(line-line2==0){
@@ -283,6 +283,15 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				}
 				SendMessage(hmdi_static,EM_LINESCROLL,0,line-line2);
+				//determine if the text is scrolled up beyond the bottom
+				if(line-line2>0){
+					line=SendMessage(hmdi_static,EM_GETLINECOUNT,0,0);
+					pos=SendMessage(hmdi_static,EM_LINEINDEX,line-1,0);
+					point.y=0;
+					SendMessage(hmdi_static,EM_POSFROMCHAR,&point,pos);
+					if(point.y<rect.bottom-fontheight)
+						SendMessage(hmdi_static,EM_SCROLL,SB_LINEDOWN,0);
+				}
 				point.y=-1;
 				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos+strlen(search_text));
 				if(point.y>=0 && point.x>=0 &&
@@ -297,7 +306,6 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					at_top=TRUE;
 				else
 					at_top=FALSE;
-				printf(" last=%i\n",last_search_pos);
 			}
 			else{
 				POINT point={0,0};
@@ -310,7 +318,6 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				else{
 					ClientToScreen(hmdi_static,&point);
 				}
-//				SetWindowPos(hwnd,NULL,point.x,point.y,0,0,SWP_NOZORDER|SWP_NOSIZE);
 				if(timer==0){
 					show_tooltip("nothing more found",point.x,point.y);
 					timer=SetTimer(hwnd,0x1337,550,NULL);
