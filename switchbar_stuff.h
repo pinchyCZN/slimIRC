@@ -62,7 +62,7 @@ int create_switchbar(HWND hwnd,HINSTANCE hinstance)
 {
 	//extern LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 	WNDCLASS wndclass;
-	HWND hswitch;
+	HWND hswitch=0;
 	memset(&wndclass,0,sizeof(wndclass));
 	wndclass.lpfnWndProc=switchbar_proc;
 	wndclass.hCursor=LoadCursor(NULL, IDC_ARROW);

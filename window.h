@@ -138,7 +138,7 @@ int resize_mdi_window(HWND hclient)
 int create_mdiclient(HWND hwnd,HMENU hmenu,HINSTANCE hinstance)
 {
 	CLIENTCREATESTRUCT MDIClientCreateStruct;
-	HWND hmdiclient;
+	HWND hmdiclient=0;
 	MDIClientCreateStruct.hWindowMenu   = GetSubMenu(hmenu,5);
 	MDIClientCreateStruct.idFirstChild  = 50000;
 	hmdiclient = CreateWindow("MDICLIENT",NULL,
