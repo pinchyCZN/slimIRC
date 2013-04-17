@@ -165,7 +165,7 @@ void event_kick(irc_session_t * session, const char * event, const char * origin
 	if(win!=0){
 		char str[80],nick[20];
 		extract_nick(origin,nick,sizeof(nick));
-		_snprintf(str,sizeof(str),"%s kicked %s from channel %s %s",nick,params[1],params[0],
+		_snprintf(str,sizeof(str),"* %s kicked %s from channel %s %s",nick,params[1],params[0],
 			count>2?params[2]:"");
 		add_line_mdi(win,str);
 		update_nick_in_list(win->hlist,params[1],0);
