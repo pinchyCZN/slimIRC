@@ -796,7 +796,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	ShowWindow(ghmainframe,nCmdShow);
 	UpdateWindow(ghmainframe);
 
-	_beginthread(auto_connect,0,ghmdiclient);
+	if(!(GetKeyState(VK_SHIFT)&0x8000))
+		_beginthread(auto_connect,0,ghmdiclient);
 
     while(GetMessage(&msg,NULL,0,0)){
 		static DWORD tick=0;
