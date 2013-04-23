@@ -555,9 +555,11 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				if(IsDlgButtonChecked(hwnd,IDC_ENABLELOG)==BST_CHECKED)
 					log_enable=1;
-				else
+				else{
 					log_enable=0;
-				write_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",lua_script_enable);
+					log_str(0,0,0);
+				}
+				write_ini_value("SETTINGS","ENABLE_LOG",log_enable);
 
 				if(IsDlgButtonChecked(hwnd,IDC_LUA_SCRIPT)==BST_CHECKED)
 					lua_script_enable=1;
