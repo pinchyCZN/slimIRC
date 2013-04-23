@@ -71,34 +71,44 @@ int log_str(char *chan,char *network,char *str)
 	int result=FALSE;
 	static int files_open=FALSE;
 	char name[MAX_PATH]={0};
+	static CRITICAL_SECTION cslog;
+	static int init_cs_done=FALSE;
+
+	if(!init_cs_done){
+		InitializeCriticalSection(&cslog);
+		init_cs_done=TRUE;
+	}
+	EnterCriticalSection(&cslog);
 	if(!log_enable){
 		if(files_open)
 			close_all_logs();
 		files_open=FALSE;
-		return FALSE;
 	}
-	_snprintf(name,sizeof(name),"%s.%s.log",chan,network);
-	log=acquire_log_file(name);
-	if(log!=0){
-		if(log->f==0){
-			char fullname[MAX_PATH]={0};
-			if(create_log_directory(fullname,sizeof(fullname))){
-				_snprintf(fullname,sizeof(fullname),"%s\\%s",fullname,name);
-				log->f=fopen(fullname,"a");
+	else{
+		_snprintf(name,sizeof(name),"%s.%s.log",chan,network);
+		log=acquire_log_file(name);
+		if(log!=0){
+			if(log->f==0){
+				char fullname[MAX_PATH]={0};
+				if(create_log_directory(fullname,sizeof(fullname))){
+					_snprintf(fullname,sizeof(fullname),"%s\\%s",fullname,name);
+					log->f=fopen(fullname,"a");
+				}
+			}
+			if(log->f!=0){
+				DWORD tick;
+				char date[16]={0},time[16]={0};
+				tick=GetTickCount();
+				GetDateFormat(LOCALE_SYSTEM_DEFAULT,NULL,NULL,"yy.MM.dd|",date,sizeof(date));
+				GetTimeFormat(LOCALE_SYSTEM_DEFAULT,NULL,NULL,"HH:mm:ss",time,sizeof(time));
+				fprintf(log->f,"%s%s %s\n",date,time,str);
+				log->tick=tick;
+				result=TRUE;
+				files_open=TRUE;
 			}
 		}
-		if(log->f!=0){
-			DWORD tick;
-			char date[16]={0},time[16]={0};
-			tick=GetTickCount();
-			GetDateFormat(LOCALE_SYSTEM_DEFAULT,NULL,NULL,"yy.MM.dd|",date,sizeof(date));
-			GetTimeFormat(LOCALE_SYSTEM_DEFAULT,NULL,NULL,"HH:mm:ss",time,sizeof(time));
-			fprintf(log->f,"%s%s %s\n",date,time,str);
-			log->tick=tick;
-			result=TRUE;
-			files_open=TRUE;
-		}
+		close_old_files();
 	}
-	close_old_files();
+	LeaveCriticalSection(&cslog);
 	return result;
 }
