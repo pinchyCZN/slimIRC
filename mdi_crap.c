@@ -84,7 +84,7 @@ int control_debug(char *type,char *set)
 	int readonly=TRUE;
 	int i;
 #ifndef _DEBUG
-	return FALSE;
+//	return FALSE;
 #endif
 	if(set!=0){
 		if(stricmp(set,"on")==0){flag=TRUE;readonly=FALSE;}
