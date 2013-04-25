@@ -55,10 +55,10 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 				strncpy(privmsg_win->nick,mynick,sizeof(privmsg_win->nick));
 				if(hwnd==0){
 					hwnd=create_privmsg_window(ghmdiclient,privmsg_win,nick);
+					BringWindowToTop(hwnd);
 				}
 				if(hwnd!=0){
 					privmsg_win->hwnd=hwnd;
-					BringWindowToTop(privmsg_win->hwnd);
 					if(privmsg_win->hbutton==0)
 						SendMessage(ghswitchbar,WM_USER,privmsg_win->hwnd,0);
 				}
