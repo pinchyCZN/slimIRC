@@ -777,6 +777,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_mdi_stuff();
 	get_ini_value("SETTINGS","SWITCH_HEIGHT",&switch_height);
 	LoadLibrary("RICHED20.DLL");
+	CoInitialize(0);
 
 	ctrls.dwSize=sizeof(ctrls);
     ctrls.dwICC = ICC_LISTVIEW_CLASSES;
@@ -821,6 +822,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 		LeaveCriticalSection(&mutex);
     }
+	CoUninitialize();
 	wait_for_disconnect();
 	DeleteCriticalSection(&mutex);
     return msg.wParam;

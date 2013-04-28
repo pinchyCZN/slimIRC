@@ -76,13 +76,7 @@ int GetContextMenu(HWND hwnd,char *fname)
 	HRESULT hr;
 	ITEMIDLIST *folder=0,*file=0;
 	IShellFolder *shell=0,*parent=0;
-	static init=TRUE;
-	if(init){
-		hr=CoInitialize(0);
-		if(hr!=S_OK)
-			return 0;
-		init=FALSE;
-	}
+
 	CoCreateInstance(&CLSID_ShellDesktop,NULL,CLSCTX_INPROC,&IID_IShellFolder,&shell);
 
 	if(shell!=0){
@@ -124,6 +118,5 @@ int GetContextMenu(HWND hwnd,char *fname)
 		CoTaskMemFree(folder);
 	if(file!=0)
 		CoTaskMemFree(file);
-	//CoUninitialize();
-    return 0;
+   return 0;
 }
