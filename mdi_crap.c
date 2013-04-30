@@ -1184,6 +1184,8 @@ int custom_dispatch(MSG *msg)
 	static int mbutton_down=FALSE;
 
 	hwnd=WindowFromPoint(msg->pt);
+	if(hwnd==0)
+		return FALSE;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].hedit==msg->hwnd){
 			win=&irc_windows[i];
