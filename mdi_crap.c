@@ -1179,13 +1179,13 @@ int custom_dispatch(MSG *msg)
 {
 	int i,index=-1;
 	IRC_WINDOW *win=0;
-	HWND hwnd;
+	HWND hwnd=0;
 	int type=0;
 	static int mbutton_down=FALSE;
 
-	hwnd=WindowFromPoint(msg->pt);
-	if(hwnd==0)
-		return FALSE;
+	if(msg->message==WM_MOUSEWHEEL)
+		hwnd=WindowFromPoint(msg->pt);
+
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].hedit==msg->hwnd){
 			win=&irc_windows[i];
