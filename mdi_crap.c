@@ -1257,8 +1257,9 @@ int custom_dispatch(MSG *msg)
 						return FALSE;
 				case VK_HOME:
 				case VK_END:
-					if(!(GetKeyState(VK_CONTROL)&0x8000))
-						return FALSE;
+					if(msg->wParam!=VK_TAB)
+						if(!(GetKeyState(VK_CONTROL)&0x8000))
+							return FALSE;
 				case VK_F3:
 				case VK_ESCAPE:
 				case VK_PRIOR:
