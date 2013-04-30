@@ -601,6 +601,12 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				else
 					tab_completion(hwnd);
 				break;
+			case VK_HOME:
+				scroll=SB_TOP;
+				break;
+			case VK_END:
+				scroll=SB_BOTTOM;
+				break;
 			case VK_ESCAPE:
 				if(edit_buffer[0][0]==0)
 					scroll_history_pos=0;
@@ -1246,6 +1252,10 @@ int custom_dispatch(MSG *msg)
 					break;
 				case VK_TAB:
 					if(GetKeyState(VK_CONTROL)&0x8000)
+						return FALSE;
+				case VK_HOME:
+				case VK_END:
+					if(!(GetKeyState(VK_CONTROL)&0x8000))
 						return FALSE;
 				case VK_F3:
 				case VK_ESCAPE:
