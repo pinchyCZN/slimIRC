@@ -113,7 +113,7 @@ static char tt_text[1024]={0};
 int hide_tooltip()
 {
 	extern HWND ghmainframe;
-	PostMessage(ghmainframe,WM_USER+2,0,0);
+	PostMessage(ghmainframe,WM_USER,MSG_DESTROY_TOOLTIP,0);
 	return TRUE;
 }
 int show_tooltip(char *msg,int x,int y)
@@ -121,7 +121,7 @@ int show_tooltip(char *msg,int x,int y)
 	extern HWND ghmainframe;
 	strncpy(tt_text,msg,sizeof(tt_text));
 	tt_text[sizeof(tt_text)-1]=0;
-	PostMessage(ghmainframe,WM_USER+1,x,y);
+	PostMessage(ghmainframe,WM_USER,MSG_CREATE_TOOLTIP,MAKELPARAM(x,y));
 	return TRUE;
 }
 int create_tooltip(HWND hwnd,int x, int y)

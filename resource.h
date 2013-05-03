@@ -39,6 +39,7 @@
 #define IDC_SWITCHBUTTON                1032
 #define IDC_USER_EDIT                   1033
 #define IDC_ADD_BUTTON                  1034
+#define MSG_ADD_BUTTON                  1034
 #define IDC_PASSWORD                    1035
 #define IDC_LISTVIEW                    1037
 #define IDC_SHOWJOINS                   1038
@@ -69,6 +70,14 @@
 #define IDC_DEBUG_LEVEL                 1066
 #define IDC_SCROLLBAR                   1067
 #define IDC_LUASCRIPT                   1068
+#define MSG_DEL_BUTTON                  1069
+#define MSG_RESIZE_BUTTONS              1070
+#define MSG_BANLIST                     1074
+#define MSG_TOPIC                       1076
+#define MSG_MODE                        1077
+#define MSG_CREATE_TOOLTIP              1078
+#define MSG_DESTROY_TOOLTIP             1079
+#define MSG_UPDATE_STATUS               1080
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
@@ -82,7 +91,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        117
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1069
+#define _APS_NEXT_CONTROL_VALUE         1081
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

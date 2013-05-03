@@ -103,73 +103,76 @@ BOOL CALLBACK chan_modes(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 		}
 		break;
-	case WM_USER+3:
-		SendDlgItemMessage(hwnd,IDC_BANLIST,LB_ADDSTRING,0,chan_mode_ban_entry);
-		break;
-	case WM_USER+2:
-		chan_mode_have_topic=TRUE;
-		SetDlgItemText(hwnd,IDC_TOPIC,chan_mode_topic);
-		win=find_window_by_hwnd(chan_mode_parent);
-		if(win!=0 && win->session!=0 && irc_is_connected(win->session))
-			irc_send_raw(win->session,"MODE %s +b",win->channel); //get the ban list
-		break;
-	case WM_USER+1:
-		{
-			int i,set=BST_UNCHECKED,key=FALSE,limit=FALSE,part=0,index=0,len=strlen(chan_mode_data);
-			char param1[40]={0},param2[40]={0};
-			for(i=0;i<len;i++){
-				if(chan_mode_data[i]=='|'){
-					if(part==1)
-						param1[index++]=0;
-					else if(part==2)
-						param2[index++]=0;
-					index=0;
-					part++;
-				}
-				else if(part==0){
-					int j;
-					if(chan_mode_data[i]=='+')
-						set=BST_CHECKED;
-					else if(chan_mode_data[i]=='-')
-						set=BST_UNCHECKED;
-					for(j=0;j<sizeof(idc_modes)/sizeof(struct IDC_TO_MODE);j++){
-						if(idc_modes[j].val==tolower(chan_mode_data[i])){
-							CheckDlgButton(hwnd,idc_modes[j].idc,set);
-							if(idc_modes[j].idc==IDC_REQUIRESKEY)
-								key=TRUE;
-							else if(idc_modes[j].idc==IDC_LIMITTO)
-								limit=TRUE;
-							break;
-						}
-					}
-				}
-				else if(part==1){
-					if(index<(sizeof(param1)-1))
-						param1[index++]=chan_mode_data[i];
-				}
-				else if(part==2){
-					if(index<(sizeof(param2)-1))
-						param2[index++]=chan_mode_data[i];
-				}
-			}
-			param1[sizeof(param1)-1]=0;
-			param2[sizeof(param2)-1]=0;
-			trim_str(param1);
-			trim_str(param2);
-			if(limit && key){
-				SetDlgItemText(hwnd,IDC_KEY,param2);
-				SetDlgItemText(hwnd,IDC_USERS,param1);
-			}
-			else if(limit)
-				SetDlgItemText(hwnd,IDC_USERS,param1);
-			else if(key)
-				SetDlgItemText(hwnd,IDC_KEY,param1);
+	case WM_USER:
+		switch(wparam){
+		case MSG_BANLIST:
+			SendDlgItemMessage(hwnd,IDC_BANLIST,LB_ADDSTRING,0,chan_mode_ban_entry);
+			break;
+		case MSG_TOPIC:
+			chan_mode_have_topic=TRUE;
+			SetDlgItemText(hwnd,IDC_TOPIC,chan_mode_topic);
 			win=find_window_by_hwnd(chan_mode_parent);
 			if(win!=0 && win->session!=0 && irc_is_connected(win->session))
-				irc_send_raw(win->session,"TOPIC %s",win->channel);
-			have_all_info=TRUE;
+				irc_send_raw(win->session,"MODE %s +b",win->channel); //get the ban list
+			break;
+		case MSG_MODE:
+			{
+				int i,set=BST_UNCHECKED,key=FALSE,limit=FALSE,part=0,index=0,len=strlen(chan_mode_data);
+				char param1[40]={0},param2[40]={0};
+				for(i=0;i<len;i++){
+					if(chan_mode_data[i]=='|'){
+						if(part==1)
+							param1[index++]=0;
+						else if(part==2)
+							param2[index++]=0;
+						index=0;
+						part++;
+					}
+					else if(part==0){
+						int j;
+						if(chan_mode_data[i]=='+')
+							set=BST_CHECKED;
+						else if(chan_mode_data[i]=='-')
+							set=BST_UNCHECKED;
+						for(j=0;j<sizeof(idc_modes)/sizeof(struct IDC_TO_MODE);j++){
+							if(idc_modes[j].val==tolower(chan_mode_data[i])){
+								CheckDlgButton(hwnd,idc_modes[j].idc,set);
+								if(idc_modes[j].idc==IDC_REQUIRESKEY)
+									key=TRUE;
+								else if(idc_modes[j].idc==IDC_LIMITTO)
+									limit=TRUE;
+								break;
+							}
+						}
+					}
+					else if(part==1){
+						if(index<(sizeof(param1)-1))
+							param1[index++]=chan_mode_data[i];
+					}
+					else if(part==2){
+						if(index<(sizeof(param2)-1))
+							param2[index++]=chan_mode_data[i];
+					}
+				}
+				param1[sizeof(param1)-1]=0;
+				param2[sizeof(param2)-1]=0;
+				trim_str(param1);
+				trim_str(param2);
+				if(limit && key){
+					SetDlgItemText(hwnd,IDC_KEY,param2);
+					SetDlgItemText(hwnd,IDC_USERS,param1);
+				}
+				else if(limit)
+					SetDlgItemText(hwnd,IDC_USERS,param1);
+				else if(key)
+					SetDlgItemText(hwnd,IDC_KEY,param1);
+				win=find_window_by_hwnd(chan_mode_parent);
+				if(win!=0 && win->session!=0 && irc_is_connected(win->session))
+					irc_send_raw(win->session,"TOPIC %s",win->channel);
+				have_all_info=TRUE;
+			}
+			break;
 		}
-		break;
 	case WM_SIZE:
 		grippy_move(hwnd,grippy);
 		reposition_controls(hwnd,chan_mode_list);
@@ -190,7 +193,7 @@ int update_chan_mode_dlg(int event,const char *origin,const char **params,int co
 	case 367: //ban entry u00|#1|*!*@127.0.0.1|pinchy|123456778
 		if(count>=3 && chan_mode_hwnd!=0){
 			_snprintf(chan_mode_ban_entry,sizeof(chan_mode_ban_entry),"%s",params[2]);
-			SendMessage(chan_mode_hwnd,WM_USER+3,0,0);
+			SendMessage(chan_mode_hwnd,WM_USER,MSG_BANLIST,0);
 		}
 		break;
 	case 324: //mode pinchy|#thistest|+spmtinlk|1337|thisisakey
@@ -198,18 +201,18 @@ int update_chan_mode_dlg(int event,const char *origin,const char **params,int co
 			_snprintf(chan_mode_data,sizeof(chan_mode_data),"%s|%s|%s|",params[2],
 				count>3?params[3]:"",
 				count>4?params[4]:"");
-			SendMessage(chan_mode_hwnd,WM_USER+1,0,0);
+			SendMessage(chan_mode_hwnd,WM_USER,MSG_MODE,0);
 		}
 		break;
 	case 331: //no topic set
 		chan_mode_topic[0]=0;
-		SendMessage(chan_mode_hwnd,WM_USER+2,0,0);
+		SendMessage(chan_mode_hwnd,WM_USER,MSG_TOPIC,0);
 		break;
 	case 332: //topic pinchy|#1|blah
 		if(count>=3 && chan_mode_hwnd!=0){
 			_snprintf(chan_mode_topic,sizeof(chan_mode_topic),"%s",params[2]);
 			chan_mode_topic[sizeof(chan_mode_topic)-1]=0;
-			SendMessage(chan_mode_hwnd,WM_USER+2,0,0);
+			SendMessage(chan_mode_hwnd,WM_USER,MSG_TOPIC,0);
 		}
 		break;
 	}

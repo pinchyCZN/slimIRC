@@ -67,7 +67,7 @@ int server_thread(SERVER_THREAD *thread)
 	irc_session_t *session;
 	irc_callbacks_t *callbacks;
 	printf("irc thread started\n");
-	PostMessage(ghmainframe,WM_USER,0,0);
+	PostMessage(ghmainframe,WM_USER,MSG_UPDATE_STATUS,0);
 	callbacks=malloc(sizeof(irc_callbacks_t));
 	if(callbacks!=0){
 		while(session=thread->session=create_session(callbacks)){
@@ -110,7 +110,7 @@ quit:
 	erase_server_thread(thread);
 	if(win!=0 && win->hwnd!=0)
 		PostMessage(win->hwnd,WM_CLOSE,0,0);
-	PostMessage(ghmainframe,WM_USER,0,0);
+	PostMessage(ghmainframe,WM_USER,MSG_UPDATE_STATUS,0);
 	return _endthread();
 }
 int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,char *password)
@@ -142,7 +142,7 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 			get_ini_str("SETTINGS","NICK",win->nick,sizeof(win->nick));
 			strncpy(thread->nick,win->nick,sizeof(thread->nick));
 			if(win->hbutton==0)
-				SendMessage(ghswitchbar,WM_USER,win->hwnd,0);
+				SendMessage(ghswitchbar,WM_USER,MSG_ADD_BUTTON,win->hwnd);
 			if(!thread->thread_started){
 				thread->thread_started=TRUE;
 				_beginthread(server_thread,0,thread);
@@ -227,7 +227,7 @@ int disconnect_server(IRC_WINDOW *win)
 			}
 			timeout=0;
 		}
-		SendMessage(ghswitchbar,WM_USER+1,win->hbutton,0);
+		SendMessage(ghswitchbar,WM_USER,MSG_DEL_BUTTON,win->hbutton);
 		erase_irc_window(win->hwnd);
 	}
 	return TRUE;

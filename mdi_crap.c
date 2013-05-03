@@ -1276,8 +1276,6 @@ int custom_dispatch(MSG *msg)
 		case WM_MOUSEFIRST:
 			if(type==MDI_STATIC){
 				DispatchMessage(msg);
-				//msg->message=WM_USER+1;
-				//DispatchMessage(msg);
 				return TRUE;
 			}
 			break;

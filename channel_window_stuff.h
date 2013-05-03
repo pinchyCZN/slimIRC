@@ -192,7 +192,7 @@ int join_channel_event(void *session,const char *origin,const char *channel)
 				char nick[20]={0};
 				channel_win->hwnd=hwnd;
 				if(channel_win->hbutton==0)
-					SendMessage(ghswitchbar,WM_USER,channel_win->hwnd,0);
+					SendMessage(ghswitchbar,WM_USER,MSG_ADD_BUTTON,channel_win->hwnd);
 				extract_nick(origin,nick,sizeof(nick));
 				if(stricmp(nick,channel_win->nick)==0){
 					BringWindowToTop(channel_win->hwnd);

@@ -640,13 +640,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		break;
 	case WM_USER:
-		update_status_window(hwnd,ghmenu);
-		break;
-	case WM_USER+1:
-		create_tooltip(hwnd,wparam,lparam);
-		break;
-	case WM_USER+2:
-		destroy_tooltip();
+		switch(wparam){
+		case MSG_UPDATE_STATUS:
+			update_status_window(hwnd,ghmenu);
+			break;
+		case MSG_CREATE_TOOLTIP:
+			create_tooltip(hwnd,LOWORD(lparam),HIWORD(lparam));
+			break;
+		case MSG_DESTROY_TOOLTIP:
+			destroy_tooltip();
+			break;
+		}
 		break;
 	case WM_ACTIVATEAPP: //close any tooltip on app switch
 		destroy_tooltip();
@@ -803,11 +807,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		_beginthread(auto_connect,0,ghmdiclient);
 
     while(GetMessage(&msg,NULL,0,0)){
-		static DWORD tick=0;
 		if(control_debug("x",0))
 		//if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		if(msg.message!=0x118&&msg.message!=WM_NCHITTEST&&msg.message!=WM_SETCURSOR&&msg.message!=WM_ENTERIDLE)
 		{
+			static DWORD tick=0;
 			if((GetTickCount()-tick)>500)
 				printf("--\n");
 			printf("x");

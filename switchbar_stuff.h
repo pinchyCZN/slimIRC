@@ -1,11 +1,11 @@
 LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HBRUSH hbrush=0;
-	static DWORD tick=0;
 	if(control_debug("switch",0))
 	if(/*msg!=WM_NCMOUSEMOVE&&*/msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
+		static DWORD tick=0;
 		if((GetTickCount()-tick)>500)
 			printf("--\n");
 		printf("s");
@@ -16,22 +16,26 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 	case WM_DRAWITEM:
 		draw_button(hwnd,(LPDRAWITEMSTRUCT)lparam);
 		return TRUE; 
-	case WM_USER: //create button mdi hwnd in wparam
-		{
-		HWND hbutton=add_button(hwnd,wparam);
-		if(hbutton!=0)
-			SendMessage(hbutton,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
+	case WM_USER: //create button mdi hwnd in lparam
+		switch(wparam){
+		case MSG_ADD_BUTTON:
+			{
+			HWND hbutton=add_button(hwnd,lparam);
+			if(hbutton!=0)
+				SendMessage(hbutton,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
+			}
+			break;
+		case MSG_DEL_BUTTON:
+			DestroyWindow(lparam);
+			break;
+		case MSG_RESIZE_BUTTONS:
+			resize_buttons(ghswitchbar);
+			break;
 		}
-		break;
-	case WM_USER+1: //destroy button hwnd in wparam
-		DestroyWindow(wparam);
-		break;
-	case WM_USER+2:
-		resize_buttons(ghswitchbar);
 		break;
 	case WM_PARENTNOTIFY:
 		if(LOWORD(wparam)==WM_DESTROY)
-			PostMessage(hwnd,WM_USER+2,0,0); //resize buttons after ones destroy
+			PostMessage(hwnd,WM_USER,MSG_RESIZE_BUTTONS,0); //resize buttons after ones destroy
 		break;
 	case WM_CREATE:
 		/*
