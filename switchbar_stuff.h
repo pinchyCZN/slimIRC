@@ -16,7 +16,7 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 	case WM_DRAWITEM:
 		draw_button(hwnd,(LPDRAWITEMSTRUCT)lparam);
 		return TRUE; 
-	case WM_USER: //create button mdi hwnd in lparam
+	case WM_USER:
 		switch(wparam){
 		case MSG_ADD_BUTTON:
 			{
