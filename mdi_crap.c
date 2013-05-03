@@ -357,11 +357,11 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 {
 	static int list_drag=FALSE,list_width=60;
 	IRC_WINDOW *win=0;
-	static DWORD tick=0;
 	if(control_debug("mdi",0))
 	if(/*msg!=WM_NCMOUSEMOVE&&*/msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
+		static DWORD tick=0;
 		if((GetTickCount()-tick)>500)
 			printf("--\n");
 		printf("m");

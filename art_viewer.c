@@ -143,6 +143,7 @@ do_draw:
 			}
 		}
 	}
+	return 0;
 }
 static int set_title(HWND hwnd,int line)
 {
@@ -166,7 +167,6 @@ static int calc_scrollbar(HWND hwnd,int line)
 BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HWND grippy=0;
-	static DWORD tick;
 	static int line=0;
 	static int vlines=30;
 	PAINTSTRUCT ps;
@@ -175,6 +175,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
+		static DWORD tick;
 		if((GetTickCount()-tick)>500)
 			printf("--\n");
 		print_msg(msg,lparam,wparam,hwnd);

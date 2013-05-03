@@ -2,7 +2,6 @@ WNDPROC orig_static_proc;
 UINT last_static_msg=0;
 LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	static DWORD tick=0;
 	static POINTL rmb_pos;
 	static int lmb_down=FALSE,mouse_wheel=0;
 	static char cmd_target[sizeof(mouse_target)]={0};
@@ -10,6 +9,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	if(/*msg!=WM_NCMOUSEMOVE&&msg!=WM_MOUSEFIRST&&*/msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
+		static DWORD tick=0;
 		if((GetTickCount()-tick)>500)
 			printf("--\n");
 		printf("stat");
