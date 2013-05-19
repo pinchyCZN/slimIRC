@@ -273,24 +273,28 @@ void event_ctcp_action(irc_session_t * session, const char * event, const char *
 void event_mode(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
 	IRC_WINDOW *win=0;
-	int i;
+	int i,echo=TRUE;
 	char nick[20]={0};
 	char str[255]={0};
 	dump_event(session,event,origin,params,count);
 	if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
-		return;
-	_snprintf(str,sizeof(str),"%s %s",event,origin);
-	for(i=0;i<count;i++)
-		_snprintf(str,sizeof(str),"%s %s",str,params[i]);
-	echo_server_window(session,str);
+		echo=FALSE;
+	if(echo){
+		_snprintf(str,sizeof(str),"%s %s",event,origin);
+		for(i=0;i<count;i++)
+			_snprintf(str,sizeof(str),"%s %s",str,params[i]);
+		echo_server_window(session,str);
+	}
 	extract_nick(origin,nick,sizeof(nick));
 	if(count>=2){
 		win=find_channel_window(session,params[0]);
 		if(win!=0){
-			_snprintf(str,sizeof(str),"* %s sets mode",nick);
-			for(i=0;i<count;i++)
-				_snprintf(str,sizeof(str),"%s %s",str,params[i]);
-			add_line_mdi(win,str);
+			if(echo){
+				_snprintf(str,sizeof(str),"* %s sets mode",nick);
+				for(i=0;i<count;i++)
+					_snprintf(str,sizeof(str),"%s %s",str,params[i]);
+				add_line_mdi(win,str);
+			}
 			if((strstri(params[1],"v")!=0) || (strstri(params[1],"o")!=0)){
 				if(strstr(params[1],"-")!=0){
 					SendMessage(win->hlist,LB_RESETCONTENT,0,0);
