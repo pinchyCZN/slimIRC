@@ -23,7 +23,6 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short add_server_anchors[];
 	static HWND grippy=0;
-	static int entry_num=-1;
 	static char old_server[80]={0};
 	static int help_active=FALSE;
 	switch(msg)
@@ -240,8 +239,9 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short channel_list_anchors[];
 	static HWND grippy=0;
-	static int entry_num=-1;
+	static int network_num=0;
 	static char old_channel[80]={0};
+
 	switch(msg)
 	{
 	case WM_INITDIALOG:
@@ -254,8 +254,12 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			GetWindowText(GetDlgItem(hwnd,IDC_CHANNEL),old_channel,sizeof(old_channel));
 		}
 		else{
+			int count=0;
 			populate_channel_networks(hwnd);
-			SendDlgItemMessage(hwnd,IDC_NETWORK,CB_SETCURSEL,0,0);
+			count=SendDlgItemMessage(hwnd,IDC_NETWORK,CB_GETCOUNT,0,0);
+			if(network_num<0 || network_num>count)
+				network_num=0;
+			SendDlgItemMessage(hwnd,IDC_NETWORK,CB_SETCURSEL,network_num,0);
 		}
 		break;
 	case WM_SIZE:
@@ -265,6 +269,13 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_COMMAND:
 		switch(LOWORD(wparam))
 		{
+		case IDC_NETWORK:
+			switch(HIWORD(wparam)){
+			case CBN_SELCHANGE:
+				network_num=SendMessage(lparam,CB_GETCURSEL,0,0);
+				break;
+			}
+			break;
 		case WM_DESTROY:
 			EndDialog(hwnd,0);
 			break;
