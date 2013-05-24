@@ -257,7 +257,7 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			int count=0;
 			populate_channel_networks(hwnd);
 			count=SendDlgItemMessage(hwnd,IDC_NETWORK,CB_GETCOUNT,0,0);
-			if(network_num<0 || network_num>count)
+			if(network_num<0 || network_num>=count)
 				network_num=0;
 			SendDlgItemMessage(hwnd,IDC_NETWORK,CB_SETCURSEL,network_num,0);
 		}
