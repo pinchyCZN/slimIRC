@@ -764,7 +764,7 @@ int CALLBACK compare_func(LPARAM lparam1, LPARAM lparam2,struct find_helper *fh)
 		int result;
 		ListView_GetItemText(fh->hlistview,index1,fh->col,str1,sizeof(str1));
 		ListView_GetItemText(fh->hlistview,index2,fh->col,str2,sizeof(str2));
-		result=strcmp(str1,str2);
+		result=_stricmp(str1,str2);
 		if(fh->dir)
 			result=-result;
 		return result;
