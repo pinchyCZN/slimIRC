@@ -374,7 +374,7 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 		}
 		switch(win->type){
 		default:
-		case SERVER_WINDOW:text=win->server;break;
+		case SERVER_WINDOW:text=win->network;break;
 		case CHANNEL_WINDOW:text=win->channel;break;
 		case PRIVMSG_WINDOW:text=win->channel;break;
 		}
