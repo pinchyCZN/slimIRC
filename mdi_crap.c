@@ -463,7 +463,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			case SERVER_WINDOW:
 				if(win->session!=0 && irc_is_connected(win->session)){
 					char str[128];
-					_snprintf(str,sizeof(str),"Are you sure you want to disconnect from server\r\n%s ?",win->server);
+					_snprintf(str,sizeof(str),"Are you sure you want to disconnect from server\r\n%s %s ?",win->network,win->server);
 					if(show_messagebox(hwnd,str,"Warning",MB_OKCANCEL)==IDOK)
 						disconnect_server(win);
 					else

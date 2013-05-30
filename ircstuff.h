@@ -445,7 +445,7 @@ int create_session(irc_callbacks_t *callbacks)
 }
 int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *password)
 {
-	char real_name[80]={0},user_name[80]={0};
+	char real_name[80]={0},user_name[80]={0},pw[20]={0};
 	int ssl_no_verify=FALSE;
 	char *srv=server;
 	int (*irc_connect_ptr) (irc_session_t * session,
@@ -472,9 +472,20 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		srv=srv+1;
 	}
 	get_ini_str("SETTINGS","user_name",user_name,sizeof(user_name));
+	if(strchr(password,'|')!=0){
+		char *s=strchr(password,'|')+1;
+		strncpy(pw,s,sizeof(pw));
+		strncpy(user_name,password,sizeof(user_name));
+		s=strchr(user_name,'|');
+		if(s!=0)
+			s[0]=0;
+	}
+	else
+		strncpy(pw,password,sizeof(pw));
+
 	get_ini_str("SETTINGS","real_name",real_name,sizeof(real_name));
 	if(irc_connect_ptr(s,srv,port,
-		password[0]==0?0:password,
+		pw[0]==0?0:pw,
 		nick,
 		user_name[0]==0?0:user_name,
 		real_name[0]==0?0:real_name))
