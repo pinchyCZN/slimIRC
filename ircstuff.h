@@ -246,7 +246,6 @@ void event_numeric (irc_session_t * session, unsigned int event, const char * or
 	case 433: //nick allready used
 		{
 			char nick[20]={0};
-			char str[128]={0};
 			if(strcmp(params[0],"*")==0){
 				get_new_nick(nick,sizeof(nick));
 				irc_send_raw(session,"NICK %s",nick);
@@ -446,7 +445,6 @@ int create_session(irc_callbacks_t *callbacks)
 int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *password)
 {
 	char real_name[80]={0},user_name[80]={0},pw[20]={0};
-	int ssl_no_verify=FALSE;
 	char *srv=server;
 	int (*irc_connect_ptr) (irc_session_t * session,
 				const char * server, 
@@ -539,7 +537,6 @@ int acquire_server_thread(char *network,char *server,int port,char *password)
 int disconnect_all_threads()
 {
 	int i;
-	SERVER_THREAD *thread=0;
 	for(i=0;i<sizeof(server_threads)/sizeof(SERVER_THREAD);i++){
 		if(server_threads[i].session!=0)
 			if(!server_threads[i].disconnected)

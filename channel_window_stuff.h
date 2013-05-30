@@ -213,7 +213,6 @@ int join_channel_event(void *session,const char *origin,const char *channel)
 }
 int join_channel(HWND hmdiclient,char *network,char *channel,char *password)
 {
-	char str[256]={0};
 	IRC_WINDOW *server_win,*channel_win;
 	server_win=find_server_by_network(network);
 	if(server_win!=0){
@@ -351,7 +350,6 @@ int get_subitem(char *list,char *out,int max,int item)
 int update_nick_list(IRC_WINDOW *win,const char **params,int count)
 {
 	int i,len,mode,set=FALSE;
-	char nick[20]={0};
 	//#1|+o|ptest123
 	if(count<3)
 		return FALSE;

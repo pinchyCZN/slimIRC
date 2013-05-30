@@ -157,7 +157,7 @@ int add_button(HWND hswitch,HWND hclient)
 }
 int acquire_button_id(HWND hwnd)
 {
-	int i,count=0;
+	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].hwnd==hwnd)
 			return IDC_SWITCHBUTTON+20000+i;
@@ -316,7 +316,6 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 	int i,count=0;
 	IRC_WINDOW *win=0;
 	static DWORD tick=0;
-	int rnd=rand();
 	IRC_WINDOW *bring_top=0,*redraw=0;
 	static IRC_WINDOW *last_win=0;
 	char *text=0;

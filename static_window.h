@@ -240,7 +240,7 @@ int find_nick_in_list(HWND hlist,char *nick)
 int handle_nick_links(IRC_WINDOW *win,char *nick,int mouse_button)
 {
 	int i,index=0,len,ret,cursor_set=FALSE;
-	char n[20]={0},n2[20]={0};
+	char n[20]={0};
 	if(win->hlist==0)
 		return cursor_set;
 	len=strlen(nick);

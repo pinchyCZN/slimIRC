@@ -23,20 +23,28 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short add_server_anchors[];
 	static HWND grippy=0;
-	static char old_server[80]={0};
+	static char old_server[160]={0};
 	static int help_active=FALSE;
 	switch(msg)
 	{
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd,IDC_NETWORK,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_SERVER,EM_LIMITTEXT,80,0);
-		SendDlgItemMessage(hwnd,IDC_PORTS,EM_LIMITTEXT,80,0);
-		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,20,0);
+		SendDlgItemMessage(hwnd,IDC_PORTS,EM_LIMITTEXT,40,0);
+		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,80,0);
 		grippy=create_grippy(hwnd);
 		if(list_edit){
+			int len;
 			populate_add_server_win(ghlistview,hwnd);
 			old_server[0]=0;
-			GetWindowText(GetDlgItem(hwnd,IDC_SERVER),old_server,sizeof(old_server));
+			GetWindowText(GetDlgItem(hwnd,IDC_NETWORK),old_server,sizeof(old_server));
+			len=strlen(old_server);
+			if(len>0 && len<(sizeof(old_server)-2)){
+				char *s=old_server+len;
+				s[0]='|';s[1]=0;
+				GetWindowText(GetDlgItem(hwnd,IDC_SERVER),s+1,
+					sizeof(old_server)-len-1);
+			}
 		}
 		else
 			SetDlgItemText(hwnd,IDC_NETWORK,"default");
@@ -50,7 +58,8 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		if(!help_active){
 			help_active=TRUE;
 			MessageBox(hwnd,"add \"IPV6:\" in front of server name to use ipv6\r\n"
-				"## to verify SSL certs","Help",MB_OK);
+				"## to verify SSL certs\r\n"
+				"[user|]password - user name optional, seperate user/pass with pipe (|) symbol","Help",MB_OK);
 			help_active=FALSE;
 		}
 		break;
@@ -135,7 +144,7 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					}
 					else{
 						int item;
-						char server[80]={0},network[80]={0},port[20]={0},ssl[20]={0},password[20]={0};
+						char server[80]={0},network[80]={0},port[40]={0},ssl[20]={0},password[80]={0};
 connect_channel:
 						item=get_focused_item(ghlistview);
 						if(item>=0){
@@ -682,7 +691,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_MOUSEFIRST:
 		{
 			int y=HIWORD(lparam);
-			int x=LOWORD(lparam);
 			SetCursor(LoadCursor(NULL,IDC_SIZENS));
 			if(main_drag){
 				RECT rect;

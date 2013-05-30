@@ -493,7 +493,6 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		break;
 	case WM_MOUSEFIRST:
 		{
-			int y=HIWORD(lparam);
 			int x=LOWORD(lparam);
 			SetCursor(LoadCursor(NULL,IDC_SIZEWE));
 			if(list_drag){
@@ -1177,7 +1176,7 @@ int do_cmd_on_list(HWND hwnd,int cmd)
 }
 int custom_dispatch(MSG *msg)
 {
-	int i,index=-1;
+	int i;
 	IRC_WINDOW *win=0;
 	HWND hwnd=0;
 	int type=0;

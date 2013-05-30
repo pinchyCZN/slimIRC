@@ -22,46 +22,19 @@ COLUMN server_columns[]={
 	{"ssl",30},
 	{"password",20},
 };
-int add_list(HWND hlist,char *entry)
+
+int get_ini_entry(char *section,int num,char *str,int len)
 {
-	if(SendMessage(hlist,LB_FINDSTRINGEXACT,-1,entry)==LB_ERR)
-		if(SendMessage(hlist,LB_ADDSTRING,0,entry)!=LB_ERR)
-			return TRUE;
-	return FALSE;
+	char key[20];
+	_snprintf(key,sizeof(key),"ENTRY%i",num);
+	return get_ini_str(section,key,str,len);
 }
 int set_ini_entry(char *section,int num,char *str)
 {
 	char key[20];
 	_snprintf(key,sizeof(key),"ENTRY%i",num);
-	if(write_ini_str(section,key,str))
-		return TRUE;
-	else
-		return FALSE;
+	return write_ini_str(section,key,str);
 }
-int get_ini_entry(char *section,int num,char *str,int len)
-{
-	char key[20];
-	_snprintf(key,sizeof(key),"ENTRY%i",num);
-	if(get_ini_str(section,key,str,len))
-		return TRUE;
-	else
-		return FALSE;
-}
-int get_ini_entry_num(char *section,char *key)
-{
-	int i;
-	char str[255];
-	for(i=0;i<MAX_NETWORKS;i++){
-		str[0]=0;
-		if(get_ini_entry(section,i,str,sizeof(str))){
-			if(str[0]!=0 && stricmp(str,key)==0)
-				return i;
-		}
-	}
-	return -1;
-}
-
-
 int fix_chan_name(char *chan,int size)
 {
 	char str[40];
@@ -97,32 +70,6 @@ int trim_str(char *str)
 		strncpy(str,s,len);
 	}
 	return TRUE;
-}
-
-int get_all_networks(HWND hwnd,int network_ctl)
-{
-	int i;
-	char str[255],srv[255];
-	for(i=0;i<MAX_NETWORKS;i++){
-		str[0]=0;srv[0]=0;
-		_snprintf(str,sizeof(str),"ENTRY%i",i);
-		if(get_ini_str("SERVERS",str,srv,sizeof(srv))){
-
-		}
-	}
-	return TRUE;
-}
-int find_server_string(char *network,char *out,int len)
-{
-	int i;
-	char tmp[256],str[80];
-	for(i=0;i<MAX_NETWORKS;i++){
-		tmp[0]=0;
-		if(get_ini_entry("SERVERS",i,tmp,sizeof(tmp))){
-			str[0]=0;
-		}
-	}
-	return FALSE;
 }
 
 int get_selected_count(HWND hlistview)
@@ -163,22 +110,28 @@ int delete_selected_server(HWND hlistview)
 	for(i=0;i<count;i++){
 		if(ListView_GetItemState(hlistview,i,LVIS_SELECTED)==LVIS_SELECTED){
 			LV_ITEM lvi={0};
+			char network[80]={0};
 			char server[80]={0};
 			lvi.mask=LVIF_TEXT;
 			lvi.iItem=i;
+			lvi.iSubItem=0;
+			lvi.pszText=network;
+			lvi.cchTextMax=sizeof(network);
+			ListView_GetItem(hlistview,&lvi);
 			lvi.iSubItem=1;
 			lvi.pszText=server;
 			lvi.cchTextMax=sizeof(server);
 			ListView_GetItem(hlistview,&lvi);
-			if(server[0]!=0){
+			if(network[0]!=0 && server[0]!=0){
 				int j;
-				char key[20]={0},s[80]={0};
-				delete_ini_section(server);
+				char network_server[160]={0};
+				_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
+				delete_ini_section(network_server);
 				for(j=0;j<MAX_SERVERS;j++){
-					_snprintf(key,sizeof(key),"ENTRY%i",j);
-					if(get_ini_str("SERVERS",key,s,sizeof(s)-1))
-						if(s[0]!=0 && stricmp(s,server)==0){
-							write_ini_str("SERVERS",key,"");
+					char s[160]={0};
+					if(get_ini_entry("SERVERS",j,s,sizeof(s)-1))
+						if(s[0]!=0 && stricmp(s,network_server)==0){
+							set_ini_entry("SERVERS",j,"");
 							result=TRUE;
 							break;
 						}
@@ -193,6 +146,8 @@ int populate_add_server_win(HWND hlistview,HWND hwnd)
 	char str[100]={0};
 	LV_ITEM lvi={0};
 	int item=get_focused_item(hlistview);
+	if(item<0)
+		return FALSE;
 	lvi.mask=LVIF_TEXT;
 	lvi.iItem=item;
 	lvi.iSubItem=0;
@@ -227,20 +182,6 @@ int populate_add_server_win(HWND hlistview,HWND hwnd)
 	return TRUE;
 }
 
-
-/*
-int get_column_index(COLUMN *c,int size,char *name,int *index)
-{
-	int i;
-	for(i=0;i<size;i++){
-		if(stricmp(c[i].name,name)==0){
-			*index=i;
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-*/
 int save_ini_server_listview(HWND hlistview)
 {
 	int i;
@@ -284,23 +225,24 @@ int load_ini_server_listview(HWND hlistview)
 int load_ini_servers(HWND hlistview)
 {
 	int i,count=0;
-	char key[255],server[255];
 	ListView_DeleteAllItems(hlistview);
 	for(i=0;i<MAX_SERVERS;i++){
-		_snprintf(key,sizeof(key),"ENTRY%i",i);
-		server[0]=0;
-		if(get_ini_str("SERVERS",key,server,sizeof(server))){
+		char network_server[160]={0};
+		if(get_ini_entry("SERVERS",i,network_server,sizeof(network_server))){
+			char server[80]={0};
 			char network[80]={0};
-			if(server[0]!=0 && get_ini_str(server,"NETWORK",network,sizeof(network))){
+			if(network_server[0]!=0 
+				&& get_ini_str(network_server,"NETWORK",network,sizeof(network))
+				&& get_ini_str(network_server,"SERVER",server,sizeof(server))){
 				int ssl=0,connect_startup=0;
-				char password[20]={0},port[20]={0};
-				int index=0,item=0x80000000-1; //add to end of list
+				char password[80]={0},port[40]={0};
+				int item=0x80000000-1; //add to end of list
 				LVITEM listItem;
 				_snprintf(port,sizeof(port),"6667");
-				get_ini_str(server,"PORT",port,sizeof(port));
-				get_ini_value(server,"SSL",&ssl);
-				get_ini_value(server,"CONNECT_STARTUP",&connect_startup);
-				get_ini_str(server,"PASSWORD",password,sizeof(password));
+				get_ini_str(network_server,"PORT",port,sizeof(port));
+				get_ini_value(network_server,"SSL",&ssl);
+				get_ini_value(network_server,"CONNECT_STARTUP",&connect_startup);
+				get_ini_str(network_server,"PASSWORD",password,sizeof(password));
 				listItem.mask = LVIF_TEXT|LVIF_PARAM;
 				listItem.pszText = network;
 				listItem.iItem = item;
@@ -331,10 +273,10 @@ int load_ini_servers(HWND hlistview)
 	}
 	return TRUE;
 }
-int save_server_entry(HWND hwnd,int edit_entry,char *old_server)
+int save_server_entry(HWND hwnd,int edit_entry,char *old_server_entry)
 {
 	int i,empty,match,SSL=FALSE,connect_start=FALSE;
-	char network[80]={0},server[80]={0},ports[80]={0},password[20]={0};
+	char network[80]={0},server[80]={0},network_server[160]={0},ports[40]={0},password[80]={0};
 	GetDlgItemText(hwnd,IDC_NETWORK,network,sizeof(network));
 	GetDlgItemText(hwnd,IDC_SERVER,server,sizeof(server));
 	GetDlgItemText(hwnd,IDC_PORTS,ports,sizeof(ports));
@@ -354,38 +296,36 @@ int save_server_entry(HWND hwnd,int edit_entry,char *old_server)
 	}
 	if(strlen(network)==0 || strlen(server)==0)
 		return FALSE;
+	_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
 	if(strlen(ports)==0)
 		_snprintf(ports,sizeof(ports),"6667");
 
 	empty=-1;match=-1;
 	for(i=MAX_SERVERS-1;i>=0;i--){
-		char key[20]={0};
-		char str[80]={0};
-		_snprintf(key,sizeof(key),"ENTRY%i",i);
-		get_ini_str("SERVERS",key,str,sizeof(str));
+		char str[160]={0};
+		get_ini_entry("SERVERS",i,str,sizeof(str));
 		if(str[0]==0)
 			empty=i;
-		if(edit_entry && stricmp(str,old_server)==0){
-			delete_ini_section(old_server);
+		if(edit_entry && old_server_entry[0]!=0 && stricmp(str,old_server_entry)==0){
+			delete_ini_section(old_server_entry);
 			match=i;
 		}
-		else if(str[0]!=0 && stricmp(str,server)==0)
+		else if(str[0]!=0 && stricmp(str,network_server)==0)
 			match=i;
 	}
 	if((match>=0) || (empty>=0)){
-		char key[20]={0};
 		int num=-1;
 		if(match>=0)
 			num=match;
 		else if(empty>=0)
 			num=empty;
-		_snprintf(key,sizeof(key),"ENTRY%i",num);
-		if(write_ini_str("SERVERS",key,server)){
-			write_ini_str(server,"NETWORK",network);
-			write_ini_str(server,"PORT",ports);
-			write_ini_str(server,"SSL",SSL?"1":"0");
-			write_ini_str(server,"CONNECT_STARTUP",connect_start?"1":"0");
-			write_ini_str(server,"PASSWORD",password);
+		if(set_ini_entry("SERVERS",num,network_server)){
+			write_ini_str(network_server,"NETWORK",network);
+			write_ini_str(network_server,"SERVER",server);
+			write_ini_str(network_server,"PORT",ports);
+			write_ini_str(network_server,"SSL",SSL?"1":"0");
+			write_ini_str(network_server,"CONNECT_STARTUP",connect_start?"1":"0");
+			write_ini_str(network_server,"PASSWORD",password);
 		}
 	}
 	return TRUE;
@@ -399,18 +339,16 @@ COLUMN channel_columns[]={
 int load_ini_channels(HWND hlistview)
 {
 	int i,count=0;
-	char key[255],chan_section[80]={0};
 	ListView_DeleteAllItems(hlistview);
 	for(i=0;i<MAX_CHANNELS;i++){
-		_snprintf(key,sizeof(key),"ENTRY%i",i);
-		chan_section[0]=0;
-		if(get_ini_str("CHANNELS",key,chan_section,sizeof(chan_section))){
+		char chan_section[80]={0};
+		if(get_ini_entry("CHANNELS",i,chan_section,sizeof(chan_section))){
 			char channel[80]={0};
 			if(chan_section[0]!=0 && get_ini_str(chan_section,"NAME",channel,sizeof(channel))){
 				char network[80]={0};
 				int join_connect=0;
 				char password[20]={0};
-				int index=0,item=0x80000000-1; //add to end of list
+				int item=0x80000000-1; //add to end of list
 				LVITEM listItem;
 				get_ini_str(chan_section,"NETWORK",network,sizeof(network));
 				get_ini_value(chan_section,"JOIN_CONNECT",&join_connect);
@@ -445,10 +383,10 @@ int populate_channel_networks(HWND hwnd)
 {
 	int i;
 	for(i=0;i<MAX_CHANNELS;i++){
-		char server[80]={0};
-		if(get_ini_entry("SERVERS",i,server,sizeof(server))){
+		char network_server[160]={0};
+		if(get_ini_entry("SERVERS",i,network_server,sizeof(network_server))){
 			char network[80]={0};
-			if(get_ini_str(server,"NETWORK",network,sizeof(network))){
+			if(get_ini_str(network_server,"NETWORK",network,sizeof(network))){
 				if(SendDlgItemMessage(hwnd,IDC_NETWORK,CB_FINDSTRINGEXACT,-1,network)==CB_ERR)
 					SendDlgItemMessage(hwnd,IDC_NETWORK,CB_ADDSTRING,0,network);
 			}
@@ -461,6 +399,8 @@ int populate_add_channel_win(HWND hlistview,HWND hwnd)
 	char str[100]={0};
 	LV_ITEM lvi={0};
 	int item=get_focused_item(hlistview);
+	if(item<0)
+		return FALSE;
 	lvi.mask=LVIF_TEXT;
 	lvi.iItem=item;
 	lvi.iSubItem=0;
@@ -518,10 +458,8 @@ int save_channel_entry(HWND hwnd,int edit_entry,char *old_channel)
 	_snprintf(chan_section_old,sizeof(chan_section_old),"%s%s",network,old_channel);
 	empty=-1;match=-1;
 	for(i=MAX_CHANNELS-1;i>=0;i--){
-		char key[20]={0};
 		char str[80]={0};
-		_snprintf(key,sizeof(key),"ENTRY%i",i);
-		get_ini_str("CHANNELS",key,str,sizeof(str));
+		get_ini_entry("CHANNELS",i,str,sizeof(str));
 		if(str[0]==0)
 			empty=i;
 		if(edit_entry && stricmp(str,chan_section_old)==0){
@@ -532,14 +470,12 @@ int save_channel_entry(HWND hwnd,int edit_entry,char *old_channel)
 			match=i;
 	}
 	if((match>=0) || (empty>=0)){
-		char key[20]={0};
 		int num=-1;
 		if(match>=0)
 			num=match;
 		else if(empty>=0)
 			num=empty;
-		_snprintf(key,sizeof(key),"ENTRY%i",num);
-		if(write_ini_str("CHANNELS",key,chan_section)){
+		if(set_ini_entry("CHANNELS",num,chan_section)){
 			write_ini_str(chan_section,"NAME",channel);
 			write_ini_str(chan_section,"NETWORK",network);
 			write_ini_str(chan_section,"JOIN_CONNECT",join_connect?"1":"0");
@@ -619,15 +555,14 @@ int delete_selected_channel(HWND hlistview)
 			ListView_GetItem(hlistview,&lvi);
 			if(channel[0]!=0 && network[0]!=0){
 				int j;
-				char key[20]={0},chan_section[80]={0};
+				char chan_section[80]={0};
 				_snprintf(chan_section,sizeof(chan_section),"%s%s",network,channel);
 				delete_ini_section(chan_section);
 				for(j=0;j<MAX_SERVERS;j++){
 					char chan[80]={0};
-					_snprintf(key,sizeof(key),"ENTRY%i",j);
-					if(get_ini_str("CHANNELS",key,chan,sizeof(chan)-1))
+					if(get_ini_entry("CHANNELS",j,chan,sizeof(chan)-1))
 						if(chan[0]!=0 && stricmp(chan,chan_section)==0){
-							write_ini_str("CHANNELS",key,"");
+							set_ini_entry("CHANNELS",j,"");
 							result=TRUE;
 							break;
 						}
@@ -686,7 +621,7 @@ int channel_dlg_popup_cmd(int cmd,HWND hlistview)
 			ListView_GetItem(hlistview,&lvi);
 			if(channel[0]!=0 && network[0]!=0){
 				int join_connect=FALSE;
-				char key[20]={0},chan_section[80]={0},name[80]={0};
+				char chan_section[80]={0},name[80]={0};
 				_snprintf(chan_section,sizeof(chan_section),"%s%s",network,channel);
 				if(cmd==CMD_JOIN_CONNECT_SET)
 					join_connect=TRUE;
@@ -711,22 +646,29 @@ int server_dlg_popup_cmd(int cmd,HWND hlistview)
 	for(i=0;i<count;i++){
 		if(ListView_GetItemState(hlistview,i,LVIS_SELECTED)==LVIS_SELECTED){
 			LV_ITEM lvi={0};
+			char network[80]={0};
 			char server[80]={0};
 			lvi.mask=LVIF_TEXT;
 			lvi.iItem=i;
+			lvi.iSubItem=0;
+			lvi.pszText=network;
+			lvi.cchTextMax=sizeof(network);
+			ListView_GetItem(hlistview,&lvi);
 			lvi.iSubItem=1;
 			lvi.pszText=server;
 			lvi.cchTextMax=sizeof(server);
 			ListView_GetItem(hlistview,&lvi);
-			if(server[0]!=0){
-				char network[80]={0};
+			if(network[0]!=0 && server[0]!=0){
+				char network_server[160]={0};
+				char tmp[80]={0};
 				int connect_startup=FALSE;
 				if(cmd==CMD_CONNECT_STARTUP_SET)
 					connect_startup=TRUE;
-				if(get_ini_str(server,"NETWORK",network,sizeof(network))){
-					if(network[0]!=0)
-						if(write_ini_str(server,"CONNECT_STARTUP",connect_startup?"1":"0"))
-							result=TRUE;
+				_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
+				get_ini_str(network_server,"NETWORK",tmp,sizeof(tmp));
+				if(tmp[0]!=0 && strnicmp(network_server,tmp,strlen(tmp)-1)==0){
+					if(write_ini_str(network_server,"CONNECT_STARTUP",connect_startup?"1":"0"))
+						result=TRUE;
 				}
 			}
 		}
