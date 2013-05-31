@@ -31,7 +31,7 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		SendDlgItemMessage(hwnd,IDC_NETWORK,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_SERVER,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_PORTS,EM_LIMITTEXT,40,0);
-		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,80,0);
+		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,40,0);
 		grippy=create_grippy(hwnd);
 		if(list_edit){
 			int len;
@@ -144,7 +144,7 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					}
 					else{
 						int item;
-						char server[80]={0},network[80]={0},port[40]={0},ssl[20]={0},password[80]={0};
+						char server[80]={0},network[80]={0},port[40]={0},ssl[20]={0},password[40]={0};
 connect_channel:
 						item=get_focused_item(ghlistview);
 						if(item>=0){

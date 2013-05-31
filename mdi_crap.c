@@ -17,7 +17,7 @@ typedef struct{
 	char server[80];
 	char network[80];
 	int port;
-	char password[20];
+	char password[40];
 	char nick[20];
 	int thread_started;
 	int disconnected;

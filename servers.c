@@ -235,7 +235,7 @@ int load_ini_servers(HWND hlistview)
 				&& get_ini_str(network_server,"NETWORK",network,sizeof(network))
 				&& get_ini_str(network_server,"SERVER",server,sizeof(server))){
 				int ssl=0,connect_startup=0;
-				char password[80]={0},port[40]={0};
+				char password[40]={0},port[40]={0};
 				int item=0x80000000-1; //add to end of list
 				LVITEM listItem;
 				_snprintf(port,sizeof(port),"6667");
@@ -276,7 +276,7 @@ int load_ini_servers(HWND hlistview)
 int save_server_entry(HWND hwnd,int edit_entry,char *old_server_entry)
 {
 	int i,empty,match,SSL=FALSE,connect_start=FALSE;
-	char network[80]={0},server[80]={0},network_server[160]={0},ports[40]={0},password[80]={0};
+	char network[80]={0},server[80]={0},network_server[160]={0},ports[40]={0},password[40]={0};
 	GetDlgItemText(hwnd,IDC_NETWORK,network,sizeof(network));
 	GetDlgItemText(hwnd,IDC_SERVER,server,sizeof(server));
 	GetDlgItemText(hwnd,IDC_PORTS,ports,sizeof(ports));
@@ -756,15 +756,16 @@ int auto_connect(HWND hmdi)
 	int i,count=0;
 	thread_status(TRUE,TRUE);
 	for(i=0;i<MAX_SERVERS;i++){
-		char server[80]={0};
-		if(get_ini_entry("SERVERS",i,server,sizeof(server))){
+		char entry[160]={0};
+		if(get_ini_entry("SERVERS",i,entry,sizeof(entry))){
 			int port=6667,connect=0,ssl=0;
-			char network[80]={0},password[20]={0};
-			get_ini_str(server,"NETWORK",network,sizeof(network));
-			get_ini_str(server,"PASSWORD",password,sizeof(password));
-			get_ini_value(server,"CONNECT_STARTUP",&connect);
-			get_ini_value(server,"SSL",&ssl);
-			get_ini_value(server,"PORT",&port);
+			char server[80]={0},network[80]={0},password[40]={0};
+			get_ini_str(entry,"NETWORK",network,sizeof(network));
+			get_ini_str(entry,"SERVER",server,sizeof(server));
+			get_ini_str(entry,"PASSWORD",password,sizeof(password));
+			get_ini_value(entry,"CONNECT_STARTUP",&connect);
+			get_ini_value(entry,"SSL",&ssl);
+			get_ini_value(entry,"PORT",&port);
 			if(network[0]!=0 && connect!=0){
 				connect_server(hmdi,network,server,port,ssl,password);
 				count++;
