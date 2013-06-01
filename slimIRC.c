@@ -1,4 +1,9 @@
+#if _WIN32_WINNT<0x400
+#define _WIN32_WINNT 0x400
+#define COMPILE_MULTIMON_STUBS
+#endif
 #include <windows.h>
+#include <multimon.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -622,7 +627,6 @@ int load_icon(HWND hwnd)
 }
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	RECT rect;
 	if(control_debug("main",0))
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
@@ -637,6 +641,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
 	case WM_CREATE:
 		{
+			HMONITOR hmon;
+			MONITORINFO mi;
+			RECT rect;
 			int width=0,height=0,x=0,y=0,maximized=0;
 			load_icon(hwnd);
 			if(get_ini_value("SETTINGS","main_dlg_width",&width)&&
@@ -646,12 +653,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			get_ini_value("SETTINGS","main_dlg_xpos",&x);
 			get_ini_value("SETTINGS","main_dlg_ypos",&y);
-			if(GetWindowRect(GetDesktopWindow(),&rect)!=0){
-				if(x<-32 || y<=-32)
-					break;
-				if(x<((rect.right-rect.left)-50))
-					if(y<((rect.bottom-rect.top)-50))
-						SetWindowPos(hwnd,HWND_TOP,x,y,0,0,SWP_NOZORDER|SWP_NOSIZE);
+			rect.left=x;
+			rect.top=y;
+			rect.right=x+width;
+			rect.bottom=y+height;
+			hmon=MonitorFromRect(&rect,MONITOR_DEFAULTTONEAREST);
+			mi.cbSize=sizeof(mi);
+			if(GetMonitorInfo(hmon,&mi)){
+				rect=mi.rcWork;
+				if(x>(rect.right-25) || x<(rect.left-25)
+					|| y<(rect.top-25) || y>(rect.bottom-25))
+					;
+				else
+					SetWindowPos(hwnd,HWND_TOP,x,y,0,0,SWP_NOZORDER|SWP_NOSIZE);
 			}
 			get_ini_value("SETTINGS","main_dlg_maximized",&maximized);
 			if(maximized!=0)
