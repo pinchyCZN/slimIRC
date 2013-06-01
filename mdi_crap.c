@@ -1,5 +1,7 @@
+#if _WIN32_WINNT<0x400
 #define _WIN32_WINNT 0x400
 #define WINVER 0x500
+#endif
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
