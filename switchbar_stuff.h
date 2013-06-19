@@ -175,8 +175,12 @@ int get_button_count()
 }
 int button_sort(const IRC_WINDOW **win1,const IRC_WINDOW **win2)
 {
-	if(*win1!=0 && *win2!=0)
-		return stricmp((**win1).channel,(**win2).channel);
+	if(*win1!=0 && *win2!=0){
+		if((**win1).type==SERVER_WINDOW && (**win2).type==SERVER_WINDOW)
+			return stricmp((**win1).network,(**win2).network);
+		else
+			return stricmp((**win1).channel,(**win2).channel);
+	}
 	else
 		return -1;
 }
