@@ -13,20 +13,20 @@ int client_width=0,client_height=0;
 int color_lookup[16]={
 	0xFFFFFF, //0 white
 	0x000000, //1 black
-	0x0000FF, //2 blue (navy)
-	0x008000, //3 green
-	0xFF0000, //4 red
-	0xA52A2A, //5 brown (maroon)
-	0x800080, //6 purple
-	0xFFA500, //7 orange (olive)
-	0xFFFF00, //8 yellow
-	0x90EE90, //9 light green (lime)
-	0x008080, //10 teal (a green/blue cyan)
-	0xE0FFFF, //11 light cyan (cyan) (aqua)
-	0xADD8E6, //12 light blue (royal)
-	0xFFC0CB, //13 pink (light purple) (fuchsia)
-	0x808080, //14 grey
-	0xD3D3D3 //15 light grey (silver)
+	0x7F0000, //2 blue (navy)
+	0x009300, //3 green
+	0x0000FF, //4 red
+	0x00007F, //5 brown (maroon)
+	0x9C009C, //6 purple
+	0x007FFC, //7 orange (olive)
+	0x00FFFF, //8 yellow
+	0x00FC00, //9 light green (lime)
+	0x939300, //10 teal (a green/blue cyan)
+	0xFFFF00, //11 light cyan (cyan) (aqua)
+	0xFC0000, //12 light blue (royal)
+	0xFF00FF, //13 pink (light purple) (fuchsia)
+	0x7F7F7F, //14 grey
+	0xD2D2D2 //15 light grey (silver)
 };
 enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15};
 
