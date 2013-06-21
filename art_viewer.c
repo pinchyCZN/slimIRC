@@ -11,22 +11,22 @@ extern HINSTANCE ghinstance;
 static HWND hstatic;
 int client_width=0,client_height=0;
 int color_lookup[16]={
-	0x000000,
-	0xFFFFFF,
-	0x68372B,
-	0x70A4B2,
-	0x6F3D86,
-	0x588D43,
-	0x352879,
-	0xB8C76F,
-	0x6F4F25,
-	0x433900,
-	0x9A6759,
-	0x444444,
-	0x6C6C6C,
-	0x9AD284,
-	0x6C5EB5,
-	0x959595
+	0xFFFFFF, //0 white
+	0x000000, //1 black
+	0x0000FF, //2 blue (navy)
+	0x008000, //3 green
+	0xFF0000, //4 red
+	0xA52A2A, //5 brown (maroon)
+	0x800080, //6 purple
+	0xFFA500, //7 orange (olive)
+	0xFFFF00, //8 yellow
+	0x90EE90, //9 light green (lime)
+	0x008080, //10 teal (a green/blue cyan)
+	0xE0FFFF, //11 light cyan (cyan) (aqua)
+	0xADD8E6, //12 light blue (royal)
+	0xFFC0CB, //13 pink (light purple) (fuchsia)
+	0x808080, //14 grey
+	0xD3D3D3 //15 light grey (silver)
 };
 enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15};
 
@@ -56,8 +56,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 	char str[1024];
 	int i,cpy,x,y,state=0,count=0,out_line=0;
 	unsigned char cf,cb;
-	cf=1;
-	cb=0;
+	cf=0;
+	cb=1;
 	x=y=0;
 	clear_screen(hdc);
 	for(i=0;i<100;i++){
@@ -71,8 +71,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 			//printf("%s\n",str);
 			for(j=0;j<cpy;j++){
 				if(str[j]=='\r'){
-					cf=1;
-					cb=0;
+					cf=0;
+					cb=1;
 					x=0;
 					y+=12;
 					out_line++;
@@ -84,8 +84,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					continue;
 				else if(str[j]==MIRC_REVERSE){
 					state=0;
-					cf=0;
-					cb=1;
+					cf=1;
+					cb=0;
 				}
 				else if(str[j]==MIRC_COLOR){
 					state=1;
@@ -106,7 +106,7 @@ do_draw:
 							cf*=10;
 							cf+=str[j]-'0';
 							if(cf==99)
-								cf=1;
+								cf=0;
 							count++;
 							if(count>=2){
 								if(str[j+1]!=',')

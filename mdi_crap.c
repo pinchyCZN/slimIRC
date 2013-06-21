@@ -556,13 +556,20 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				break;
 			case EN_VSCROLL:
 				{
-					char str[1025]={0};
-					GetWindowText(GetDlgItem(hwnd,MDI_EDIT),str,sizeof(str));
-					if(valid_text(str)){
-						trim_return(str);
-						post_message(hwnd,str);
+					char str[1024]={0};
+					int len=GetWindowTextLength(GetDlgItem(hwnd,MDI_EDIT))+1;
+					if(len>=sizeof(str)){
+						PostMessage(hwnd,WM_USER+1,0,0);
+					}
+					else{
+						GetWindowText(GetDlgItem(hwnd,MDI_EDIT),str,sizeof(str));
+						if(valid_text(str)){
+							trim_return(str);
+							post_message(hwnd,str);
+						}
 					}
 					SetWindowText(GetDlgItem(hwnd,MDI_EDIT),"");
+
 				}
 				break;
 			}
@@ -654,6 +661,41 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
 //			dump_scroll_info(GetDlgItem(hwnd,MDI_STATIC));
 		}
+		break;
+	case WM_USER+1: //send clipboard
+		if(IsClipboardFormatAvailable(CF_TEXT))
+			if(OpenClipboard(NULL)){
+				HGLOBAL hglobal;
+				hglobal=GetClipboardData(CF_TEXT);
+				if(hglobal!=NULL){
+					char *cpstr=GlobalLock(hglobal);
+					if(cpstr!=0){
+						int len;
+						len=strlen(cpstr);
+						if(len>0){
+							char str[80];
+							_snprintf(str,sizeof(str),"warning pasting %i bytes of data\r\nOk to send?",len);
+							if(MessageBox(hwnd,str,"Warning",MB_OKCANCEL)==IDOK){
+								char *s;
+								if(len>4096)
+									len=4096;
+								s=malloc(len+1);
+								if(s!=0){
+									memcpy(s,cpstr,len);
+									s[len]=0;
+									if(valid_text(s)){
+										trim_return(s);
+										post_message(hwnd,s);
+									}
+									free(s);
+								}
+							}
+						}
+						GlobalUnlock(hglobal);
+					}
+				}
+				CloseClipboard();
+			}
 		break;
 	case WM_SIZE:
 		resize_mdi_window(hwnd);
