@@ -118,6 +118,7 @@ int post_message(HWND hwnd,char *str)
 						add_history(tmp);
 						irc_cmd_msg(win->session,channel,tmp);
 						start=FALSE;
+						Sleep(20);
 						index=0;
 						lines++;
 					}else

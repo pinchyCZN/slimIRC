@@ -674,7 +674,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						len=strlen(cpstr);
 						if(len>0){
 							char str[80];
-							_snprintf(str,sizeof(str),"warning pasting %i bytes of data\r\nOk to send?",len);
+							_snprintf(str,sizeof(str),
+								"warning pasting %i bytes of data\r\nOk to send?\r\n(max 4096 sent)",len);
 							if(MessageBox(hwnd,str,"Warning",MB_OKCANCEL)==IDOK){
 								char *s;
 								if(len>4096)
