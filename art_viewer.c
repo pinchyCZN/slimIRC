@@ -91,7 +91,7 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					state=1;
 					count=0;
 				}
-				else if(str[j]>=' '){
+				else if((unsigned char)str[j]>=' '){
 					switch(state){
 					case 0:
 do_draw:

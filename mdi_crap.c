@@ -820,7 +820,7 @@ int trim_return(char *str)
 	int i,len;
 	len=strlen(str);
 	for(i=len-1;i>0;i--){
-		if(str[i]>=' ')
+		if((unsigned char)str[i]>=' ')
 			break;
 		else
 			str[i]=0;
@@ -832,7 +832,7 @@ int valid_text(char *str)
 	int i,len;
 	len=strlen(str);
 	for(i=0;i<len;i++){
-		if(str[i]>=' ')
+		if((unsigned char)str[i]>=' ')
 			return TRUE;
 	}
 	return FALSE;
