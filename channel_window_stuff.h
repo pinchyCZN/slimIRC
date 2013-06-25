@@ -114,12 +114,15 @@ int post_message(HWND hwnd,char *str)
 					if((index>=sizeof(tmp)-1) || str[i]=='\r' || str[i]=='\n' || str[i]==0){
 						tmp[index++]=0;
 						_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
+						msg[sizeof(msg)-1]=0;
 						add_line_mdi(win,msg);
 						add_history(tmp);
 						irc_cmd_msg(win->session,channel,tmp);
 						start=FALSE;
 						Sleep(20);
 						index=0;
+						if(!(str[i]=='\r' || str[i]=='\n' || str[i]==0))
+							tmp[index++]=str[i];
 						lines++;
 					}else
 						tmp[index++]=str[i];

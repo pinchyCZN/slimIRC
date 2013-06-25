@@ -556,19 +556,22 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				break;
 			case EN_VSCROLL:
 				{
-					char str[1024]={0};
-					int len=GetWindowTextLength(GetDlgItem(hwnd,MDI_EDIT))+1;
-					if(len>=sizeof(str)){
-						PostMessage(hwnd,WM_USER+1,0,0);
-					}
-					else{
-						GetWindowText(GetDlgItem(hwnd,MDI_EDIT),str,sizeof(str));
-						if(valid_text(str)){
-							trim_return(str);
-							post_message(hwnd,str);
+					HWND hedit=lparam;
+					char str[MAX_EDIT_LENGTH]={0};
+					int lines=SendMessage(hedit,EM_GETLINECOUNT,0,0);
+					if(lines>2){
+						int len=GetWindowTextLength(hedit)+1;
+						if(len>=sizeof(str)){
+							PostMessage(hwnd,WM_USER+1,0,hedit);
+							break;
 						}
 					}
-					SetWindowText(GetDlgItem(hwnd,MDI_EDIT),"");
+					GetWindowText(hedit,str,sizeof(str));
+					if(valid_text(str)){
+						trim_return(str);
+						post_message(hwnd,str);
+					}
+					SetWindowText(hedit,"");
 
 				}
 				break;
@@ -663,6 +666,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		}
 		break;
 	case WM_USER+1: //send clipboard
+		if(lparam!=0)
+			SetWindowText(lparam,"");
 		if(IsClipboardFormatAvailable(CF_TEXT))
 			if(OpenClipboard(NULL)){
 				HGLOBAL hglobal;
@@ -1049,7 +1054,7 @@ int replace_word(char *str,int max,char *word,char pos)
 	int found=0;
 	if(get_substr(str,pos,substr,sizeof(substr),&found)){
 		int sublen;
-		char temp[1024]={0};
+		char temp[MAX_EDIT_LENGTH]={0};
 		sublen=strlen(substr);
 		str[max-1]=0;
 		str[found]=0;
@@ -1085,7 +1090,7 @@ int tab_next(HWND hwnd,char *substr,int pos)
 	static int last=-1;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
-		char str[1024]={0};
+		char str[MAX_EDIT_LENGTH]={0};
 		str[sizeof(str)-1]=0;
 		if(GetWindowText(win->hedit,str,sizeof(str)-1)>0){
 			int attempts=0;
@@ -1124,7 +1129,7 @@ int tab_completion(HWND hwnd)
 	IRC_WINDOW *win;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
-		char str[1024]={0};
+		char str[MAX_EDIT_LENGTH]={0};
 		str[sizeof(str)-1]=0;
 		if(GetWindowText(win->hedit,str,sizeof(str)-1)>0){
 			int start=0,end=0;

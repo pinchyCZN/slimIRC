@@ -1,5 +1,7 @@
 from PIL import Image
 import sys
+import os
+
 colortable=[
 	0xFFFFFF, #0 white
 	0x000000, #1 black
@@ -35,12 +37,25 @@ def get_closest(r,g,b):
             closest=index
 #    print closest
     return closest
-im=Image.open("e:\\filexfer\\clip1.bmp")
+
+fname="e:\\filexfer\\clip1.bmp"
+for files in os.listdir("."):
+    if files.endswith(".bmp"):
+        fname=files
+        break
+
+if not os.path.isfile(fname):
+    print("cant find file"+fname)
+    sys.exit(0)
+
+print("using fname:"+fname)
+im=Image.open(fname)
 im=im.transpose(Image.FLIP_LEFT_RIGHT)
 im=im.rotate(90)
 im=im.convert('RGB')
 width,height=im.size
-
+print("width="+str(width)+" height="+str(height))
+print("\n\n")
 #print colortable
 for x in range(width):
     last=-1
@@ -55,7 +70,5 @@ for x in range(width):
     sys.stdout.write("\n")
 
 
-for i in range(256):
-    t=i
-#    sys.stdout.write(chr(t))
+
 
