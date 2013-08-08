@@ -10,7 +10,11 @@
 extern HINSTANCE ghinstance;
 static HWND hstatic;
 int client_width=0,client_height=0;
-int color_lookup[16]={
+int default_color=FALSE;
+
+#define MIRC_MAX_COLORS 15
+#define MAX_COLOR_LOOKUP 18
+int color_lookup[MAX_COLOR_LOOKUP]={
 	0xFFFFFF, //0 white
 	0x000000, //1 black
 	0x7F0000, //2 blue (navy)
@@ -26,9 +30,11 @@ int color_lookup[16]={
 	0xFC0000, //12 light blue (royal)
 	0xFF00FF, //13 pink (light purple) (fuchsia)
 	0x7F7F7F, //14 grey
-	0xD2D2D2 //15 light grey (silver)
+	0xD2D2D2, //15 light grey (silver)
+	0x000000, //16 windows background
+	0x00FF00  //17 windows foreground
 };
-enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15};
+enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=16,MIRC_FG=17};
 
 int draw_char(HDC hdc,char a,int x,int y,int cf,int cb)
 {
@@ -48,7 +54,10 @@ int draw_char(HDC hdc,char a,int x,int y,int cf,int cb)
 }
 int clear_screen(HDC hdc)
 {
-	BitBlt(hdc,0,0,client_width,client_height,hdc,0,0,BLACKNESS);
+	int back_ground=BLACKNESS;
+	if(default_color)
+		back_ground=WHITENESS;
+	BitBlt(hdc,0,0,client_width,client_height,hdc,0,0,back_ground);
 	return 0;
 }
 int draw_edit_art(HDC hdc,int line,int line_count)
@@ -56,8 +65,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 	char str[1024];
 	int i,cpy,x,y,state=0,count=0,out_line=0;
 	unsigned char cf,cb;
-	cf=0;
-	cb=1;
+	cf=MIRC_FG;
+	cb=MIRC_BG;
 	x=y=0;
 	clear_screen(hdc);
 	for(i=0;i<100;i++){
@@ -71,8 +80,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 			//printf("%s\n",str);
 			for(j=0;j<cpy;j++){
 				if(str[j]=='\r'){
-					cf=0;
-					cb=1;
+					cf=MIRC_FG;
+					cb=MIRC_BG;
 					x=0;
 					y+=12;
 					out_line++;
@@ -84,8 +93,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					continue;
 				else if(str[j]==MIRC_REVERSE){
 					state=0;
-					cf=1;
-					cb=0;
+					cf=MIRC_BG;
+					cb=MIRC_FG;
 				}
 				else if(str[j]==MIRC_COLOR){
 					state=1;
@@ -96,52 +105,57 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					case 0:
 do_draw:
 						{
-
-						int fg=cf,bg=cb;
-						if(fg==bg){
-							if(bg==0 || bg==1){ //black or white
-								bg=1;fg=3; //green fg black bg
+							int fg=cf,bg=cb;
+							if(fg==bg){
+								if(bg==0 || bg==1){ //black or white
+									bg=MIRC_BG;fg=MIRC_FG;
+								}
 							}
-						}
-						draw_char(hdc,str[j],x,y,color_lookup[fg%16],color_lookup[bg%16]);
+							draw_char(hdc,str[j],x,y,color_lookup[fg%MAX_COLOR_LOOKUP],color_lookup[bg%MAX_COLOR_LOOKUP]);
 						}
 						x+=8;
 						count=0;
 						break;
 					case 1:
-						if(str[j]>='0' && str[j]<='9'){
+						if(isdigit(str[j])){
 							if(count==0)
 								cf=0;
 							cf*=10;
 							cf+=str[j]-'0';
-							if(cf==99)
-								cf=0;
+							if(cf>MIRC_MAX_COLORS)
+								cf=MIRC_FG;
 							count++;
 							if(count>=2){
 								if(str[j+1]!=',')
 									state=0;
 							}
 						}
-						else if(str[j]==',' && count>0){
-							state=2;
-							count=0;
+						else if(str[j]==','){
+							if(isdigit(str[j+1])){
+								state=2;
+								count=0;
+							}
+							else{
+								state=0;
+								goto do_draw;
+							}
 						}
 						else{
 							if(count==0){
-								cf=0;cb=1;
+								cf=MIRC_FG;cb=MIRC_BG;
 							}
 							state=0;
 							goto do_draw;
 						}
 						break;
 					case 2:
-						if(str[j]>='0' && str[j]<='9'){
+						if(isdigit(str[j])){
 							if(count==0)
 								cb=0;
 							cb*=10;
 							cb+=str[j]-'0';
-							if(cb==99)
-								cb=0;
+							if(cb>MIRC_MAX_COLORS)
+								cb=MIRC_BG;
 							count++;
 							if(count>=2)
 								state=0;
@@ -208,6 +222,10 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		set_title(hwnd,line);
 		calc_scrollbar(hwnd,line);
+		default_color=0;
+		color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
+		color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
+		color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
 		break;
 	case WM_SIZE:
 		{
@@ -228,6 +246,20 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			client_height=rect.bottom-rect.top;
 		}
 		}
+		break;
+	case WM_HELP:
+		default_color^=1;
+		if(default_color){
+			color_lookup[0]=0xFFFFFF;
+			color_lookup[MIRC_BG]=0xFFFFFF;
+			color_lookup[MIRC_FG]=0;
+		}
+		else{
+			color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
+			color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
+			color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
+		}
+		InvalidateRect(hwnd,NULL,TRUE);
 		break;
 	case WM_COMMAND:
 		switch(wparam){
