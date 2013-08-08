@@ -36,10 +36,10 @@ int color_lookup[MAX_COLOR_LOOKUP]={
 };
 enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=16,MIRC_FG=17};
 
-int draw_char(HDC hdc,char a,int x,int y,int cf,int cb)
+int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
 {
 	int i,j;
-	char *p=vga737_bin+a*12;
+	unsigned char *p=vga737_bin+a*12;
 	for(i=0;i<12;i++){
 		for(j=0;j<8;j++){
 			int c=0;
@@ -62,7 +62,7 @@ int clear_screen(HDC hdc)
 }
 int draw_edit_art(HDC hdc,int line,int line_count)
 {
-	char str[1024];
+	unsigned char str[1024];
 	int i,cpy,x,y,state=0,count=0,out_line=0;
 	unsigned char cf,cb;
 	cf=MIRC_FG;
