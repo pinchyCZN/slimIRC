@@ -95,7 +95,16 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					switch(state){
 					case 0:
 do_draw:
-						draw_char(hdc,str[j],x,y,color_lookup[cf%16],color_lookup[cb%16]);
+						{
+
+						int fg=cf,bg=cb;
+						if(fg==bg){
+							if(bg==0 || bg==1){ //black or white
+								bg=1;fg=3; //green fg black bg
+							}
+						}
+						draw_char(hdc,str[j],x,y,color_lookup[fg%16],color_lookup[bg%16]);
+						}
 						x+=8;
 						count=0;
 						break;
@@ -113,11 +122,14 @@ do_draw:
 									state=0;
 							}
 						}
-						else if(str[j]==','){
+						else if(str[j]==',' && count>0){
 							state=2;
 							count=0;
 						}
 						else{
+							if(count==0){
+								cf=0;cb=1;
+							}
 							state=0;
 							goto do_draw;
 						}
