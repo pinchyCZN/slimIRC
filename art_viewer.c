@@ -101,7 +101,7 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					count=0;
 				}
 				else if(str[j]==MIRC_PLAIN){
-					state=1;
+					state=0;
 					cf=MIRC_FG;
 					cb=MIRC_BG;
 				}
