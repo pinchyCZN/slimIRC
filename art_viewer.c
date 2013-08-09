@@ -100,7 +100,12 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					state=1;
 					count=0;
 				}
-				else if((unsigned char)str[j]>=' '){
+				else if(str[j]==MIRC_PLAIN){
+					state=1;
+					cf=MIRC_FG;
+					cb=MIRC_BG;
+				}
+				else if(str[j]>=' '){
 					switch(state){
 					case 0:
 do_draw:
@@ -165,7 +170,10 @@ do_draw:
 							goto do_draw;
 						}
 						break;
-
+					default:
+						state=0;
+						count=0;
+						break;
 					}
 				}
 			}
