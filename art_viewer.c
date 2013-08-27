@@ -111,7 +111,7 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 do_draw:
 						{
 							int fg=cf,bg=cb;
-							if(fg==bg){
+							if(fg==bg && (!default_color)){
 								if(bg==0 || bg==1){ //black or white
 									bg=MIRC_BG;fg=MIRC_FG;
 								}
