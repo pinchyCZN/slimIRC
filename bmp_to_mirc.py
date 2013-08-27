@@ -63,7 +63,7 @@ for x in range(width):
         r,g,b=im.getpixel((x,y))
         k=get_closest(r,g,b)
         if(k!=last):
-            sys.stdout.write("\3"+"1,"+str(k))
+            sys.stdout.write("\3"+"0,"+str(k))
             last=k
         sys.stdout.write(" ")
         
