@@ -757,9 +757,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return 1; //ok to end session
 		break;
 	case WM_ENDSESSION:
-		if(wparam){
+		if(wparam){ //session is being ended flag
+			extern int wait_for_disconnect(CRITICAL_SECTION *mutex);
 			exit_irc(FALSE);
-			wait_for_disconnect();
+			//wait_for_disconnect(&mutex);
+			//_beginthread(wait_for_disconnect,0,&mutex);
 		}
 		return 0;
 	case WM_CLOSE:
@@ -853,14 +855,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 		EnterCriticalSection(&mutex);
 		if(!custom_dispatch(&msg))
-		if(!TranslateMDISysAccel(ghmdiclient, &msg)){
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+			if(!TranslateMDISysAccel(ghmdiclient, &msg)){
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		LeaveCriticalSection(&mutex);
     }
+	wait_for_disconnect(&mutex);
 	CoUninitialize();
-	wait_for_disconnect();
 	DeleteCriticalSection(&mutex);
     return msg.wParam;
 	

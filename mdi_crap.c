@@ -320,10 +320,13 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				else{
 					ClientToScreen(hmdi_static,&point);
 				}
-				if(timer==0){
-					show_tooltip("nothing more found",point.x,point.y);
-					timer=SetTimer(hwnd,0x1337,550,NULL);
+				if(timer!=0){
+					KillTimer(hwnd,timer);
+					timer=0;
 				}
+				hide_tooltip();
+				show_tooltip("nothing more found",point.x,point.y);
+				timer=SetTimer(hwnd,0x1337,550,NULL);
 			}
 			last_dir=dir;
 			break;

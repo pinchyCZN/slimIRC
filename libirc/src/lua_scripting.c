@@ -3,7 +3,7 @@
 #include <lualib.h>
 #include <libircclient.h>
 
-int lua_script_enable=TRUE;
+int lua_script_enable=FALSE;
 int lua_error_msg=0;
 #define LUA_SCRIPT_NAME "script.lua"
 static int lua_irc_cmd_msg(lua_State *L)

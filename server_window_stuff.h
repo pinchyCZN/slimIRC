@@ -206,26 +206,25 @@ int disconnect_server(IRC_WINDOW *win)
 		"i didnt do it, it was the one armed man",
 		"for all the kings horse and all the no carrier",
 		"what happen capn?",
-		"",
-
+		"this is one hell of a bog standard quit message"
 	};
 	if(win!=0){
 		if(win->session!=0){
-			char quitmsg[255];
-			int rnd,timeout;
-			srand(GetTickCount()&0x1FFF);
-			rnd=rand();
-			rnd=rnd%(sizeof(randoms)/sizeof(char*));
-			_snprintf(quitmsg,sizeof(quitmsg),randoms[rnd]);
-			if(randoms[rnd][0]==0){
-				_snprintf(quitmsg,sizeof(quitmsg),"this is one hell of a bog standard quit message");
-				get_ini_str("SETTINGS","QUIT_MSG",quitmsg,sizeof(quitmsg));
+			char quitmsg[255]={0};
+			get_ini_str("SETTINGS","QUIT_MSG",quitmsg,sizeof(quitmsg));
+			if(quitmsg[0]==0){
+				int rnd=0;
+				get_ini_value("SETTINGS","RND_MSG_NUM",&rnd);
+				rnd=rnd%(sizeof(randoms)/sizeof(char*));
+				_snprintf(quitmsg,sizeof(quitmsg),randoms[rnd]);
+				rnd++;
+				write_ini_value("SETTINGS","RND_MSG_NUM",rnd);
 			}
+			quitmsg[sizeof(quitmsg)-1]=0;
 			win->disconnect=TRUE;
 			if(irc_is_connected(win->session)){
 				irc_cmd_quit(win->session,quitmsg);
 			}
-			timeout=0;
 		}
 		SendMessage(ghswitchbar,WM_USER,MSG_DEL_BUTTON,win->hbutton);
 		erase_irc_window(win->hwnd);
@@ -251,15 +250,36 @@ int exit_irc(int notify)
 		disconnect_all_threads();
 	return TRUE;
 }
-int wait_for_disconnect()
+static int waiting_disconnect=FALSE;
+int process_msgs(CRITICAL_SECTION *mutex)
+{
+	extern HWND ghmdiclient;
+	MSG msg;
+	int result;
+	result=PeekMessage(&msg,NULL,0,0,PM_REMOVE);
+	if(result!=0){
+		EnterCriticalSection(mutex);
+		if(!custom_dispatch(&msg))
+			if(!TranslateMDISysAccel(ghmdiclient, &msg)){
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		LeaveCriticalSection(mutex);
+		return TRUE;
+	}
+	return FALSE;
+}
+int wait_for_disconnect(CRITICAL_SECTION *mutex)
 {
 	int i,result=TRUE;
+	waiting_disconnect=TRUE;
 	for(i=0;i<sizeof(server_threads)/sizeof(SERVER_THREAD);i++){
 		if(server_threads[i].session!=0){
 			int timeout=0;
 			while(server_threads[i].session!=0){
 				timeout++;
-				Sleep(50);
+				Sleep(10);
+				//process_msgs(mutex);
 				if(timeout>75){
 					result=FALSE;
 					break;
@@ -267,5 +287,19 @@ int wait_for_disconnect()
 			}
 		}
 	}
+	waiting_disconnect=FALSE;
 	return result;
+}
+int wait_for_all()
+{
+	int i=0;
+	while(TRUE){
+		if(waiting_disconnect==FALSE)
+			break;
+		Sleep(1);
+		i++;
+		if(i>500)
+			break;
+	}
+	return TRUE;
 }
