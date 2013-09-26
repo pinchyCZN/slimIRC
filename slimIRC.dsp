@@ -57,7 +57,7 @@ LINK32=Link.exe
 # SUBTRACT LINK32 /map
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=copy .\release\slimIRC.exe C:\PROGRA~1\slimIRC\slimIRC.exe
+PostBuild_Cmds=copy .\release\slimIRC.exe C:\PROGRA~1\slimIRC\slimIRC.exe	upx .\release\slimIRC.exe
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
