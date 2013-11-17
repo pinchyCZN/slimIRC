@@ -122,6 +122,25 @@ int create_portable_file()
 	}
 	return FALSE;
 }
+//no trailing slash
+int extract_folder(char *f,int size)
+{
+	int i,len;
+	if(f==0)
+		return FALSE;
+	len=strlen(f);
+	if(len>size)
+		len=size;
+	for(i=len-1;i>=0;i--){
+		if(f[i]=='\\'){
+			f[i]=0;
+			break;
+		}
+		else
+			f[i]=0;
+	}
+	return TRUE;
+}
 int init_ini_file()
 {
 	char path[MAX_PATH],str[MAX_PATH];
@@ -129,7 +148,10 @@ int init_ini_file()
 	memset(ini_file,0,sizeof(ini_file));
 	memset(path,0,sizeof(path));
 	memset(str,0,sizeof(str));
-	GetCurrentDirectory(sizeof(path),path);
+	GetModuleFileName(NULL,path,sizeof(path));
+	extract_folder(path,sizeof(path));
+	if(path[0]==0)
+		GetCurrentDirectory(sizeof(path),path);
 	_snprintf(str,sizeof(str)-1,"%s\\SlimIRC_portable",path);
 	if(does_file_exist(str)){
 		if(!does_file_exist(INI_FNAME))
