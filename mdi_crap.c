@@ -561,15 +561,17 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				{
 					HWND hedit=lparam;
 					char str[MAX_EDIT_LENGTH]={0};
-					int lines=SendMessage(hedit,EM_GETLINECOUNT,0,0);
-					if(lines>2){
-						int len=GetWindowTextLength(hedit)+1;
-						if(len>=sizeof(str)){
-							PostMessage(hwnd,WM_USER+1,0,hedit);
-							break;
-						}
-					}
+					int i,len,lines=0;
 					GetWindowText(hedit,str,sizeof(str));
+					len=strlen(str);
+					for(i=0;i<len;i++){
+						if(str[i]=='\n')
+							lines++;
+					}
+					if((lines>=2) || (len>350)){
+						PostMessage(hwnd,WM_USER+1,0,hedit);
+						break;
+					}
 					if(valid_text(str)){
 						trim_return(str);
 						post_message(hwnd,str);
@@ -683,7 +685,11 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						if(len>0){
 							char str[80];
 							_snprintf(str,sizeof(str),
-								"warning pasting %i bytes of data\r\nOk to send?\r\n(max 4096 sent)",len);
+								"Ok to send this?(len=%i):\r\n%s",len,cpstr);
+							str[sizeof(str)-1]=0;
+							str[sizeof(str)-2]='.';
+							str[sizeof(str)-3]='.';
+							str[sizeof(str)-4]='.';
 							if(MessageBox(hwnd,str,"Warning",MB_OKCANCEL)==IDOK){
 								char *s;
 								if(len>4096)
