@@ -16,20 +16,6 @@ int is_path_directory(char *path)
 	else
 		return FALSE;
 }
-int get_ini_path(char *path,int size)
-{
-	char drive[_MAX_DRIVE],dir[_MAX_DIR];
-	if((ini_file[0]==0) || (size<=0)){
-		if(size>0)
-			path[0]=0;
-		return FALSE;
-	}
-	_splitpath(ini_file,drive,dir,NULL,NULL);
-	_snprintf(path,size,"%s%s",drive,dir);
-	add_trail_slash(path,size);
-	path[size-1]=0;
-	return TRUE;
-}
 int get_ini_value(char *section,char *key,int *val)
 {
 	char str[255];
@@ -170,7 +156,7 @@ int init_ini_file()
 	}
 	else{
 		if(get_appdata_folder(path,sizeof(path))){
-			add_trail_slash(path);
+			add_trail_slash(path,sizeof(path));
 			strcat(path,APP_NAME "\\");
 			_snprintf(str,sizeof(str)-1,"%s%s",path,APP_NAME ".ini");
 			if((!is_path_directory(path)) || (!does_file_exist(str))){
@@ -215,8 +201,9 @@ install:
 		}
 
 	}
-	add_trail_slash(path);
+	add_trail_slash(path,sizeof(path));
 	_snprintf(ini_file,sizeof(ini_file)-1,"%s%s",path,APP_NAME ".ini");
+
 	f=fopen(ini_file,"rb");
 	if(f==0){
 		f=fopen(ini_file,"wb");
@@ -256,7 +243,20 @@ int open_ini(HWND hwnd,int explore)
 	}
 	return TRUE;
 }
-
+int get_ini_path(char *path,int size)
+{
+	char drive[_MAX_DRIVE],dir[_MAX_DIR];
+	if((ini_file[0]==0) || (size<=0)){
+		if(size>0)
+			path[0]=0;
+		return FALSE;
+	}
+	_splitpath(ini_file,drive,dir,NULL,NULL);
+	_snprintf(path,size,"%s%s",drive,dir);
+	add_trail_slash(path,size);
+	path[size-1]=0;
+	return TRUE;
+}
 int write_new_list_ini()
 {
 	write_ini_str(APP_NAME,"installed","TRUE");
