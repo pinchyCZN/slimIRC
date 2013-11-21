@@ -107,6 +107,11 @@ int create_portable_file()
 	}
 	return FALSE;
 }
+int write_new_list_ini()
+{
+	write_ini_str(APP_NAME,"installed","TRUE");
+	return TRUE;
+}
 //no trailing slash
 int extract_folder(char *f,int size)
 {
@@ -255,10 +260,5 @@ int get_ini_path(char *path,int size)
 	_snprintf(path,size,"%s%s",drive,dir);
 	add_trail_slash(path,size);
 	path[size-1]=0;
-	return TRUE;
-}
-int write_new_list_ini()
-{
-	write_ini_str(APP_NAME,"installed","TRUE");
 	return TRUE;
 }
