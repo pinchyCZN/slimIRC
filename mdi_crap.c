@@ -1191,9 +1191,9 @@ int do_cmd_on_list(HWND hwnd,int cmd)
 							irc_cmd_names(win->session,win->channel);
 							break;
 						case CMD_KICKBAN:
-							irc_send_raw(win->session,"KICK %s %s kick-it",win->channel,nick);
 							_snprintf(str,sizeof(str),"+b %s",nick);
 							irc_cmd_channel_mode(win->session,win->channel,str);
+							irc_send_raw(win->session,"KICK %s %s kick-it",win->channel,nick);
 							SendMessage(win->hlist,LB_RESETCONTENT,0,0);
 							irc_cmd_names(win->session,win->channel);
 							break;
