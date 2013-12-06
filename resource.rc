@@ -234,6 +234,21 @@ BEGIN
     SCROLLBAR       IDC_SCROLLBAR,176,0,10,85,SBS_VERT
 END
 
+IDD_INSTALL_DIALOG DIALOG DISCARDABLE  0, 0, 358, 92
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Set INI location"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Where do you want to install the INI file?",
+                    IDC_INSTALL_INFO,0,6,357,14,SS_CENTERIMAGE
+    PUSHBUTTON      "Local Folder",IDC_USE_LOCAL,0,31,56,14
+    PUSHBUTTON      "App data folder",IDC_USE_APPDATA,0,53,56,14
+    PUSHBUTTON      "Dont use INI",IDC_NO_INI,0,74,56,14
+    EDITTEXT        IDC_TXT_LOCAL,61,30,296,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_TXT_APPDATA,61,52,296,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+END
 
 /////////////////////////////////////////////////////////////////////////////
 //

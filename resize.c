@@ -343,6 +343,24 @@ short chan_mode_list[]={
 
 	RESIZE_FINISH
 };
+short install_dlg_anchors[]={
+	CONTROL_ID,IDC_INSTALL_INFO,
+			XPOS,0,YPOS,10,
+			WIDTH,0,HEIGHT,23,
+			SIZE_WIDTH_OFF,0,
+			CONTROL_FINISH,-1,
+	CONTROL_ID,IDC_TXT_LOCAL,
+			XPOS,92,YPOS,49,
+			WIDTH,0,HEIGHT,23,
+			SIZE_WIDTH_OFF,-92,
+			CONTROL_FINISH,-1,
+	CONTROL_ID,IDC_TXT_APPDATA,
+			XPOS,92,YPOS,85,
+			WIDTH,0,HEIGHT,23,
+			SIZE_WIDTH_OFF,-92,
+			CONTROL_FINISH,-1,
+	RESIZE_FINISH
+};
 int get_word(char *str,int num,char *out,int olen)
 {
 	int i,len,count=0,index=0;
@@ -601,6 +619,10 @@ int reposition_controls(HWND hwnd, short *list)
 	process_anchor_list(hwnd,list);
 	InvalidateRect(hwnd,&rect,TRUE);
 	return TRUE;
+}
+int resize_install_dlg(HWND hwnd)
+{
+	return reposition_controls(hwnd,install_dlg_anchors);
 }
 #define GRIPPIE_SQUARE_SIZE 15
 int create_grippy(HWND hwnd)

@@ -14,6 +14,7 @@
 #define IDD_CHANNELMODES                113
 #define IDI_ICON                        115
 #define IDD_ARTVIEWER                   116
+#define IDD_INSTALL_DIALOG              117
 #define IDC_ADD                         1002
 #define IDC_DELETE                      1003
 #define IDC_EDIT                        1005
@@ -78,6 +79,12 @@
 #define MSG_CREATE_TOOLTIP              1078
 #define MSG_DESTROY_TOOLTIP             1079
 #define MSG_UPDATE_STATUS               1080
+#define IDC_USE_LOCAL                   1081
+#define IDC_USE_APPDATA                 1082
+#define IDC_NO_INI                      1083
+#define IDC_TXT_LOCAL                   1084
+#define IDC_INSTALL_INFO                1085
+#define IDC_TXT_APPDATA                 1086
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
