@@ -361,7 +361,7 @@ short install_dlg_anchors[]={
 			CONTROL_FINISH,-1,
 	RESIZE_FINISH
 };
-int get_word(char *str,int num,char *out,int olen)
+int get_word(unsigned char *str,int num,char *out,int olen)
 {
 	int i,len,count=0,index=0;
 	int start_found=FALSE;

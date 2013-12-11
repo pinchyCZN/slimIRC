@@ -524,7 +524,7 @@ int save_input(BYTE *keys,int inp)
 	keys[inp]=1;
 	return TRUE;
 }
-int sanatize_string(char *str,int len)
+int sanatize_string(unsigned char *str,int len)
 {
 	int i;
 	for(i=0;i<len;i++){

@@ -44,7 +44,7 @@ int fix_chan_name(char *chan,int size)
 	}
 	return TRUE;
 }
-int trim_str(char *str)
+int trim_str(unsigned char *str)
 {
 	char s[512];
 	int start=FALSE;

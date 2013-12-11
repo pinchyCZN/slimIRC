@@ -237,7 +237,7 @@ int find_nick_in_list(HWND hlist,char *nick)
 	}
 	return ret;
 }
-int handle_nick_links(IRC_WINDOW *win,char *nick,int mouse_button)
+int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
 {
 	int i,index=0,len,ret,cursor_set=FALSE;
 	char n[20]={0};
@@ -335,7 +335,7 @@ int handle_nick_links(IRC_WINDOW *win,char *nick,int mouse_button)
 int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 {
 	int pos,line,len,offset,cpy,cursor_set=FALSE;
-	char str[512];
+	unsigned char str[512];
 	POINT pt;
 	pos=SendMessage(hwnd,EM_CHARFROMPOS,0,p);
 	SendMessage(hwnd,EM_POSFROMCHAR,&pt,pos);
@@ -349,7 +349,7 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 		str[sizeof(str)-1]=0;
 		cpy=SendMessage(hwnd,EM_GETLINE,line,str);
 		if(cpy>0 && cpy<sizeof(str)){
-			char *start=0;
+			unsigned char *start=0;
 			int i,found=FALSE;
 			mouse_target[0]=0;
 			for(i=0;i<=offset;i++){
@@ -367,7 +367,7 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				}
 			}
 			if(start!=0){
-				char *match=0;
+				unsigned char *match=0;
 				int multi=TRUE;
 				for(i=0;i<strlen(start);i++){
 					if(start[i]=='\r' || start[i]=='\n'){
@@ -405,7 +405,7 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 					if(end)
 						break;
 				}
-//				printf("mouse_target=%s\n",mouse_target);
+				//printf("mouse_target=%s\n",mouse_target);
 				match=_strnicmp(mouse_target,"http:",sizeof("http:")-1);
 				if(match!=0)
 					match=_strnicmp(mouse_target,"https:",sizeof("https:")-1);

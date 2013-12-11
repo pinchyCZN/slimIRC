@@ -1022,7 +1022,7 @@ int update_user_nick(void *session,char *nick)
 	}
 	return TRUE;
 }
-int get_substr(char *str,int start,char *substr,int size,int *pos)
+int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 {
 	int i,index,len,found=FALSE;
 	len=strlen(str);
