@@ -418,11 +418,16 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
         break;
 	case WM_CONTEXTMENU:
 		{
-		int xpos=LOWORD(lparam);
-		int ypos=HIWORD(lparam);
+		int x=LOWORD(lparam);
+		int y=HIWORD(lparam);
 		int id=GetDlgCtrlID(wparam);
 		if(id==MDI_LIST)
-			TrackPopupMenu(list_menu,TPM_LEFTALIGN,xpos,ypos,0,hwnd,NULL);
+			if(lparam==-1){
+				POINT p={0};
+				GetCursorPos(&p);
+				x=p.x;y=p.y;
+			}
+			TrackPopupMenu(list_menu,TPM_LEFTALIGN,x,y,0,hwnd,NULL);
 		}
 		break;
 	case WM_SYSCOMMAND:
