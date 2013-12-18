@@ -129,6 +129,8 @@ chan_modes:
 		mouse_wheel=0;
 		cmd_target[sizeof(cmd_target)-1]=0;
 		strncpy(cmd_target,mouse_target,sizeof(cmd_target)-1);
+		if(mouse_wheel==0)
+			return 0;
 		break;
 	case WM_RBUTTONDOWN:
 		mouse_wheel=0;
