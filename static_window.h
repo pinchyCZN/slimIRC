@@ -76,6 +76,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_COMMAND:
 		switch(LOWORD(wparam)){
 		case CMD_CHANGE_NICK:
+		case CMD_PRIV_MSG:
 		case CMD_SLAP:
 		case CMD_WHOIS:
 		case CMD_OP:
@@ -121,7 +122,6 @@ chan_modes:
 			copy_str_clipboard(cmd_target);
 			break;
 		}
-		set_focus_edit(hwnd);
 		break;
 	case WM_CONTEXTMENU:
 		if(mouse_wheel==0)
@@ -129,8 +129,7 @@ chan_modes:
 		mouse_wheel=0;
 		cmd_target[sizeof(cmd_target)-1]=0;
 		strncpy(cmd_target,mouse_target,sizeof(cmd_target)-1);
-		if(mouse_wheel==0)
-			return 0;
+		return 0;
 		break;
 	case WM_RBUTTONDOWN:
 		mouse_wheel=0;
@@ -278,6 +277,7 @@ int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
 		SetCursor(LoadCursor(NULL,IDC_HAND));
 		cursor_set=TRUE;
 		switch(mouse_button){
+		case CMD_PRIV_MSG:
 		case WM_LBUTTONDBLCLK:
 			initiate_privmsg(win->hwnd,n);
 			break;

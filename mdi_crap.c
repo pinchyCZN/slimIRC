@@ -46,6 +46,7 @@ static HMENU list_menu=0,static_menu=0,url_menu=0;
 enum {
 	CMD_SLAP=1200,
 	CMD_CHANGE_NICK,
+	CMD_PRIV_MSG,
 	CMD_WHOIS,
 	CMD_OP,
 	CMD_DEOP,
@@ -529,6 +530,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		case CMD_DEOP:
 		case CMD_OP:
 		case CMD_CHANGE_NICK:
+		case CMD_PRIV_MSG:
 		case CMD_REFRESH_LIST:
 		case CMD_SLAP:
 		case CMD_WHOIS:
@@ -1190,6 +1192,9 @@ int do_cmd_on_list(HWND hwnd,int cmd)
 						char str[80];
 						extract_list_nick(nick,nick,sizeof(nick));
 						switch(cmd){
+						case CMD_PRIV_MSG:
+							initiate_privmsg(win->hwnd,nick);
+							break;
 						case CMD_KICK:
 							irc_send_raw(win->session,"KICK %s %s kick-it",win->channel,nick);
 							SendMessage(win->hlist,LB_RESETCONTENT,0,0);
@@ -1384,7 +1389,7 @@ int create_popup_menus()
 	if(list_menu!=0)DestroyMenu(list_menu);
 	if(list_menu=CreatePopupMenu()){
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_SLAP,"slap");
-		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_CHANGE_NICK,"change your nick");
+		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_PRIV_MSG,"priv msg");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_WHOIS,"whois");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_OP,"op");
@@ -1396,6 +1401,7 @@ int create_popup_menus()
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_KICKBAN,"kick-ban");
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);
 		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_REFRESH_LIST,"refresh list");
+		InsertMenu(list_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_CHANGE_NICK,"change your nick");
 	}
 	if(static_menu!=0)DestroyMenu(static_menu);
 	if(static_menu=CreatePopupMenu()){
