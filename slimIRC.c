@@ -243,6 +243,7 @@ connect_channel:
 		break;
 	case WM_CLOSE:
 	case WM_QUIT:
+		save_ini_server_listview(ghlistview);
 		EndDialog(hwnd,0);
 		break;
 	}
@@ -459,6 +460,7 @@ join_channel:
 		break;
 	case WM_CLOSE:
 	case WM_QUIT:
+		save_ini_channel_listview(ghlistview);
 		EndDialog(hwnd,0);
 		break;
 	}
