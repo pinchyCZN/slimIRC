@@ -447,7 +447,6 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			break;
 		}
 		break;
-
 	case WM_CTLCOLORSTATIC:
 		/*{
 			RECT rect;
@@ -678,9 +677,12 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,-1,-1);
 				break;
 		}
-		if(scroll!=-1)
+		if(scroll!=-1){
 			SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
-//			dump_scroll_info(GetDlgItem(hwnd,MDI_STATIC));
+			printf("from keys\n");
+			set_scroll_lock(hwnd,scroll);
+			dump_scroll_info(GetDlgItem(hwnd,MDI_STATIC));
+		}
 		}
 		break;
 	case WM_USER+1: //send clipboard
@@ -823,9 +825,16 @@ int erase_irc_window(HWND hwnd)
 int find_window_by_hwnd(HWND hwnd)
 {
 	int i;
+	static IRC_WINDOW *last_win=0;
+	if(hwnd==0)
+		return 0;
+	if(last_win!=0 && last_win->hwnd==hwnd)
+		return last_win;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-		if(irc_windows[i].hwnd==hwnd)
+		if(irc_windows[i].hwnd==hwnd){
+			last_win=&irc_windows[i];
 			return &irc_windows[i];
+		}
 	}
 	return 0;
 }
@@ -949,7 +958,7 @@ int add_line_mdi(IRC_WINDOW *win,char *str)
 	if(len>0)
 		SendMessage(win->hstatic,EM_REPLACESEL,FALSE,"\r\n");
 	SendMessage(win->hstatic,EM_REPLACESEL,FALSE,str);
-	if(scroll_bottom)
+	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	if(win->type==CHANNEL_WINDOW)
 		log_str(win->channel,win->network,str);

@@ -35,7 +35,9 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return TRUE;
 		break;
 	case WM_VSCROLL:
-		//dump_scroll_info(hwnd);
+		printf("scroll code=%i\n",LOWORD(wparam));
+		set_scroll_lock(GetParent(hwnd),LOWORD(wparam));
+		dump_scroll_info(hwnd);
 		break;
 	case WM_MOUSEWHEEL:
 		{
@@ -179,6 +181,32 @@ chan_modes:
 
 	}
     return CallWindowProc(orig_static_proc,hwnd,msg,wparam,lparam); 
+}
+int set_scroll_lock(HWND hwnd,int scroll_code)
+{
+	IRC_WINDOW *win=find_window_by_hwnd(hwnd);
+	if(win!=0){
+		SCROLLINFO si={0};
+		si.cbSize=sizeof(si);
+		si.fMask=SIF_ALL;
+		GetScrollInfo(win->hstatic,SB_VERT,&si);
+		switch(scroll_code){
+		case SB_LINEUP:
+		case SB_PAGEUP:
+		case SB_TOP:
+			ShowWindow(win->hscroll_lock,SW_HIDE);
+			win->scroll_free=TRUE;
+			break;
+		case SB_ENDSCROLL:
+			break;
+		default:
+			if(win->scroll_free){
+				ShowWindow(win->hscroll_lock,SW_SHOW);
+				win->scroll_free=FALSE;
+			}
+			break;
+		}
+	}
 }
 int dump_scroll_info(HWND hwnd)
 {

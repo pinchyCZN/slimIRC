@@ -118,7 +118,8 @@ int reposition_scroll(IRC_WINDOW *win,int step)
 		else
 			scroll_bottom=FALSE;
 	}
-	else if(scroll_bottom)
+	//else if(scroll_bottom)
+	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	return scroll_bottom;
 }
@@ -129,7 +130,7 @@ int resize_mdi_window(HWND hclient)
 	IRC_WINDOW *win;
 	win=find_window_by_hwnd(hclient);
 	if(win!=0){
-		reposition_scroll(win,0);
+//		reposition_scroll(win,0);
 		if(win->type==CHANNEL_WINDOW)
 			reposition_controls(hclient,chat_anchor_list);
 		else
