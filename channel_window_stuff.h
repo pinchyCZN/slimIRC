@@ -88,7 +88,8 @@ int post_message(HWND hwnd,char *str)
 				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
 					add_line_mdi(win,"/msg /me /ctcp /discon (disconnect) "
 						"/recon (reconnect) /help lua (list lua commands) /help ctcp "
-						"/lua -create (make new script file) /lua xzy (call lua user_function with xzy paramter)");
+						"/lua -create (make new script file) /lua xzy (call lua user_function with xzy paramter) "
+						"[debug console [on|off]] [debug ?]");
 				}
 				else if(strnicmp(str,"/lua -create",sizeof("/lua -create")-1)==0){
 					lua_create_default_file(add_line_mdi,win);

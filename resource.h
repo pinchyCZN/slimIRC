@@ -15,6 +15,7 @@
 #define IDI_ICON                        115
 #define IDD_ARTVIEWER                   116
 #define IDD_INSTALL_DIALOG              117
+#define IDI_LOCK                        118
 #define IDC_ADD                         1002
 #define IDC_DELETE                      1003
 #define IDC_EDIT                        1005
@@ -80,6 +81,7 @@
 #define MSG_DESTROY_TOOLTIP             1079
 #define MSG_UPDATE_STATUS               1080
 #define IDC_USE_LOCAL                   1081
+#define MDI_SCROLL_LOCK                 1081
 #define IDC_USE_APPDATA                 1082
 #define IDC_NO_INI                      1083
 #define IDC_TXT_LOCAL                   1084
@@ -96,9 +98,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        117
+#define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1081
+#define _APS_NEXT_CONTROL_VALUE         1082
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

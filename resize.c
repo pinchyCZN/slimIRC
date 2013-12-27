@@ -259,6 +259,10 @@ short chat_anchor_list[]={
 		HUG_R,-60,YPOS,0,
 		WIDTH,60,SIZE_HEIGHT_OFF,-25,
 		CONTROL_FINISH,-1,
+	CONTROL_ID,MDI_SCROLL_LOCK, //scroll lock
+		HUG_R,-80,HUG_B,-25-16,
+		WIDTH,16,HEIGHT,16,
+		CONTROL_FINISH,-1,
 	RESIZE_FINISH
 };
 short server_anchor_list[]={
@@ -270,12 +274,10 @@ short server_anchor_list[]={
 		XPOS,0,HUG_B,-25,
 		SIZE_WIDTH_OFF,0,HEIGHT,25,
 		CONTROL_FINISH,-1,
-	/*
-	CONTROL_ID,MDI_SCROLL, //scroll
-		HUG_R,-80,YPOS,0,
-		WIDTH,20,SIZE_HEIGHT_OFF,-25,
+	CONTROL_ID,MDI_SCROLL_LOCK, //scroll lock
+		HUG_R,-16,HUG_B,-25-16,
+		WIDTH,16,HEIGHT,16,
 		CONTROL_FINISH,-1,
-	*/
 	RESIZE_FINISH
 };
 short chan_mode_list[]={
@@ -545,6 +547,9 @@ int set_list_width(int width)
 		if(chat_anchor_list[i]==CONTROL_ID && chat_anchor_list[i+1]==MDI_LIST){
 			chat_anchor_list[i+3]=-width;
 			chat_anchor_list[i+7]=width;
+		}
+		if(chat_anchor_list[i]==CONTROL_ID && chat_anchor_list[i+1]==MDI_SCROLL_LOCK){
+			chat_anchor_list[i+3]=-width-16-3;
 			break;
 		}
 	}

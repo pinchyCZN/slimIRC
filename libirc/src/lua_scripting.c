@@ -237,6 +237,9 @@ void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 			lua=*L=0;
 		}
 	}
+	else
+		hide_tooltip();
+
 	if(lua==0 && lua_script_enable){
 		lua=luaL_newstate();
 		if(lua!=0){

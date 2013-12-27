@@ -37,8 +37,8 @@ typedef struct{
 	int ssl;
 	void *session;
 	int disconnect;
-	HWND hwnd,hbutton,hstatic,hlist,hedit;
-	int button_id,pressed,activity;
+	HWND hwnd,hbutton,hstatic,hlist,hedit,hscroll_lock;
+	int button_id,pressed,activity,scroll_free;
 }IRC_WINDOW;
 
 static IRC_WINDOW irc_windows[100];
@@ -388,6 +388,12 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		SendDlgItemMessage(hwnd,MDI_EDIT,WM_SETFONT,(WPARAM)GetStockObject(SYSTEM_FIXED_FONT),0);
 		}
         break;
+	case WM_DRAWITEM:
+		if(wparam==MDI_SCROLL_LOCK){
+			draw_scroll_lock(hwnd,lparam);
+			return TRUE; 
+		}
+		break;
 	case WM_MOUSEACTIVATE:
 		if(LOWORD(lparam)==HTCLIENT){
 			//SetFocus(GetDlgItem(hwnd,MDI_EDIT));

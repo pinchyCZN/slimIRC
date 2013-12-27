@@ -157,6 +157,7 @@ BEGIN
     PUSHBUTTON      "MSG_CREATE_TOOLTIP",MSG_CREATE_TOOLTIP,339,129,98,14
     PUSHBUTTON      "MSG_DESTROY_TOOLTIP",MSG_DESTROY_TOOLTIP,339,148,98,14
     PUSHBUTTON      "MSG_UPDATE_STATUS",MSG_UPDATE_STATUS,341,168,96,14
+    PUSHBUTTON      "MDI_SCROLL_LOCK",MDI_SCROLL_LOCK,191,49,88,14
 END
 
 IDD_USER_INPUT DIALOG DISCARDABLE  0, 0, 184, 42
@@ -334,6 +335,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON                ICON    DISCARDABLE     "slimirc.ico"
+IDI_LOCK                ICON    DISCARDABLE     "lock16x16.ico"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
