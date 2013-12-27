@@ -590,8 +590,10 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				if(IsDlgButtonChecked(hwnd,IDC_LUA_SCRIPT)==BST_CHECKED)
 					lua_script_enable=1;
-				else
+				else{
 					lua_script_enable=0;
+					hide_tooltip(); //clear lua script not found message
+				}
 				write_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",lua_script_enable);
 
 				if(IsDlgButtonChecked(hwnd,IDC_DEBUG)==BST_CHECKED){
