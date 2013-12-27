@@ -605,84 +605,82 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		break;
 	case WM_USER://custom edit input wparam=key
 		{
-		int scroll=-1;
-		switch(wparam){
-			case 0x12: //ctrl-r
-				{
-				char str[2]={22,0};
-				SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
-				}
-				break;
-			case 0xB: //ctrl-k
-				{
-				char str[2]={3,0};
-				SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
-				}
-				break;
-			case 0x6: //ctr-f
-				hmdi_static=GetDlgItem(hwnd,MDI_STATIC);
-				DialogBox(ghinstance,MAKEINTRESOURCE(IDD_TEXTSEARCH),hwnd,text_search);
-				break;
-			case VK_TAB:
-				if(tab_continue)
-					tab_next(hwnd,tab_word,tab_pos);
-				else
-					tab_completion(hwnd);
-				break;
-			case VK_HOME:
-				scroll=SB_TOP;
-				break;
-			case VK_END:
-				scroll=SB_BOTTOM;
-				break;
-			case VK_ESCAPE:
-				if(edit_buffer[0][0]==0)
-					scroll_history_pos=0;
-				else
-					scroll_history_pos=-1;
-				SetWindowText(GetDlgItem(hwnd,MDI_EDIT),"");
-				break;
-			case VK_PRIOR:
-				if(GetKeyState(VK_CONTROL)&0x8000){
-					if(GetKeyState(VK_SHIFT)&0x8000)
-						scroll=SB_TOP;
+			int scroll=-1;
+			switch(wparam){
+				case 0x12: //ctrl-r
+					{
+					char str[2]={22,0};
+					SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
+					}
+					break;
+				case 0xB: //ctrl-k
+					{
+					char str[2]={3,0};
+					SendMessage(GetDlgItem(hwnd,MDI_EDIT),EM_REPLACESEL,TRUE,str);
+					}
+					break;
+				case 0x6: //ctr-f
+					hmdi_static=GetDlgItem(hwnd,MDI_STATIC);
+					DialogBox(ghinstance,MAKEINTRESOURCE(IDD_TEXTSEARCH),hwnd,text_search);
+					break;
+				case VK_TAB:
+					if(tab_continue)
+						tab_next(hwnd,tab_word,tab_pos);
 					else
-						scroll=SB_LINEUP;
+						tab_completion(hwnd);
 					break;
-				}
-				else{
-					scroll=SB_PAGEUP;
+				case VK_HOME:
+					scroll=SB_TOP;
 					break;
-				}
-			case VK_NEXT:
-				if(GetKeyState(VK_CONTROL)&0x8000){
-					if(GetKeyState(VK_SHIFT)&0x8000)
-						scroll=SB_BOTTOM;
+				case VK_END:
+					scroll=SB_BOTTOM;
+					break;
+				case VK_ESCAPE:
+					if(edit_buffer[0][0]==0)
+						scroll_history_pos=0;
 					else
-						scroll=SB_LINEDOWN;
+						scroll_history_pos=-1;
+					SetWindowText(GetDlgItem(hwnd,MDI_EDIT),"");
 					break;
-				}
-				else{
-					scroll=SB_PAGEDOWN;
+				case VK_PRIOR:
+					if(GetKeyState(VK_CONTROL)&0x8000){
+						if(GetKeyState(VK_SHIFT)&0x8000)
+							scroll=SB_TOP;
+						else
+							scroll=SB_LINEUP;
+						break;
+					}
+					else{
+						scroll=SB_PAGEUP;
+						break;
+					}
+				case VK_NEXT:
+					if(GetKeyState(VK_CONTROL)&0x8000){
+						if(GetKeyState(VK_SHIFT)&0x8000)
+							scroll=SB_BOTTOM;
+						else
+							scroll=SB_LINEDOWN;
+						break;
+					}
+					else{
+						scroll=SB_PAGEDOWN;
+						break;
+					}
+				case VK_UP:
+					restore_buffer(GetDlgItem(hwnd,MDI_EDIT),1);
 					break;
-				}
-			case VK_UP:
-				restore_buffer(GetDlgItem(hwnd,MDI_EDIT),1);
-				break;
-			case VK_DOWN:
-				restore_buffer(GetDlgItem(hwnd,MDI_EDIT),-1);
-				break;
-			case VK_RETURN:
-				SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,0,-1);
-				SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,-1,-1);
-				break;
-		}
-		if(scroll!=-1){
-			SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
+				case VK_DOWN:
+					restore_buffer(GetDlgItem(hwnd,MDI_EDIT),-1);
+					break;
+				case VK_RETURN:
+					SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,0,-1);
+					SendDlgItemMessage(hwnd,MDI_EDIT,EM_SETSEL,-1,-1);
+					break;
+			}
+			if(scroll!=-1)
+				SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
 			printf("from keys\n");
 			set_scroll_lock(hwnd,scroll);
-			dump_scroll_info(GetDlgItem(hwnd,MDI_STATIC));
-		}
 		}
 		break;
 	case WM_USER+1: //send clipboard
@@ -951,13 +949,17 @@ int add_line_mdi(IRC_WINDOW *win,char *str)
 		scroll_bottom=TRUE;
 	else if(si.nMax==0)
 		scroll_bottom=TRUE;
-//	printf("scroll %i %i %i\n",scroll_bottom,si.nMax-si.nPage-si.nPos,si.nPage);
+//	printf("addlinescroll %i %i %i\n",scroll_bottom,si.nMax-si.nPage-si.nPos,si.nPage);
+	printf("addlinescroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
+
 
 	len=GetWindowTextLength(win->hstatic);
 	SendMessage(win->hstatic,EM_SETSEL,len,len);
 	if(len>0)
 		SendMessage(win->hstatic,EM_REPLACESEL,FALSE,"\r\n");
 	SendMessage(win->hstatic,EM_REPLACESEL,FALSE,str);
+	GetScrollInfo(win->hstatic,SB_VERT,&si);
+	printf("afteraddlinescroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
 	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	if(win->type==CHANNEL_WINDOW)

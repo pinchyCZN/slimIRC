@@ -35,9 +35,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return TRUE;
 		break;
 	case WM_VSCROLL:
-		printf("scroll code=%i\n",LOWORD(wparam));
-		set_scroll_lock(GetParent(hwnd),LOWORD(wparam));
-		dump_scroll_info(hwnd);
+		PostMessage(hwnd,WM_USER+1,wparam,lparam);
 		break;
 	case WM_MOUSEWHEEL:
 		{
@@ -176,6 +174,10 @@ chan_modes:
 		SetFocus(hedit);
 		}
 		return 0;
+	case WM_USER+1:
+		set_scroll_lock(GetParent(hwnd),LOWORD(wparam));
+		return 0;
+		break;
 	case WM_CAPTURECHANGED:
 		break;
 
@@ -186,27 +188,58 @@ int set_scroll_lock(HWND hwnd,int scroll_code)
 {
 	IRC_WINDOW *win=find_window_by_hwnd(hwnd);
 	if(win!=0){
-		SCROLLINFO si={0};
-		si.cbSize=sizeof(si);
-		si.fMask=SIF_ALL;
-		GetScrollInfo(win->hstatic,SB_VERT,&si);
-		switch(scroll_code){
-		case SB_LINEUP:
-		case SB_PAGEUP:
-		case SB_TOP:
+		RECT rectc={0},rectw={0};
+		int scroll_on=FALSE;
+		GetClientRect(win->hstatic,&rectc);
+		GetWindowRect(win->hstatic,&rectw);
+		if((rectw.right-rectw.left-rectc.right)>=(GetSystemMetrics(SM_CXVSCROLL)/2))
+			scroll_on=TRUE;
+		if(scroll_on==FALSE){
 			ShowWindow(win->hscroll_lock,SW_HIDE);
-			win->scroll_free=TRUE;
-			break;
-		case SB_ENDSCROLL:
-			break;
-		default:
-			if(win->scroll_free){
+			win->scroll_free=FALSE;
+		}
+		else{
+			int scroll_lock=TRUE;
+			switch(scroll_code){
+			case SB_LINEUP:
+			case SB_PAGEUP:
+			case SB_TOP:
+				scroll_lock=FALSE;
+				break;
+			case SB_BOTTOM:
+				break;
+			case SB_ENDSCROLL:
+			default:
+				{
+					SCROLLINFO si={0};
+					int pos=0;
+					si.cbSize=sizeof(si);
+					si.fMask=SIF_ALL;
+					GetScrollInfo(win->hstatic,SB_VERT,&si);
+					if(scroll_code==SB_THUMBPOSITION || scroll_code==SB_THUMBTRACK)
+						pos=si.nTrackPos;
+					else
+						pos=si.nPos;
+					if((pos+si.nPage) >= (si.nMax-1))
+						scroll_lock=TRUE;
+					else
+						scroll_lock=FALSE;
+					printf("scrollcode %i\n",scroll_code);
+					printf("diff %i %i\n",si.nTrackPos+si.nPage,si.nMax);
+					printf("scroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
+				}
+				break;
+			}
+			if(scroll_lock){
 				ShowWindow(win->hscroll_lock,SW_SHOW);
 				win->scroll_free=FALSE;
+			}else{
+				ShowWindow(win->hscroll_lock,SW_HIDE);
+				win->scroll_free=TRUE;
 			}
-			break;
 		}
 	}
+	return TRUE;
 }
 int dump_scroll_info(HWND hwnd)
 {
@@ -214,7 +247,7 @@ int dump_scroll_info(HWND hwnd)
 	si.cbSize=sizeof(si);
 	si.fMask=SIF_ALL;
 	GetScrollInfo(hwnd,SB_VERT,&si);
-	printf("scroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
+	printf("dumpscroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
 	return TRUE;
 }
 int set_focus_edit(HWND hstatic)
