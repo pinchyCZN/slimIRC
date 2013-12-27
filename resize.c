@@ -260,7 +260,7 @@ short chat_anchor_list[]={
 		WIDTH,60,SIZE_HEIGHT_OFF,-25,
 		CONTROL_FINISH,-1,
 	CONTROL_ID,MDI_SCROLL_LOCK, //scroll lock
-		HUG_R,-80,HUG_B,-25-16,
+		HUG_R,-60-17,HUG_B,-25-17,
 		WIDTH,16,HEIGHT,16,
 		CONTROL_FINISH,-1,
 	RESIZE_FINISH
@@ -275,7 +275,7 @@ short server_anchor_list[]={
 		SIZE_WIDTH_OFF,0,HEIGHT,25,
 		CONTROL_FINISH,-1,
 	CONTROL_ID,MDI_SCROLL_LOCK, //scroll lock
-		HUG_R,-16,HUG_B,-25-16,
+		HUG_R,-17,HUG_B,-25-17,
 		WIDTH,16,HEIGHT,16,
 		CONTROL_FINISH,-1,
 	RESIZE_FINISH
@@ -535,6 +535,24 @@ int dump_sizes(HWND hwnd,short *IDC)
 	}
 	printf("\n");return 0;
 }
+int init_server_scoll_lock_size()
+{
+	int i;
+	int scroll_width=GetSystemMetrics(SM_CXVSCROLL);
+	if(scroll_width==0)
+		scroll_width=16;
+	for(i=0;i<sizeof(server_anchor_list)/sizeof(short);i++){
+		if(server_anchor_list[i]==CONTROL_ID && server_anchor_list[i+1]==MDI_SCROLL_LOCK){
+			server_anchor_list[i+3]=-scroll_width-1;
+			server_anchor_list[i+5]=-25-scroll_width-1;
+			server_anchor_list[i+7]=scroll_width;
+			server_anchor_list[i+9]=scroll_width;
+			break;
+		}
+	}
+	return TRUE;
+
+}
 int set_list_width(int width)
 {
 	int i;
@@ -549,7 +567,13 @@ int set_list_width(int width)
 			chat_anchor_list[i+7]=width;
 		}
 		if(chat_anchor_list[i]==CONTROL_ID && chat_anchor_list[i+1]==MDI_SCROLL_LOCK){
-			chat_anchor_list[i+3]=-width-16-3;
+			int scroll_width=GetSystemMetrics(SM_CXVSCROLL);
+			if(scroll_width==0)
+				scroll_width=16;
+			chat_anchor_list[i+3]=-width-scroll_width-1-3;
+			chat_anchor_list[i+5]=-25-scroll_width-1;
+			chat_anchor_list[i+7]=scroll_width;
+			chat_anchor_list[i+9]=scroll_width;
 			break;
 		}
 	}

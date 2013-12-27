@@ -16,7 +16,7 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 	case WM_DRAWITEM:
 		draw_button(hwnd,(LPDRAWITEMSTRUCT)lparam);
 		return TRUE; 
-	case WM_USER:
+	case WM_APP:
 		switch(wparam){
 		case MSG_ADD_BUTTON:
 			{
@@ -35,7 +35,7 @@ LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 		break;
 	case WM_PARENTNOTIFY:
 		if(LOWORD(wparam)==WM_DESTROY)
-			PostMessage(hwnd,WM_USER,MSG_RESIZE_BUTTONS,0); //resize buttons after ones destroy
+			PostMessage(hwnd,WM_APP,MSG_RESIZE_BUTTONS,0); //resize buttons after ones destroy
 		break;
 	case WM_CREATE:
 		/*

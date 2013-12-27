@@ -388,12 +388,6 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		SendDlgItemMessage(hwnd,MDI_EDIT,WM_SETFONT,(WPARAM)GetStockObject(SYSTEM_FIXED_FONT),0);
 		}
         break;
-	case WM_DRAWITEM:
-		if(wparam==MDI_SCROLL_LOCK){
-			draw_scroll_lock(hwnd,lparam);
-			return TRUE; 
-		}
-		break;
 	case WM_MOUSEACTIVATE:
 		if(LOWORD(lparam)==HTCLIENT){
 			//SetFocus(GetDlgItem(hwnd,MDI_EDIT));
@@ -581,7 +575,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 							lines++;
 					}
 					if((lines>=2) || (len>350)){
-						PostMessage(hwnd,WM_USER+1,0,hedit);
+						PostMessage(hwnd,WM_APP+1,0,hedit);
 						break;
 					}
 					if(valid_text(str)){
@@ -594,6 +588,11 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				break;
 			}
 			break;
+		case MDI_SCROLL_LOCK:
+			win=find_window_by_hwnd(hwnd);
+			if(win!=0)
+				SetFocus(win->hedit);
+			break;
 		}
 		break;
 	case WM_HELP:
@@ -603,7 +602,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			show_art_viewer(hwnd,win->hstatic);
 		}
 		break;
-	case WM_USER://custom edit input wparam=key
+	case WM_APP://custom edit input wparam=key
 		{
 			int scroll=-1;
 			switch(wparam){
@@ -679,11 +678,10 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			}
 			if(scroll!=-1)
 				SendDlgItemMessage(hwnd,MDI_STATIC,EM_SCROLL,scroll,0);
-			printf("from keys\n");
 			set_scroll_lock(hwnd,scroll);
 		}
 		break;
-	case WM_USER+1: //send clipboard
+	case WM_APP+1: //send clipboard
 		if(lparam!=0)
 			SetWindowText(lparam,"");
 		if(IsClipboardFormatAvailable(CF_TEXT))
@@ -939,27 +937,12 @@ int add_history(char *str)
 }
 int add_line_mdi(IRC_WINDOW *win,char *str)
 {
-	int len,scroll_bottom=FALSE;
-	SCROLLINFO si;
-	si.cbSize=sizeof(si);
-	si.fMask=SIF_ALL;
-	si.nMin=si.nMax=0;
-	GetScrollInfo(win->hstatic,SB_VERT,&si);
-	if((si.nMax-si.nPage-si.nPos)<=(si.nPage/2))
-		scroll_bottom=TRUE;
-	else if(si.nMax==0)
-		scroll_bottom=TRUE;
-//	printf("addlinescroll %i %i %i\n",scroll_bottom,si.nMax-si.nPage-si.nPos,si.nPage);
-	printf("addlinescroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
-
-
+	int len;
 	len=GetWindowTextLength(win->hstatic);
 	SendMessage(win->hstatic,EM_SETSEL,len,len);
 	if(len>0)
 		SendMessage(win->hstatic,EM_REPLACESEL,FALSE,"\r\n");
 	SendMessage(win->hstatic,EM_REPLACESEL,FALSE,str);
-	GetScrollInfo(win->hstatic,SB_VERT,&si);
-	printf("afteraddlinescroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
 	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	if(win->type==CHANNEL_WINDOW)
@@ -1313,7 +1296,7 @@ int custom_dispatch(MSG *msg)
 				case 0x12: //ctrl-R
 				case 0xB: //ctrl-K
 				case 0x6: //ctr-f
-					msg->message=WM_USER;
+					msg->message=WM_APP;
 					msg->hwnd=GetParent(msg->hwnd);
 					DispatchMessage(msg);
 					return TRUE;
@@ -1333,7 +1316,7 @@ int custom_dispatch(MSG *msg)
 					{
 						MSG mymsg=*msg;
 						mymsg.hwnd=GetParent(msg->hwnd);
-						mymsg.message=WM_USER;
+						mymsg.message=WM_APP;
 						DispatchMessage(&mymsg);
 					}
 					break;
@@ -1351,7 +1334,7 @@ int custom_dispatch(MSG *msg)
 				case VK_NEXT:
 				case VK_UP:
 				case VK_DOWN:
-					msg->message=WM_USER;
+					msg->message=WM_APP;
 					msg->hwnd=GetParent(msg->hwnd);
 					DispatchMessage(msg);
 					return TRUE;
@@ -1389,7 +1372,7 @@ int custom_dispatch(MSG *msg)
 				mbutton_down=FALSE;
 				DispatchMessage(msg);
 				msg->hwnd=win->hstatic;
-				msg->message=WM_USER;
+				msg->message=WM_APP;
 				msg->lParam=MAKELPARAM(msg->pt.x,msg->pt.y);
 				DispatchMessage(msg);
 				return TRUE;
@@ -1450,6 +1433,7 @@ int init_mdi_stuff()
 	get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
 	get_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",&lua_script_enable);
 	set_list_width(list_width);
+	init_server_scoll_lock_size();
 	create_popup_menus();
 	return TRUE;
 }

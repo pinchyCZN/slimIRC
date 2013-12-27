@@ -675,7 +675,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		}
 		break;
-	case WM_USER:
+	case WM_APP:
 		switch(wparam){
 		case MSG_UPDATE_STATUS:
 			update_status_window(hwnd,ghmenu);

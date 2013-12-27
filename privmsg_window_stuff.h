@@ -60,7 +60,7 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 				if(hwnd!=0){
 					privmsg_win->hwnd=hwnd;
 					if(privmsg_win->hbutton==0)
-						SendMessage(ghswitchbar,WM_USER,MSG_ADD_BUTTON,privmsg_win->hwnd);
+						SendMessage(ghswitchbar,WM_APP,MSG_ADD_BUTTON,privmsg_win->hwnd);
 				}
 			}
 		}

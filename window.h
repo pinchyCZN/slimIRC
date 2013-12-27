@@ -72,8 +72,16 @@ int create_mdi_window(HWND hclient,HINSTANCE hinstance,IRC_WINDOW *win)
 	if(win==0)
 		return FALSE;
     hscroll_lock=CreateWindowEx(WS_EX_TOPMOST,"button","", 
-      WS_CHILD|WS_VISIBLE|BS_PUSHLIKE|BS_OWNERDRAW,
-        0, 0, 30, 30, hclient, MDI_SCROLL_LOCK, hinstance, 0);
+      WS_CHILD|WS_VISIBLE|BS_ICON,
+        0, 0, 0, 0, hclient, MDI_SCROLL_LOCK, hinstance, 0);
+
+	if(hscroll_lock){
+		static HICON hicon=0;
+		if(hicon==0)
+			hicon=LoadImage(ghinstance,MAKEINTRESOURCE(IDI_LOCK),IMAGE_ICON,16,16,NULL);
+		if(hicon)
+			SendMessage(hscroll_lock,BM_SETIMAGE,(WPARAM)IMAGE_ICON,(LPARAM)hicon);
+	}
 
 	hstatic=CreateWindowEx(WS_EX_STATICEDGE,RICHEDIT_CLASS,"",
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|
@@ -181,19 +189,4 @@ int create_mainwindow(void *wndproc,HMENU hmenu,HINSTANCE hinstance)
 			NULL);
 	}
 	return hframe;
-}
-
-int draw_scroll_lock(HWND hclient,DRAWITEMSTRUCT *di)
-{
-	static HWND hicon=0;
-
-	if(hicon==0){
-		hicon=LoadImage(ghinstance,MAKEINTRESOURCE(IDI_LOCK),IMAGE_ICON,16,16,NULL);
-		SendMessage(di->hwndItem,BM_SETIMAGE,(WPARAM)IMAGE_ICON,(LPARAM)hicon);
-//		SetWindowPos(di->hwndItem,HWND_TOP,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE);
-	}
-	if(di->CtlID!=0){
-		DrawEdge(di->hDC,&di->rcItem,EDGE_RAISED,BF_RECT);
-	}
-	return TRUE;
 }

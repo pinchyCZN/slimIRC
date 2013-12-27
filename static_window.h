@@ -35,7 +35,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return TRUE;
 		break;
 	case WM_VSCROLL:
-		PostMessage(hwnd,WM_USER+1,wparam,lparam);
+		PostMessage(hwnd,WM_APP+1,wparam,lparam);
 		break;
 	case WM_MOUSEWHEEL:
 		{
@@ -92,7 +92,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			break;
 		case CMD_TSEARCH:
-			SendMessage(GetParent(hwnd),WM_USER,0x6,0);
+			SendMessage(GetParent(hwnd),WM_APP,0x6,0);
 			break;
 		case CMD_TEST:
 			break;
@@ -154,7 +154,7 @@ chan_modes:
 		lmb_down=FALSE;
 		set_focus_edit(hwnd);
 		break;
-	case WM_USER: //release LMB and copy
+	case WM_APP: //release LMB and copy
 		{
 		CHARRANGE cr;
 		HWND hedit,hparent=GetParent(hwnd);
@@ -174,7 +174,7 @@ chan_modes:
 		SetFocus(hedit);
 		}
 		return 0;
-	case WM_USER+1:
+	case WM_APP+1:
 		set_scroll_lock(GetParent(hwnd),LOWORD(wparam));
 		return 0;
 		break;
@@ -224,9 +224,9 @@ int set_scroll_lock(HWND hwnd,int scroll_code)
 						scroll_lock=TRUE;
 					else
 						scroll_lock=FALSE;
-					printf("scrollcode %i\n",scroll_code);
-					printf("diff %i %i\n",si.nTrackPos+si.nPage,si.nMax);
-					printf("scroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
+					//printf("scrollcode %i\n",scroll_code);
+					//printf("diff %i %i\n",si.nTrackPos+si.nPage,si.nMax);
+					//printf("scroll:%i %i %i %i (%i) %i\n",si.nTrackPos,si.nMin,si.nMax,si.nPage,si.nMax-si.nPage,si.nPos);
 				}
 				break;
 			}

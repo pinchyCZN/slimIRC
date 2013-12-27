@@ -103,7 +103,7 @@ BOOL CALLBACK chan_modes(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 		}
 		break;
-	case WM_USER:
+	case WM_APP:
 		switch(wparam){
 		case MSG_BANLIST:
 			SendDlgItemMessage(hwnd,IDC_BANLIST,LB_ADDSTRING,0,chan_mode_ban_entry);
@@ -193,7 +193,7 @@ int update_chan_mode_dlg(int event,const char *origin,const char **params,int co
 	case 367: //ban entry u00|#1|*!*@127.0.0.1|pinchy|123456778
 		if(count>=3 && chan_mode_hwnd!=0){
 			_snprintf(chan_mode_ban_entry,sizeof(chan_mode_ban_entry),"%s",params[2]);
-			SendMessage(chan_mode_hwnd,WM_USER,MSG_BANLIST,0);
+			SendMessage(chan_mode_hwnd,WM_APP,MSG_BANLIST,0);
 		}
 		break;
 	case 324: //mode pinchy|#thistest|+spmtinlk|1337|thisisakey
@@ -201,18 +201,18 @@ int update_chan_mode_dlg(int event,const char *origin,const char **params,int co
 			_snprintf(chan_mode_data,sizeof(chan_mode_data),"%s|%s|%s|",params[2],
 				count>3?params[3]:"",
 				count>4?params[4]:"");
-			SendMessage(chan_mode_hwnd,WM_USER,MSG_MODE,0);
+			SendMessage(chan_mode_hwnd,WM_APP,MSG_MODE,0);
 		}
 		break;
 	case 331: //no topic set
 		chan_mode_topic[0]=0;
-		SendMessage(chan_mode_hwnd,WM_USER,MSG_TOPIC,0);
+		SendMessage(chan_mode_hwnd,WM_APP,MSG_TOPIC,0);
 		break;
 	case 332: //topic pinchy|#1|blah
 		if(count>=3 && chan_mode_hwnd!=0){
 			_snprintf(chan_mode_topic,sizeof(chan_mode_topic),"%s",params[2]);
 			chan_mode_topic[sizeof(chan_mode_topic)-1]=0;
-			SendMessage(chan_mode_hwnd,WM_USER,MSG_TOPIC,0);
+			SendMessage(chan_mode_hwnd,WM_APP,MSG_TOPIC,0);
 		}
 		break;
 	}
