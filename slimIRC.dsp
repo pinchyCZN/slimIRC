@@ -524,11 +524,7 @@ SOURCE=.\window.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\lock16x16.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\lock16x16.ico
+SOURCE=.\lock.ico
 # End Source File
 # Begin Source File
 

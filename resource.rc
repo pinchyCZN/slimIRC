@@ -335,7 +335,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON                ICON    DISCARDABLE     "slimirc.ico"
-IDI_LOCK                ICON    DISCARDABLE     "lock16x16.ico"
+IDI_LOCK                ICON    DISCARDABLE     "lock.ico"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////

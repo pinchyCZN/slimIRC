@@ -78,7 +78,7 @@ int create_mdi_window(HWND hclient,HINSTANCE hinstance,IRC_WINDOW *win)
 	if(hscroll_lock){
 		static HICON hicon=0;
 		if(hicon==0)
-			hicon=LoadImage(ghinstance,MAKEINTRESOURCE(IDI_LOCK),IMAGE_ICON,16,16,NULL);
+			hicon=LoadImage(ghinstance,MAKEINTRESOURCE(IDI_LOCK),IMAGE_ICON,12,12,NULL);
 		if(hicon)
 			SendMessage(hscroll_lock,BM_SETIMAGE,(WPARAM)IMAGE_ICON,(LPARAM)hicon);
 	}
