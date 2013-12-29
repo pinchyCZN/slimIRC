@@ -39,4 +39,5 @@
 -- end
 
 -- function user_called_event(session,origin,nch,msg)
+-- slap menu calls this with msg GET_SLAP_COUNT and DO_SLAP rnd#
 -- end

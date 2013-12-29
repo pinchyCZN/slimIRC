@@ -315,6 +315,7 @@ void report_server_window(irc_session_t *session,const char * event,const char *
 }
 int irc_slap(irc_session_t *session,char *channel,char *nick)
 {
+	extern int lua_script_enable;
 	char slap[256]={0};
 	char msg[256]={0};
 	IRC_WINDOW *win;
@@ -346,9 +347,62 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 	get_ini_str("SETTINGS","SLAPMSG",msg,sizeof(msg));
 	if(msg[0]!=0)
 		_snprintf(slap,sizeof(slap),"slaps %s %s",nick,msg);
+	else if(lua_script_enable){
+		char *params[2]={channel,"GET_SLAP_COUNT"};
+		int count;
+		count=lua_process_event(session,"USER_CALLED",nick,&params,2);
+		if(count>0){
+			int i,index,used=0;
+			char list[255];
+			char tmp[255];
+			memset(list,0,sizeof(list));
+			get_ini_str("SETTINGS","SLAPPED",list,sizeof(list));
+			if(count>=sizeof(list))
+				count=sizeof(list)-1;
+			for(i=0;i<count;i++){
+				if(list[i]=='1')
+					used++;
+				else if(list[i]!='0')
+					list[i]='0';
+			}
+			list[count]=0;
+			if(used>=count){
+				memset(list,'0',sizeof(list));
+				list[count]=0;
+			}
+			memset(tmp,0,sizeof(tmp));
+			index=0;
+			for(i=0;i<count;i++){
+				if(list[i]=='0')
+					tmp[index++]=i+1;
+			}
+			if(index<=0)
+				index=count;
+			rnd=rand()%index;
+			index=(unsigned char)tmp[rnd];
+			index--;
+			if(index>=count)
+				index=count-1;
+			if(index<0)
+				index=0;
+			_snprintf(tmp,sizeof(tmp),"DO_SLAP %i",index);
+			params[0]=channel;
+			params[1]=tmp;
+			lua_process_event(session,"USER_CALLED",nick,&params,2);
+			list[index]='1';
+			list[count]=0;
+			write_ini_str("SETTINGS","SLAPPED",list);
+			return TRUE;
+		}
+		else{
+			goto USUAL;
+		}
+	}
 	else{
-		int i,index,count=0;
+		int i,index,count;
 		char list[1+sizeof(prev)];
+USUAL:
+		count=0;
 		memset(list,0,sizeof(list));
 		get_ini_str("SETTINGS","SLAPPED",list,sizeof(list));
 		if(list[0]!=0){
@@ -380,7 +434,7 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 		dprintf(1,"count=%i\n",index);
 		rnd=rand();
 		rnd=rnd%index;
-		index=list[rnd];
+		index=(unsigned char)list[rnd];
 		index--;
 		if(index<0 || index>=(sizeof(randoms)/sizeof(char *))){
 			index=0;
