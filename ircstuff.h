@@ -351,7 +351,7 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 		char *params[2]={channel,"GET_SLAP_COUNT"};
 		int count;
 		count=lua_process_event(session,"USER_CALLED",nick,&params,2);
-		if(count>0){
+		if(count>1){
 			int i,index,used=0;
 			char list[255];
 			char tmp[255];
