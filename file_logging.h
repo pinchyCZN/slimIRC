@@ -6,6 +6,8 @@ typedef struct{
 
 LOG_FILE log_files[sizeof(irc_windows)/sizeof(IRC_WINDOW)];
 int log_enable=FALSE;
+static CRITICAL_SECTION log_mutex;
+static int log_mutex_init=FALSE;
 
 int init_log_files()
 {
@@ -31,12 +33,14 @@ int acquire_log_file(char *name)
 int close_all_logs()
 {
 	int i;
+	EnterCriticalSection(&log_mutex);
 	for(i=0;i<sizeof(log_files)/sizeof(LOG_FILE);i++){
 		if(log_files[i].f!=0){
 			fclose(log_files[i].f);
 			memset(&log_files[i],0,sizeof(LOG_FILE));
 		}
 	}
+	LeaveCriticalSection(&log_mutex);
 	return TRUE;
 }
 int close_old_files()
@@ -65,20 +69,23 @@ int create_log_directory(char *dir,int len)
 	}
 	return FALSE;
 }
+int init_log_mutex()
+{
+	if(!log_mutex_init){
+		InitializeCriticalSection(&log_mutex);
+		log_mutex_init=TRUE;
+	}
+}
 int log_str(char *chan,char *network,char *str)
 {
 	LOG_FILE *log;
 	int result=FALSE;
 	static int files_open=FALSE;
 	char name[MAX_PATH]={0};
-	static CRITICAL_SECTION cslog;
-	static int init_cs_done=FALSE;
 
-	if(!init_cs_done){
-		InitializeCriticalSection(&cslog);
-		init_cs_done=TRUE;
-	}
-	EnterCriticalSection(&cslog);
+	assert(log_mutex_init);
+
+	EnterCriticalSection(&log_mutex);
 	if(!log_enable){
 		if(files_open)
 			close_all_logs();
@@ -109,6 +116,6 @@ int log_str(char *chan,char *network,char *str)
 		}
 		close_old_files();
 	}
-	LeaveCriticalSection(&cslog);
+	LeaveCriticalSection(&log_mutex);
 	return result;
 }

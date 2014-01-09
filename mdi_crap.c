@@ -9,6 +9,7 @@
 #include <io.h>
 #include <richedit.h>
 #include <math.h>
+#include <assert.h>
 #include "libircclient.h"
 #include "resource.h"
 
@@ -935,7 +936,8 @@ int add_history(char *str)
 	memset(edit_buffer[0],0,sizeof(edit_buffer[0]));
 	return TRUE;
 }
-int add_line_mdi(IRC_WINDOW *win,char *str)
+
+int add_line_mdi_nolog(IRC_WINDOW *win,char *str)
 {
 	int len;
 	len=GetWindowTextLength(win->hstatic);
@@ -945,11 +947,15 @@ int add_line_mdi(IRC_WINDOW *win,char *str)
 	SendMessage(win->hstatic,EM_REPLACESEL,FALSE,str);
 	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
-	if(win->type==CHANNEL_WINDOW)
+	return TRUE;
+}
+int add_line_mdi(IRC_WINDOW *win,char *str)
+{
+	add_line_mdi_nolog(win,str);
+	if(win->type==CHANNEL_WINDOW || win->type==PRIVMSG_WINDOW)
 		log_str(win->channel,win->network,str);
 	return TRUE;
 }
-
 
 int extract_list_nick(char *list,char *nick,int size)
 {
@@ -1428,6 +1434,7 @@ int init_mdi_stuff()
 	memset(irc_windows,0,sizeof(irc_windows));
 	memset(server_threads,0,sizeof(server_threads));
 	memset(edit_buffer,0,sizeof(edit_buffer));
+	init_log_mutex();
 	init_log_files();
 	get_ini_value("SETTINGS","LIST_WIDTH",&list_width);
 	get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
