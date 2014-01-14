@@ -75,6 +75,7 @@ int init_log_mutex()
 		InitializeCriticalSection(&log_mutex);
 		log_mutex_init=TRUE;
 	}
+	return log_mutex_init;
 }
 int log_str(char *chan,char *network,char *str)
 {

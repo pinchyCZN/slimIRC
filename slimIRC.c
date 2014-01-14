@@ -776,6 +776,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			RECT rect={0};
 			WINDOWPLACEMENT wp;
 			int w=0,h=0,maximized=0;
+			if(GetKeyState(VK_SHIFT)&0x8000)
+				break;
 			wp.length=sizeof(wp);
 			if(GetWindowPlacement(hwnd,&wp)!=0){
 				rect=wp.rcNormalPosition;
