@@ -352,9 +352,10 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 		_snprintf(slap,sizeof(slap),"slaps %s %s",nick,msg);
 	else if(lua_script_enable){
 		char *params[2]={channel,"GET_SLAP_COUNT"};
-		int count;
-		count=lua_process_event(session,"USER_CALLED",nick,&params,2);
-		if(count>1){
+		int count=0;
+		if(is_lua_active(session))
+			count=lua_process_event(session,"USER_CALLED",nick,&params,2);
+		if(count>=1){
 			int i,index,used=0;
 			char list[255];
 			char tmp[255];
@@ -381,6 +382,8 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 			}
 			if(index<=0)
 				index=count;
+			if(index==0)
+				index=1;
 			rnd=rand()%index;
 			index=(unsigned char)tmp[rnd];
 			index--;
