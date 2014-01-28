@@ -330,28 +330,28 @@ int lua_handle_event(lua_State *L,
 					  unsigned int count)
 {
 	int index;
+	int result=0;
 
-	if(!lua_script_enable)
-		return TRUE;
+	if(!lua_script_enable){
+		lua_error_msg=0;
+		return result;
+	}
 	if(L==0)
-		return TRUE;
+		return result;
 
 	index=lua_get_func_index(event);
 	if(index<0)
-		return TRUE;
+		return result;
 
 	switch(lua_funcs[index].type){
-	default:
-		return TRUE;
 	case CHECK_IGNORE_FUNC:
 		lua_getglobal(L,lua_funcs[index].lua_func);
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		lua_pushstring(L,params[0]); //nick
 		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,4,1,0)!=LUA_OK)
-			return FALSE;
-		return lua_tointeger(L,-1);
+		if(lua_pcall(L,4,1,0)==LUA_OK)
+			result=lua_tointeger(L,-1);
 		break;
 	case STANDARD_FUNC:
 		lua_getglobal(L,lua_funcs[index].lua_func);
@@ -364,9 +364,9 @@ int lua_handle_event(lua_State *L,
 				printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
 				lua_error_msg++;
 			}
-			return TRUE;
 		}
-		return lua_tointeger(L,-1);
+		else
+			result=lua_tointeger(L,-1);
 		break;
 	case NUMERIC_FUNC:
 		lua_getglobal(L,lua_funcs[index].lua_func);
@@ -379,12 +379,12 @@ int lua_handle_event(lua_State *L,
 				printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
 				lua_error_msg++;
 			}
-			return TRUE;
 		}
-		return lua_tointeger(L,-1);
+		else
+			result=lua_tointeger(L,-1);
 		break;
 	}
-	return TRUE;
+	return result;
 }
 
 int lua_help(int(*mdi_window)(void *,char *),void *win)

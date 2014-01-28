@@ -72,8 +72,9 @@ static void libirc_event_ctcp_internal (irc_session_t * session, const char * ev
 		char nickbuf[128], textbuf[256];
 		irc_target_get_nick (origin, nickbuf, sizeof(nickbuf));
 
-		if(lua_process_event(session,event,origin,params,count))
-			return;
+		if(is_lua_active(session))
+			if(lua_process_event(session,event,origin,params,count))
+				return;
 
 		if ( strstr (params[0], "PING") == params[0] ){
 			_snprintf(textbuf,sizeof(textbuf),"PONG%s",params[0]+4);
