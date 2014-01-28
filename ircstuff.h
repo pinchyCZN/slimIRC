@@ -117,8 +117,9 @@ void event_channel(irc_session_t * session, const char * event, const char * ori
 {
 	if(count<2)
 		return;
-	if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
-		return;
+	if(is_lua_active(session))
+		if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
+			return;
 	if(params[0][0]=='#')
 		channel_msg_event(session,origin,params[0],params[1],0);
 	else
@@ -128,8 +129,9 @@ void event_channel(irc_session_t * session, const char * event, const char * ori
 }
 void event_privmsg(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
-	if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
-		return;
+	if(is_lua_active(session))
+		if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
+			return;
 	privmsg_event(session,origin,params[0],params[1],0);
 	lua_process_event(session,event,origin,params,count);
 	dprintf(1,"PRIVMSG '%s' said me (%s): %s\n", 
@@ -276,8 +278,9 @@ void event_mode(irc_session_t * session, const char * event, const char * origin
 	char nick[20]={0};
 	char str[255]={0};
 	dump_event(session,event,origin,params,count);
-	if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
-		echo=FALSE;
+	if(is_lua_active(session))
+		if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
+			echo=FALSE;
 	if(echo){
 		_snprintf(str,sizeof(str),"%s %s",event,origin);
 		for(i=0;i<count;i++)

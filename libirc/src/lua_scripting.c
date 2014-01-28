@@ -330,12 +330,13 @@ int lua_handle_event(lua_State *L,
 					  unsigned int count)
 {
 	int index;
-	if(L==0)
-		return TRUE;
+
 	if(!lua_script_enable)
 		return TRUE;
-	index=lua_get_func_index(event);
+	if(L==0)
+		return TRUE;
 
+	index=lua_get_func_index(event);
 	if(index<0)
 		return TRUE;
 

@@ -1485,6 +1485,9 @@ int lua_process_event(irc_session_t *session,
 					  const char *origin,
 					  const char ** params,
 					  unsigned int count);
+
+int is_lua_active(irc_session_t *session);
+
 #ifdef	__cplusplus
 }
 #endif

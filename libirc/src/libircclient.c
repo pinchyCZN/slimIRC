@@ -1295,6 +1295,14 @@ int lua_process_event(irc_session_t *session,
 {
 	return lua_handle_event(session->lua_context,session,event,origin,params,count);
 }
+int is_lua_active(irc_session_t *session)
+{
+	extern int lua_script_enable;
+	if(session->lua_context && lua_script_enable)
+		return TRUE;
+	else
+		return FALSE;
+}
 void lua_mutex_lock(port_mutex_t *mutex)
 {
 	libirc_mutex_lock(mutex);
