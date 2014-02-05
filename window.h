@@ -164,22 +164,29 @@ int create_mdiclient(HWND hwnd,HMENU hmenu,HINSTANCE hinstance)
 		(LPVOID)&MDIClientCreateStruct);
 	return hmdiclient;
 }
-
+int get_window_classname(char **s)
+{
+	static char *cname="slimIRC_mdiframe";
+	if(s)
+		*s=cname;
+}
 int create_mainwindow(void *wndproc,HMENU hmenu,HINSTANCE hinstance)
 {
 	WNDCLASS wndclass;
-	HWND hframe=0;	
+	HWND hframe=0;
+	char *class_name="mdiframe";
 	memset(&wndclass,0,sizeof(wndclass));
+	get_window_classname(&class_name);
 
 	wndclass.style=0; //CS_HREDRAW|CS_VREDRAW;
 	wndclass.lpfnWndProc=wndproc;
 	wndclass.hCursor=LoadCursor(NULL, IDC_ARROW);
 	wndclass.hInstance=hinstance;
 	wndclass.hbrBackground=COLOR_BTNFACE+1;
-	wndclass.lpszClassName="mdiframe";
+	wndclass.lpszClassName=class_name;
 	
 	if(RegisterClass(&wndclass)!=0){	
-		hframe = CreateWindow("mdiframe","slimIRC",
+		hframe = CreateWindow(class_name,"slimIRC",
 			WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_OVERLAPPEDWINDOW, //0x6CF0000
 			0,0,
 			400,300,

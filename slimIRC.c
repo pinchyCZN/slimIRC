@@ -466,6 +466,31 @@ join_channel:
 	}
 	return 0;
 }
+int set_single_instance(int set)
+{
+	static char *instname="_slimirc_ Instance";
+	static HANDLE hmutex=0;
+	if(set){
+		SetLastError(NO_ERROR);
+		if(hmutex==0)
+			hmutex=CreateMutex(NULL,FALSE,instname);
+		if(GetLastError()==ERROR_ALREADY_EXISTS)
+			return FALSE;
+		else
+			return TRUE;
+	}
+	else{
+		if(hmutex!=0){
+			if(WaitForSingleObject(hmutex,0)==WAIT_OBJECT_0)
+				if(ReleaseMutex(hmutex)!=0)
+					if(CloseHandle(hmutex)!=0){
+						hmutex=0;
+						return TRUE;
+					}
+		}
+	}
+	return FALSE;
+}
 /**********************************************************************************************/
 BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
@@ -501,6 +526,11 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		CheckDlgButton(hwnd,IDC_SHOWJOINS,show_joins);
 		get_ini_value("SETTINGS","ENABLE_LOG",&log_enable);
 		CheckDlgButton(hwnd,IDC_ENABLELOG,log_enable);
+		{
+			int val=0;
+			get_ini_value("SETTINGS","SINGLE_INSTANCE",&val);
+			CheckDlgButton(hwnd,IDC_SINGLE_INSTANCE,val);
+		}
 		get_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",&lua_script_enable);
 		CheckDlgButton(hwnd,IDC_LUA_SCRIPT,lua_script_enable);
 		debug=0;
@@ -595,6 +625,14 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					hide_tooltip(); //clear lua script not found message
 				}
 				write_ini_value("SETTINGS","ENABLE_LUA_SCRIPT",lua_script_enable);
+
+				{
+					int val=0;
+					if(IsDlgButtonChecked(hwnd,IDC_SINGLE_INSTANCE)==BST_CHECKED)
+						val=1;
+					write_ini_value("SETTINGS","SINGLE_INSTANCE",val);
+					set_single_instance(val);
+				}
 
 				if(IsDlgButtonChecked(hwnd,IDC_DEBUG)==BST_CHECKED){
 					open_console();
@@ -806,13 +844,37 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	MSG msg;
     INITCOMMONCONTROLSEX ctrls;
 	WSADATA wsaData;
+	int first_instance=TRUE;
 	int debug=0;
 #ifdef _DEBUG
 	debug=1;
 #endif
-
 	ghinstance=hInstance;
 	init_ini_file();
+	first_instance=set_single_instance(TRUE);
+	{
+		int val=0;
+		get_ini_value("SETTINGS","SINGLE_INSTANCE",&val);
+		if(val && (!first_instance)){
+			HWND horig;
+			char *class_name="";
+			get_window_classname(&class_name);
+			horig=FindWindow(class_name,NULL);
+			if(horig!=0){
+				int sw;
+				if (IsZoomed(horig))
+					sw=SW_MAXIMIZE;
+				else if(IsIconic(horig))
+					sw=SW_RESTORE;
+				else
+					sw=SW_SHOW;
+				ShowWindow(horig,sw);
+				SetForegroundWindow(horig);
+			}
+			return TRUE;
+		}
+		set_single_instance(val);
+	}
 	get_ini_value("SETTINGS","DEBUG",&debug);
 	if(debug!=0){
 		set_irc_debug_level(debug);

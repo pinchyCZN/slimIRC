@@ -83,6 +83,7 @@
 #define IDC_USE_LOCAL                   1081
 #define MDI_SCROLL_LOCK                 1081
 #define IDC_USE_APPDATA                 1082
+#define IDC_SINGLE_INSTANCE             1082
 #define IDC_NO_INI                      1083
 #define IDC_TXT_LOCAL                   1084
 #define IDC_INSTALL_INFO                1085
@@ -100,7 +101,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        120
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1082
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
