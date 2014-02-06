@@ -85,7 +85,9 @@
 #define IDC_USE_APPDATA                 1082
 #define IDC_SINGLE_INSTANCE             1082
 #define IDC_NO_INI                      1083
+#define IDC_MAIN_MSG_PUMP               1083
 #define IDC_TXT_LOCAL                   1084
+#define IDC_TOP_WNDPROC                 1084
 #define IDC_INSTALL_INFO                1085
 #define IDC_TXT_APPDATA                 1086
 #define ID_SERVERS                      40001
@@ -101,7 +103,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        120
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1083
+#define _APS_NEXT_CONTROL_VALUE         1085
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

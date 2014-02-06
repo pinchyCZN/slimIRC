@@ -669,7 +669,7 @@ int load_icon(HWND hwnd)
 }
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if(control_debug("main",0))
+	if(control_debug(IDC_TOP_WNDPROC,0,0))
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -910,7 +910,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		_beginthread(auto_connect,0,ghmdiclient);
 
     while(GetMessage(&msg,NULL,0,0)){
-		if(control_debug("x",0))
+		if(control_debug(IDC_MAIN_MSG_PUMP,0,0))
 		//if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		if(msg.message!=0x118&&msg.message!=WM_NCHITTEST&&msg.message!=WM_SETCURSOR&&msg.message!=WM_ENTERIDLE)
 		{

@@ -5,7 +5,7 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static POINTL rmb_pos;
 	static int lmb_down=FALSE,mouse_wheel=0;
 	static char cmd_target[sizeof(mouse_target)]={0};
-	if(control_debug("stat",0))
+	if(control_debug(MDI_STATIC,0,0))
 	if(/*msg!=WM_NCMOUSEMOVE&&msg!=WM_MOUSEFIRST&&*/msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{

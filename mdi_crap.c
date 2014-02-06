@@ -77,16 +77,23 @@ char tab_word[20]={0};
 #include "static_window.h"
 #include "window.h"
 #include "file_logging.h"
-int control_debug(char *type,char *set)
+
+int control_debug(int type,char *name,char *set)
 {
-	typedef struct {
-	   char *name;
-	   int val;
-	}debug;
-	static debug list[]={{"switch",FALSE},{"mdi",FALSE},{"x",FALSE},{"stat",FALSE},{"main",FALSE}};
 	int flag=FALSE;
 	int readonly=TRUE;
 	int i;
+	typedef struct{
+		char *name;
+		int type;
+		int val;
+	}debug;
+	static debug list[]={
+		{"switchbar",IDC_SWITCHBAR,FALSE},
+		{"mdi",IDC_MDI_CLIENT,FALSE},
+		{"mainmsg",IDC_MAIN_MSG_PUMP,FALSE},
+		{"mdistatic",MDI_STATIC,FALSE},
+		{"wndproc",IDC_TOP_WNDPROC,FALSE}};
 #ifndef _DEBUG
 //	return FALSE;
 #endif
@@ -95,17 +102,24 @@ int control_debug(char *type,char *set)
 		else if(stricmp(set,"off")==0){flag=FALSE;readonly=FALSE;}
 	}
 	for(i=0;i<sizeof(list)/sizeof(debug);i++){
-		if(type[0]=='?' && type[1]==0)
-			printf("%s %s\n",list[i].name,list[i].val?"ON":"OFF");
-		if(stricmp(type,"all")==0){
-			if(!readonly)
+		if(type==0){
+			if(name==0)
+				break;
+			if(name[0]=='?' && name[1]==0)
+				printf("%s %s\n",list[i].name,list[i].val?"ON":"OFF");
+			if(stricmp(name,"all")==0){
+				if(!readonly)
+					list[i].val=flag;
+			}
+			if(stricmp(name,list[i].name)==0){
+				if(readonly)
+					return list[i].val;
 				list[i].val=flag;
-		}
-		if(stricmp(list[i].name,type)==0){
-			if(readonly)
 				return list[i].val;
-			list[i].val=flag;
-			return list[i].val;
+			}
+		}else{
+			if(type==list[i].type)
+				return list[i].val;
 		}
 	}
 	return FALSE;
@@ -129,10 +143,10 @@ int handle_debug(char *s)
 		if(get_subitem(str,p2,sizeof(p2),1))opt|=2;
 		if(get_subitem(str,p3,sizeof(p3),2))opt|=4;
 		if(opt==1 || (opt==3 && p2[0]=='?'))
-			control_debug("?",0);
+			control_debug(0,"?",0);
 		else if(opt==0x7){
 			if(stricmp(p1,"DEBUG")==0){
-				control_debug(p2,p3);
+				control_debug(0,p2,p3);
 				if(stricmp(p2,"CONSOLE")==0){
 					if(stricmp(p3,"OFF")==0)
 						hide_console();
@@ -364,7 +378,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 {
 	static int list_drag=FALSE,list_width=60;
 	IRC_WINDOW *win=0;
-	if(control_debug("mdi",0))
+	if(control_debug(IDC_MDI_CLIENT,0,0))
 	if(/*msg!=WM_NCMOUSEMOVE&&*/msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{

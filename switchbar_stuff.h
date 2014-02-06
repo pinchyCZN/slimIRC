@@ -1,7 +1,7 @@
 LRESULT CALLBACK switchbar_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HBRUSH hbrush=0;
-	if(control_debug("switch",0))
+	if(control_debug(IDC_SWITCHBAR,0,0))
 	if(/*msg!=WM_NCMOUSEMOVE&&*/msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 		//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -319,13 +319,9 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 {
 	int i,count=0;
 	IRC_WINDOW *win=0;
-	static DWORD tick=0;
 	IRC_WINDOW *bring_top=0,*redraw=0;
 	static IRC_WINDOW *last_win=0;
 	char *text=0;
-//	if((GetTickCount()-tick)>500)
-//		printf("---\n");
-	tick=GetTickCount();
 //	printf("%08X state=%08X\n",rnd,di->itemState);
 	if(di->CtlID!=0){
 		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -381,8 +377,10 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 		case CHANNEL_WINDOW:text=win->channel;break;
 		case PRIVMSG_WINDOW:text=win->channel;break;
 		}
-		if(win->activity && (!win->pressed))
-			SetTextColor(di->hDC,(0xFFFFFF^GetSysColor(COLOR_BTNTEXT)));
+		if(win->activity && (!win->pressed)){
+			//int c=(0xFFFFFF^GetSysColor(COLOR_BTNTEXT));
+			SetTextColor(di->hDC,(0xFF00FF));
+		}
 		else
 			SetTextColor(di->hDC,GetSysColor(COLOR_BTNTEXT));
 		SetBkMode(di->hDC,TRANSPARENT);
