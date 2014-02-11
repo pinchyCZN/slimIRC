@@ -214,6 +214,10 @@ SOURCE=.\ssl\library\havege.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\help.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\lua_specific_funcs.h
 # End Source File
 # Begin Source File
