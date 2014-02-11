@@ -207,7 +207,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static int vlines=30;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	if(FALSE)
+	//if(FALSE)
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -255,22 +255,25 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		}
 		break;
+	case WM_RBUTTONDOWN:
 	case WM_HELP:
 		default_color^=1;
 		if(default_color){
 			color_lookup[0]=0xFFFFFF;
 			color_lookup[MIRC_BG]=0xFFFFFF;
 			color_lookup[MIRC_FG]=0;
+			SetWindowText(hwnd,"Art viewer - default color");
 		}
 		else{
 			color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
 			color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
 			color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
+			SetWindowText(hwnd,"Art viewer - system color");
 		}
 		InvalidateRect(hwnd,NULL,TRUE);
 		break;
 	case WM_COMMAND:
-		switch(wparam){
+		switch(LOWORD(wparam)){
 		case IDCANCEL:
 			EndDialog(hwnd,0);
 			break;

@@ -16,6 +16,7 @@
 #define IDD_ARTVIEWER                   116
 #define IDD_INSTALL_DIALOG              117
 #define IDI_LOCK                        119
+#define IDD_HELP                        120
 #define IDC_ADD                         1002
 #define IDC_DELETE                      1003
 #define IDC_EDIT                        1005
@@ -89,6 +90,7 @@
 #define IDC_TXT_LOCAL                   1084
 #define IDC_TOP_WNDPROC                 1084
 #define IDC_INSTALL_INFO                1085
+#define IDC_LIST                        1085
 #define IDC_TXT_APPDATA                 1086
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
@@ -101,9 +103,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        120
+#define _APS_NEXT_RESOURCE_VALUE        121
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1085
+#define _APS_NEXT_CONTROL_VALUE         1086
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -255,6 +255,16 @@ BEGIN
                     ES_READONLY
 END
 
+IDD_HELP DIALOG DISCARDABLE  0, 0, 186, 94
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Help"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LIST,0,0,185,94,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

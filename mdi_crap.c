@@ -77,6 +77,7 @@ char tab_word[20]={0};
 #include "static_window.h"
 #include "window.h"
 #include "file_logging.h"
+#include "help.h"
 
 int control_debug(int type,char *name,char *set)
 {
@@ -611,11 +612,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		}
 		break;
 	case WM_HELP:
-		{
-		IRC_WINDOW *win=find_window_by_hwnd(hwnd);
-		if(win!=0 && win->hstatic!=0)
-			show_art_viewer(hwnd,win->hstatic);
-		}
+		win=find_window_by_hwnd(hwnd);
+		show_help(win);
 		break;
 	case WM_APP://custom edit input wparam=key
 		{
@@ -636,6 +634,13 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				case 0x6: //ctr-f
 					hmdi_static=GetDlgItem(hwnd,MDI_STATIC);
 					DialogBox(ghinstance,MAKEINTRESOURCE(IDD_TEXTSEARCH),hwnd,text_search);
+					break;
+				case VK_F2:
+					{
+						IRC_WINDOW *win=find_window_by_hwnd(hwnd);
+						if(win!=0 && win->hstatic!=0)
+							show_art_viewer(hwnd,win->hstatic);
+					}
 					break;
 				case VK_TAB:
 					if(tab_continue)
@@ -1348,6 +1353,7 @@ int custom_dispatch(MSG *msg)
 					if(msg->wParam!=VK_TAB)
 						if(!(GetKeyState(VK_CONTROL)&0x8000))
 							return FALSE;
+				case VK_F2:
 				case VK_F3:
 				case VK_ESCAPE:
 				case VK_PRIOR:
