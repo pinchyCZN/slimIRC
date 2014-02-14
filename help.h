@@ -3,15 +3,15 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static IRC_WINDOW *win=0;
 	static int cur_sel=0;
 	static char *help_strs[]={
-		"/msg","/me","/ctcp","/discon (disconnect)","/recon (reconnect)",
-		"/help lua (list lua commands)","/help ctcp","/lua -create (make new script file)",
+		"/msg","/me","/ctcp (nick VERSION|FINGER|PING|TIME)","/discon (disconnect)","/recon (reconnect)",
+		"/help lua (list lua commands)","/lua -create (make new script file)",
 		"/lua xzy (call lua user_function with xzy paramter)","/flushlogs (flush all open file logs)",
 		"/debug console [on|off]] [debug ?]",
 		"F2 view ascii art",
 		"list current channels"
 
 	};
-	{
+	if(FALSE){
 		static DWORD tick=0;
 		if((GetTickCount()-tick)>500)
 			printf("--\n");
@@ -32,10 +32,14 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if(win!=0){
 				RECT rect={0};
 				int w,h;
+				char str[80];
 				GetClientRect(win->hstatic,&rect);
 				w=rect.right-rect.left;
 				h=rect.bottom-rect.top;
 				SetWindowPos(hwnd,NULL,0,0,w,h,SWP_NOMOVE|SWP_NOZORDER);
+				_snprintf(str,sizeof(str),"Help - %s %s",win->network,win->channel);
+				str[sizeof(str)-1]=0;
+				SetWindowText(hwnd,str);
 			}
 		}
 	case WM_SIZE:
@@ -98,6 +102,10 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 								}
 							}
 							break;
+						}
+						else if(strnicmp(str,"F2",2)==0){
+							if(win)
+								PostMessage(win->hwnd,WM_APP,VK_F2,0);
 						}
 					}
 				}

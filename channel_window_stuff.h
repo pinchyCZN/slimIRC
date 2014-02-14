@@ -79,9 +79,6 @@ int post_message(HWND hwnd,char *str)
 				else if(strnicmp(str,"/recon",sizeof("/recon")-1)==0){
 					irc_disconnect(win->session);
 				}
-				else if(strnicmp(str,"/help ctcp",sizeof("/help ctcp")-1)==0){
-					add_line_mdi_nolog(win,"/ctcp nick VERSION|FINGER|PING|TIME");
-				}
 				else if(strnicmp(str,"/help lua",sizeof("/help lua")-1)==0){
 					lua_help(add_line_mdi_nolog,win);
 				}

@@ -214,14 +214,6 @@ SOURCE=.\ssl\library\havege.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\help.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\lua_specific_funcs.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\ssl\library\md.c
 # End Source File
 # Begin Source File
@@ -488,7 +480,15 @@ SOURCE=.\file_logging.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\help.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ircstuff.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\lua_specific_funcs.h
 # End Source File
 # Begin Source File
 
