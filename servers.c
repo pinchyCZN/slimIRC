@@ -15,14 +15,38 @@ typedef struct {
 }COLUMN;
 
 COLUMN server_columns[]={
-	{"network",60},
-	{"server",100},
-	{"port",30},
-	{"connect_on_startup",100},
-	{"ssl",30},
-	{"password",20},
+	{"network",0},
+	{"server",0},
+	{"port",0},
+	{"connect_on_startup",0},
+	{"ssl",0},
+	{"password",0},
 };
-
+int get_str_width(HWND hwnd,char *str)
+{
+	if(hwnd!=0 && str!=0){
+		SIZE size={0};
+		HDC hdc;
+		hdc=GetDC(hwnd);
+		if(hdc!=0){
+			HFONT hfont;
+			hfont=SendMessage(hwnd,WM_GETFONT,0,0);
+			if(hfont!=0){
+				HGDIOBJ hold=0;
+				hold=SelectObject(hdc,hfont);
+				GetTextExtentPoint32(hdc,str,strlen(str),&size);
+				if(hold!=0)
+					SelectObject(hdc,hold);
+			}
+			else{
+				GetTextExtentPoint32(hdc,str,strlen(str),&size);
+			}
+			ReleaseDC(hwnd,hdc);
+			return size.cx;
+		}
+	}
+	return 0;
+}
 int get_ini_entry(char *section,int num,char *str,int len)
 {
 	char key[20];
@@ -208,6 +232,10 @@ int load_ini_server_listview(HWND hlistview)
 	LV_COLUMN col;
 	for(i=0;i<sizeof(server_columns)/sizeof(COLUMN);i++){
 		sprintf(key,"server_width_%s",server_columns[i].name);
+		if(server_columns[i].width==0){
+			server_columns[i].width=get_str_width(hlistview,server_columns[i].name);
+			server_columns[i].width+=14;
+		}
 		get_ini_value("SETTINGS",key,&server_columns[i].width);
 	}
 	for(i=0;i<sizeof(server_columns)/sizeof(COLUMN);i++){
@@ -331,10 +359,10 @@ int save_server_entry(HWND hwnd,int edit_entry,char *old_server_entry)
 	return TRUE;
 }
 COLUMN channel_columns[]={
-	{"channel",60},
-	{"network",100},
-	{"join_on_connect",100},
-	{"password",30},
+	{"channel",0},
+	{"network",0},
+	{"join_on_connect",0},
+	{"password",0},
 };
 int load_ini_channels(HWND hlistview)
 {
@@ -491,6 +519,10 @@ int load_ini_channel_listview(HWND hlistview)
 	LV_COLUMN col;
 	for(i=0;i<sizeof(channel_columns)/sizeof(COLUMN);i++){
 		sprintf(key,"channel_width_%s",channel_columns[i].name);
+		if(channel_columns[i].width==0){
+			channel_columns[i].width=get_str_width(hlistview,channel_columns[i].name);
+			channel_columns[i].width+=14;
+		}
 		get_ini_value("SETTINGS",key,&channel_columns[i].width);
 	}
 	for(i=0;i<sizeof(channel_columns)/sizeof(COLUMN);i++){

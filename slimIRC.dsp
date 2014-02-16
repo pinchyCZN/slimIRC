@@ -500,6 +500,10 @@ SOURCE=.\privmsg_window_stuff.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ram_ini_file.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\resource.h
 # End Source File
 # Begin Source File

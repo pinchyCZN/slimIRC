@@ -6,7 +6,7 @@
 #include "resource.h"
 
 #define APP_NAME "slimIRC"
-
+#include "ram_ini_file.h"
 char ini_file[MAX_PATH]={0};
 int is_path_directory(char *path)
 {
@@ -19,11 +19,15 @@ int is_path_directory(char *path)
 }
 int get_ini_value(char *section,char *key,int *val)
 {
-	char str[255];
+	char str[255]={0};
 	int result=0;
 	if(ini_file[0]!=0){
-		str[0]=0;
 		result=GetPrivateProfileString(section,key,"",str,sizeof(str),ini_file);
+		if(str[0]!=0)
+			*val=atoi(str);
+	}
+	else{
+		result=get_private_profile_string(section,key,"",str,sizeof(str),&ram_ini);
 		if(str[0]!=0)
 			*val=atoi(str);
 	}
@@ -32,10 +36,13 @@ int get_ini_value(char *section,char *key,int *val)
 int get_ini_str(char *section,char *key,char *str,int size)
 {
 	int result=0;
-	char tmpstr[1024];
+	char tmpstr[1024]={0};
 	if(ini_file[0]!=0){
-		tmpstr[0]=0;
 		result=GetPrivateProfileString(section,key,"",tmpstr,sizeof(tmpstr),ini_file);
+		if(result>0)
+			strncpy(str,tmpstr,size);
+	}else{
+		result=get_private_profile_string(section,key,"",tmpstr,sizeof(tmpstr),&ram_ini);
 		if(result>0)
 			strncpy(str,tmpstr,size);
 	}
@@ -46,27 +53,31 @@ int delete_ini_key(char *section,char *key)
 	if(ini_file[0]!=0)
 		return WritePrivateProfileString(section,key,NULL,ini_file);
 	else
-		return 0;
+		return write_private_profile_string(section,key,NULL,&ram_ini);
 }
 int delete_ini_section(char *section)
 {
 	if(ini_file[0]!=0)
 		return WritePrivateProfileString(section,NULL,NULL,ini_file);
 	else
-		return 0;
+		return write_private_profile_string(section,NULL,NULL,&ram_ini);
 }
 int write_ini_value(char *section,char *key,int val)
 {
 	char str[20]={0};
+	_snprintf(str,sizeof(str),"%i",val);
 	if(ini_file[0]!=0){
-		_snprintf(str,sizeof(str),"%i",val);
 		if(WritePrivateProfileString(section,key,str,ini_file)!=0)
 			return TRUE;
 		else
 			return FALSE;
 	}
-	else
-		return FALSE;
+	else{
+		if(write_private_profile_string(section,key,str,&ram_ini)!=0)
+			return TRUE;
+		else
+			return FALSE;
+	}
 }
 int write_ini_str(char *section,char *key,char *str)
 {
@@ -76,8 +87,12 @@ int write_ini_str(char *section,char *key,char *str)
 		else
 			return FALSE;
 	}
-	else
-		return FALSE;
+	else{
+		if(write_private_profile_string(section,key,str,&ram_ini)!=0)
+			return TRUE;
+		else
+			return FALSE;
+	}
 }
 int add_trail_slash(char *path,int size)
 {
