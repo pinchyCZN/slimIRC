@@ -325,6 +325,12 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					at_top=TRUE;
 				else
 					at_top=FALSE;
+				{
+					IRC_WINDOW *win=find_window_by_hwnd(GetParent(hmdi_static));
+					if(win){
+						win->scroll_free=TRUE;
+					}
+				}
 			}
 			else{
 				POINT point={0,0};
