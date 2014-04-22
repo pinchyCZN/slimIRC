@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="slimIRC" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="C:/DEV/MSVC_Projects/slimIRC/Release/slimIRC" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-DENABLE_THREADS" />
+					<Add option="-DENABLE_SSL" />
+					<Add option="-DENABLE_IPV6" />
+					<Add option="-D_WIN32_IE=0x0500" />
+					<Add directory="./libirc/" />
+					<Add directory="./ssl/include/" />
+					<Add directory="." />
+					<Add directory="./lua/" />
+				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="Ws2_32" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="upx .\release\slimIRC.exe" />
+				</ExtraCommands>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="C:/DEV/MSVC_Projects/slimIRC/Debug/slimIRC" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-DENABLE_THREADS" />
+					<Add option="-DENABLE_SSL" />
+					<Add option="-DENABLE_IPV6" />
+					<Add directory="./libirc/" />
+					<Add directory="./ssl/include/" />
+					<Add directory="." />
+					<Add directory="./lua/" />
+				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="Ws2_32" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="ReadMe.txt" />
+		<Unit filename="art_viewer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="chan_modes.h" />
+		<Unit filename="channel_window_stuff.h" />
+		<Unit filename="debug_print.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="file_logging.h" />
+		<Unit filename="help.h" />
+		<Unit filename="ini_file.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ircstuff.h" />
+		<Unit filename="libirc/src/libircclient.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libirc/src/lua_scripting.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libirc/src/portable.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="libirc/src/session.h" />
+		<Unit filename="libirc/src/ssl.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="lock.ico" />
+		<Unit filename="lua/lapi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lauxlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lbaselib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lbitlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lcode.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lcorolib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lctype.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ldblib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ldebug.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ldo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ldump.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lfunc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lgc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/linit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/liolib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/llex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lmathlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lmem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/loadlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lobject.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lopcodes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/loslib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lparser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lstate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lstring.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lstrlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ltable.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ltablib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/ltm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lundump.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lvm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua/lzio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="lua_specific_funcs.h" />
+		<Unit filename="mdi_crap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="messagebox.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pragma.h" />
+		<Unit filename="privmsg_window_stuff.h" />
+		<Unit filename="ram_ini_file.h" />
+		<Unit filename="resize.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="resource.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="server_window_stuff.h" />
+		<Unit filename="servers.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="shell_menu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="slimIRC.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="slimirc.ico" />
+		<Unit filename="ssl/library/aes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/arc4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/asn1parse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/base64.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/bignum.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/camellia.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/certs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/cipher.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/cipher_wrap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/ctr_drbg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/debug.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/des.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/dhm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/entropy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/entropy_poll.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/error.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/havege.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/md.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/md2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/md4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/md_wrap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/net.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/padlock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/pem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/pkcs11.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/rsa.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/sha1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/sha2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/sha4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/ssl_cli.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/ssl_srv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/ssl_tls.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/timing.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/x509parse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl/library/xtea.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="static_window.h" />
+		<Unit filename="switchbar_stuff.h" />
+		<Unit filename="window.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
