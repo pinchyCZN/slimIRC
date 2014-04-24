@@ -218,54 +218,49 @@ static int get_last_write_time(char *fname,__int64 *ft)
 }
 void lua_script_init(lua_State **L,HANDLE **lua_filenotify,__int64 *ft)
 {
-	lua_State *lua;
 	char fscript[MAX_PATH]={0};
+	int script_changed=FALSE;
 
 	get_lua_script_fname(fscript,sizeof(fscript));
 
-	lua=*L;
 	if(lua_script_enable){
 		__int64 tt=0;
 		get_last_write_time(fscript,&tt);
 		if(tt!=(*ft)){
-			*ft=tt;
-			if(lua!=0){
-				lua_close(lua);
-				printf("lua close\n");
-			}
+			script_changed=TRUE;
 			hide_tooltip();
-			lua=*L=0;
 		}
 	}
 
-	if(lua==0 && lua_script_enable){
-		lua=luaL_newstate();
-		if(lua!=0){
-			luaL_openlibs(lua);
-			if(luaL_loadfile(lua,fscript)!=LUA_OK){
-				printf("luaL_loadfile error:%s\n",lua_tostring(lua, -1));
-				show_tooltip(lua_tostring(lua, -1),0,0);
-				lua_close(lua);
-				*L=0;
-			}
-			else{
-				lua_register_c_functions(lua);
-				if(lua_pcall(lua,0,0,0)!=LUA_OK){
-					printf("lua_pcall error:%s\n",lua_tostring(lua, -1));
+	if(lua_script_enable){
+		if((*L)==0 || script_changed){
+			lua_State *lua;
+			lua=luaL_newstate();
+			if(lua!=0){
+				luaL_openlibs(lua);
+				if(luaL_loadfile(lua,fscript)!=LUA_OK){
+					printf("luaL_loadfile error:%s\n",lua_tostring(lua, -1));
 					show_tooltip(lua_tostring(lua, -1),0,0);
 					lua_close(lua);
-					*L=0;
 				}
 				else{
-					*L=lua;
-					get_last_write_time(fscript,ft);
-					lua_error_msg=0;
-					hide_tooltip();
+					lua_register_c_functions(lua);
+					if(lua_pcall(lua,0,0,0)!=LUA_OK){
+						printf("lua_pcall error:%s\n",lua_tostring(lua, -1));
+						show_tooltip(lua_tostring(lua, -1),0,0);
+						lua_close(lua);
+					}
+					else{
+						if((*L)!=0)
+							lua_close(*L);
+						*L=lua;
+						get_last_write_time(fscript,ft);
+						lua_error_msg=0;
+						hide_tooltip();
+					}
 				}
 			}
 		}
-		else
-			*L=0;
 	}
 	if(*lua_filenotify!=0){
 		if(FindNextChangeNotification(*lua_filenotify)==0){
