@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <shlwapi.h>
 #include <Shlobj.h>
+#include <aclapi.h>
+#ifndef CSIDL_COMMON_APPDATA
+	#define  CSIDL_COMMON_APPDATA 0x23
+#endif
 #include "resource.h"
 
 #define APP_NAME "slimIRC"
@@ -225,6 +229,46 @@ LRESULT CALLBACK install_proc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam)
 	}
 	return 0;
 }
+int create_folder_all_access(char *path)
+{
+	int result=FALSE;
+	SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
+	PSID everyone_sid = NULL;
+	if(path==0 || path[0]==0)
+		return result;
+	if(AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &everyone_sid)){
+		EXPLICIT_ACCESS ea;
+		PACL acl = NULL;
+		ZeroMemory(&ea, sizeof(EXPLICIT_ACCESS));
+		ea.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
+		ea.grfAccessMode = SET_ACCESS;
+		ea.grfInheritance = NO_INHERITANCE;
+		ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+		ea.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
+		ea.Trustee.ptstrName  = (LPWSTR)everyone_sid;
+
+		if(ERROR_SUCCESS==SetEntriesInAcl(1, &ea, NULL, &acl)){
+			PSECURITY_DESCRIPTOR sd = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+			if(sd && InitializeSecurityDescriptor(sd, SECURITY_DESCRIPTOR_REVISION)){
+				if(SetSecurityDescriptorDacl(sd, TRUE, acl, FALSE)){
+					SECURITY_ATTRIBUTES sa;
+					sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+					sa.lpSecurityDescriptor = sd;
+					sa.bInheritHandle = FALSE;
+					if(CreateDirectory(path, &sa))
+						result=TRUE;
+				}
+			}
+			if(sd)
+				LocalFree(sd);
+
+			LocalFree(acl);
+		}
+		FreeSid(everyone_sid);
+	}
+	return result;
+}
+
 int do_install_dialog(char *path_param)
 {
 	extern HINSTANCE ghinstance;
