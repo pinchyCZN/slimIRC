@@ -371,8 +371,13 @@ join_channel:
 							ListView_GetItemText(ghlistview,item,0,channel,sizeof(channel));
 							ListView_GetItemText(ghlistview,item,1,network,sizeof(network));
 							ListView_GetItemText(ghlistview,item,3,password,sizeof(password));
-							join_channel(ghmdiclient,network,channel,password);
-							EndDialog(hwnd,0);
+							if(join_channel(ghmdiclient,network,channel,password))
+								EndDialog(hwnd,0);
+							else{
+								char str[80];
+								_snprintf(str,sizeof(str),"Join [%s] network first from server list",network);
+								MessageBox(hwnd,str,"Unable to join channel",MB_OK);
+							}
 						}
 
 					}
