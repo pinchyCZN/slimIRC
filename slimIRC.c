@@ -207,8 +207,19 @@ connect_channel:
 	case WM_COMMAND:
 		switch(LOWORD(wparam)){
 		default:
-			if(server_dlg_popup_cmd(LOWORD(wparam),ghlistview))
-				sort_listview(ghlistview,dir,col);
+			{
+				RECT rect={0};
+				ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+				if(server_dlg_popup_cmd(LOWORD(wparam),ghlistview)){
+					RECT newrect={0};
+					int dx,dy;
+					sort_listview(ghlistview,dir,col);
+					ListView_GetItemRect(ghlistview,0,&newrect,LVIR_BOUNDS);
+					dx=-rect.left+newrect.left;
+					dy=-rect.top+newrect.top;
+					ListView_Scroll(ghlistview,dx,dy);
+				}
+			}
 			break;
 		case IDC_ADD:
 			list_edit=FALSE;
@@ -375,11 +386,10 @@ join_channel:
 								EndDialog(hwnd,0);
 							else{
 								char str[80];
-								_snprintf(str,sizeof(str),"Join [%s] network first from server list",network);
-								MessageBox(hwnd,str,"Unable to join channel",MB_OK);
+								_snprintf(str,sizeof(str),"Join [%s] network from server list first",network);
+								show_messagebox(hwnd,str,"Unable to join channel",MB_OK);
 							}
 						}
-
 					}
 					break;
 				case LVN_KEYDOWN:
@@ -429,8 +439,19 @@ join_channel:
 		switch(LOWORD(wparam))
 		{
 		default:
-			if(channel_dlg_popup_cmd(LOWORD(wparam),ghlistview))
-				sort_listview(ghlistview,dir,col);
+			{
+				RECT rect={0};
+				ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+				if(channel_dlg_popup_cmd(LOWORD(wparam),ghlistview)){
+					RECT newrect={0};
+					int dx,dy;
+					sort_listview(ghlistview,dir,col);
+					ListView_GetItemRect(ghlistview,0,&newrect,LVIR_BOUNDS);
+					dx=-rect.left+newrect.left;
+					dy=-rect.top+newrect.top;
+					ListView_Scroll(ghlistview,dx,dy);
+				}
+			}
 			break;
 		case IDC_JOIN:
 			goto join_channel;

@@ -18,6 +18,19 @@ BOOL CALLBACK message_box(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			SetWindowText(hwnd,title_ptr);
 		if(message_ptr!=0)
 			SetWindowText(GetDlgItem(hwnd,IDC_MESSAGETEXT),message_ptr);
+		if(lparam==MB_OK){ //hide the cancel box
+			int x,y;
+			RECT rbutton={0};
+			HWND hok;
+			ShowWindow(GetDlgItem(hwnd,IDCANCEL),SW_HIDE);
+			hok=GetDlgItem(hwnd,IDOK);
+			GetWindowRect(hok,&rbutton);
+			GetWindowRect(hwnd,&rect);
+			x=((rect.right+rect.left)/2) - ((rbutton.right-rbutton.left)/2);
+			MapWindowPoints(NULL,hwnd,&rbutton,2);
+			y=rbutton.top;
+			SetWindowPos(hok,NULL,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER);
+		}
 		GetWindowRect(hwnd,&rect);
 		width=rect.right-rect.left;
 		height=rect.bottom-rect.top;
@@ -50,7 +63,7 @@ int show_messagebox(HWND hwnd,char *message,char *title,int type)
 	GetWindowRect(hwnd,&prect);
 	message_ptr=message;
 	title_ptr=title;
-	return DialogBox(ghinstance,MAKEINTRESOURCE(IDD_MESSAGEBOX),hwnd,message_box);
+	return DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_MESSAGEBOX),hwnd,message_box,type);
 }
 
 char input_str[80];
