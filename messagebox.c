@@ -25,7 +25,7 @@ BOOL CALLBACK message_box(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			ShowWindow(GetDlgItem(hwnd,IDCANCEL),SW_HIDE);
 			hok=GetDlgItem(hwnd,IDOK);
 			GetWindowRect(hok,&rbutton);
-			GetWindowRect(hwnd,&rect);
+			GetClientRect(hwnd,&rect);
 			x=((rect.right+rect.left)/2) - ((rbutton.right-rbutton.left)/2);
 			MapWindowPoints(NULL,hwnd,&rbutton,2);
 			y=rbutton.top;
