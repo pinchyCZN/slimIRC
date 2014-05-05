@@ -20,13 +20,32 @@ HWND ghlistview=0;
 CRITICAL_SECTION mutex;
 int auto_connect(HWND hmdi);
 
-int list_edit=FALSE;
+int restore_list_pos(HWND hlistview,RECT *rect,int item)
+{
+	RECT newrect={0};
+	int dx,dy,count;
+	if(hlistview==0 || rect==0)
+		return FALSE;
+	ListView_GetItemRect(hlistview,0,&newrect,LVIR_BOUNDS);
+	dx=-rect->left+newrect.left;
+	dy=-rect->top+newrect.top;
+	if(dx!=0 || dy!=0)
+		ListView_Scroll(hlistview,dx,dy);
+	count=ListView_GetItemCount(hlistview);
+	if(item>=count && count!=0)
+		item=count-1;
+	if(item>=0)
+		ListView_SetItemState(hlistview,item,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+	return TRUE;
+}
+
 BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short add_server_anchors[];
 	static HWND grippy=0;
 	static char old_server[160]={0};
 	static int help_active=FALSE;
+	static int list_edit=FALSE;
 	switch(msg)
 	{
 	case WM_INITDIALOG:
@@ -35,6 +54,7 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		SendDlgItemMessage(hwnd,IDC_PORTS,EM_LIMITTEXT,40,0);
 		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,40,0);
 		grippy=create_grippy(hwnd);
+		list_edit=lparam;
 		if(list_edit){
 			int len;
 			populate_add_server_win(ghlistview,hwnd);
@@ -140,9 +160,7 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					if(nmitem->iItem<0)
 						break;
 					if((GetKeyState(VK_CONTROL)&0x8000) || (GetKeyState(VK_SHIFT)&0x8000)){
-						list_edit=TRUE;
-						DialogBox(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server);
-						sort_listview(ghlistview,dir,col);
+						PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 					}
 					else{
 						int item;
@@ -164,23 +182,14 @@ connect_channel:
 					{
 						LV_KEYDOWN *key=lparam;
 						switch(key->wVKey){
-						case VK_SPACE:
-							list_edit=TRUE;
-							DialogBox(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server);
-							sort_listview(ghlistview,dir,col);
-							break;
 						case VK_INSERT:
-							list_edit=FALSE;
-							DialogBox(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server);
-							sort_listview(ghlistview,dir,col);
+							PostMessage(hwnd,WM_COMMAND,IDC_ADD,0);
+							break;
+						case VK_SPACE:
+							PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 							break;
 						case VK_DELETE:
-							if(get_selected_count(ghlistview)>1){
-								if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
-									break;
-							}
-							do_server_deletion(ghlistview);
-							sort_listview(ghlistview,dir,col);
+							PostMessage(hwnd,WM_COMMAND,IDC_DELETE,0);
 							break;
 						case 'A':
 							if(GetKeyState(VK_CONTROL)&0x8000)
@@ -205,48 +214,49 @@ connect_channel:
 		}
 		break;
 	case WM_COMMAND:
-		switch(LOWORD(wparam)){
-		default:
-			{
-				RECT rect={0};
-				ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+		{
+			RECT rect={0};
+			int list_edit,item;
+			item=get_focused_item(ghlistview);
+			ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+			switch(LOWORD(wparam)){
+			default:
 				if(server_dlg_popup_cmd(LOWORD(wparam),ghlistview)){
-					RECT newrect={0};
-					int dx,dy;
 					sort_listview(ghlistview,dir,col);
-					ListView_GetItemRect(ghlistview,0,&newrect,LVIR_BOUNDS);
-					dx=-rect.left+newrect.left;
-					dy=-rect.top+newrect.top;
-					ListView_Scroll(ghlistview,dx,dy);
+					restore_list_pos(ghlistview,&rect,item);
 				}
+				break;
+			case IDC_ADD:
+				list_edit=FALSE;
+				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server,list_edit);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				break;
+			case IDC_EDIT:
+				list_edit=TRUE;
+				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server,list_edit);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				break;
+			case IDC_DELETE:
+				if(get_selected_count(ghlistview)>1){
+					if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
+						break;
+				}
+				delete_selected_server(ghlistview);
+				load_ini_servers(ghlistview);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				SetFocus(ghlistview);
+				break;
+			case IDC_JOIN:
+				goto connect_channel;
+				break;
+			case WM_DESTROY:
+				save_ini_server_listview(ghlistview);
+				EndDialog(hwnd,0);
+				break;
 			}
-			break;
-		case IDC_ADD:
-			list_edit=FALSE;
-			DialogBox(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server);
-			sort_listview(ghlistview,dir,col);
-			break;
-		case IDC_EDIT:
-			list_edit=TRUE;
-			DialogBox(ghinstance,MAKEINTRESOURCE(IDD_SERVER),hwnd,add_server);
-			sort_listview(ghlistview,dir,col);
-			break;
-		case IDC_DELETE:
-			if(get_selected_count(ghlistview)>1){
-				if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
-					break;
-			}
-			do_server_deletion(ghlistview);
-			sort_listview(ghlistview,dir,col);
-			SetFocus(ghlistview);
-			break;
-		case IDC_JOIN:
-			goto connect_channel;
-			break;
-		case WM_DESTROY:
-			save_ini_server_listview(ghlistview);
-			EndDialog(hwnd,0);
-			break;
 		}
 		break;
 	case WM_CLOSE:
@@ -263,6 +273,7 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	extern short channel_list_anchors[];
 	static HWND grippy=0;
 	static int network_num=0;
+	static int list_edit=FALSE;
 	static char old_channel[80]={0};
 
 	switch(msg)
@@ -271,6 +282,7 @@ BOOL CALLBACK add_channel(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		SendDlgItemMessage(hwnd,IDC_CHANNEL,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,20,0);
 		grippy=create_grippy(hwnd);
+		list_edit=lparam;
 		if(list_edit){
 			populate_add_channel_win(ghlistview,hwnd);
 			old_channel[0]=0;
@@ -369,9 +381,7 @@ BOOL CALLBACK channel_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					if(nmitem->iItem<0)
 						break;
 					if((GetKeyState(VK_CONTROL)&0x8000) || (GetKeyState(VK_SHIFT)&0x8000)){
-						list_edit=TRUE;
-						DialogBox(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel);
-						sort_listview(ghlistview,dir,col);
+						PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 					}
 					else{
 						int item;
@@ -397,22 +407,13 @@ join_channel:
 						LV_KEYDOWN *key=lparam;
 						switch(key->wVKey){
 						case VK_SPACE:
-							list_edit=TRUE;
-							DialogBox(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel);
-							sort_listview(ghlistview,dir,col);
+							PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 							break;
 						case VK_INSERT:
-							list_edit=FALSE;
-							DialogBox(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel);
-							sort_listview(ghlistview,dir,col);
+							PostMessage(hwnd,WM_COMMAND,IDC_ADD,0);
 							break;
 						case VK_DELETE:
-							if(get_selected_count(ghlistview)>1){
-								if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
-									break;
-							}
-							do_channel_deletion(ghlistview);
-							sort_listview(ghlistview,dir,col);
+							PostMessage(hwnd,WM_COMMAND,IDC_DELETE,0);
 							break;
 						case 'A':
 							if(GetKeyState(VK_CONTROL)&0x8000)
@@ -436,49 +437,50 @@ join_channel:
 		break;
 
 	case WM_COMMAND:
-		switch(LOWORD(wparam))
 		{
-		default:
+			RECT rect={0};
+			int list_edit,item;
+			item=get_focused_item(ghlistview);
+			ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+			switch(LOWORD(wparam))
 			{
-				RECT rect={0};
-				ListView_GetItemRect(ghlistview,0,&rect,LVIR_BOUNDS);
+			default:
 				if(channel_dlg_popup_cmd(LOWORD(wparam),ghlistview)){
-					RECT newrect={0};
-					int dx,dy;
 					sort_listview(ghlistview,dir,col);
-					ListView_GetItemRect(ghlistview,0,&newrect,LVIR_BOUNDS);
-					dx=-rect.left+newrect.left;
-					dy=-rect.top+newrect.top;
-					ListView_Scroll(ghlistview,dx,dy);
+					restore_list_pos(ghlistview,&rect,item);
 				}
+				break;
+			case IDC_JOIN:
+				goto join_channel;
+				break;
+			case IDC_ADD:
+				list_edit=FALSE;
+				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel,list_edit);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				break;
+			case IDC_DELETE:
+				if(get_selected_count(ghlistview)>1){
+					if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
+						break;
+				}
+				delete_selected_channel(ghlistview);
+				load_ini_channels(ghlistview);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				SetFocus(ghlistview);
+				break;
+			case IDC_EDIT:
+				list_edit=TRUE;
+				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel,list_edit);
+				sort_listview(ghlistview,dir,col);
+				restore_list_pos(ghlistview,&rect,item);
+				break;
+			case WM_DESTROY:
+				save_ini_channel_listview(ghlistview);
+				EndDialog(hwnd,0);
+				break;
 			}
-			break;
-		case IDC_JOIN:
-			goto join_channel;
-			break;
-		case IDC_ADD:
-			list_edit=FALSE;
-			DialogBox(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel);
-			sort_listview(ghlistview,dir,col);
-			break;
-		case IDC_DELETE:
-			if(get_selected_count(ghlistview)>1){
-				if(show_messagebox(hwnd,"delete selected items?","Delete",MB_OKCANCEL)!=IDOK)
-					break;
-			}
-			do_channel_deletion(ghlistview);
-			sort_listview(ghlistview,dir,col);
-			SetFocus(ghlistview);
-			break;
-		case IDC_EDIT:
-			list_edit=TRUE;
-			DialogBox(ghinstance,MAKEINTRESOURCE(IDD_CHANNEL),hwnd,add_channel);
-			sort_listview(ghlistview,dir,col);
-			break;
-		case WM_DESTROY:
-			save_ini_channel_listview(ghlistview);
-			EndDialog(hwnd,0);
-			break;
 		}
 		break;
 	case WM_CLOSE:

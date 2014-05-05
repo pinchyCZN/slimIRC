@@ -116,17 +116,6 @@ int get_focused_item(HWND hlistview)
 	}
 	return -1;
 }
-int do_server_deletion(HWND hlistview)
-{
-	int count,item=get_focused_item(hlistview);
-	delete_selected_server(hlistview);
-	load_ini_servers(hlistview);
-	count=ListView_GetItemCount(hlistview);
-	if(item>=count)
-		item-=1;
-	ListView_SetItemState(hlistview,item,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
-	return TRUE;
-}
 int delete_selected_server(HWND hlistview)
 {
 	int i,count,result=FALSE;
@@ -455,6 +444,104 @@ int populate_add_channel_win(HWND hlistview,HWND hwnd)
 		SetDlgItemText(hwnd,IDC_PASSWORD,str);
 	return TRUE;
 }
+
+int test_populate_ini()
+{
+	int z;
+	int i,empty,match,join_connect=FALSE;
+	int edit_entry=FALSE;
+	for(z=0;z<40;z++){
+		char network[80]={0},channel[80]={0},password[20]={0};
+		char chan_section[80]={0},chan_section_old[80]={0};
+		char *old_channel="";
+		sprintf(network,"%cdeasddsa",(rand()%26)+'a');
+		sprintf(channel,"channel%i",z);
+		sprintf(password,"%i",rand());
+
+		_snprintf(chan_section,sizeof(chan_section),"%s%s",network,channel);
+		_snprintf(chan_section_old,sizeof(chan_section_old),"%s%s",network,old_channel);
+		empty=-1;match=-1;
+		for(i=MAX_CHANNELS-1;i>=0;i--){
+			char str[80]={0};
+			get_ini_entry("CHANNELS",i,str,sizeof(str));
+			if(str[0]==0)
+				empty=i;
+			if(edit_entry && stricmp(str,chan_section_old)==0){
+				delete_ini_section(chan_section_old);
+				match=i;
+			}
+			else if(str[0]!=0 && stricmp(str,chan_section)==0)
+				match=i;
+		}
+		if((match>=0) || (empty>=0)){
+			int num=-1;
+			if(match>=0)
+				num=match;
+			else if(empty>=0)
+				num=empty;
+			if(set_ini_entry("CHANNELS",num,chan_section)){
+				write_ini_str(chan_section,"NAME",channel);
+				write_ini_str(chan_section,"NETWORK",network);
+				write_ini_str(chan_section,"JOIN_CONNECT",join_connect?"1":"0");
+				write_ini_str(chan_section,"PASSWORD",password);
+			}
+		}
+	}
+
+	{
+		for(z=0;z<40;z++){
+			int i,empty,match,SSL=FALSE,connect_start=FALSE;
+			char network[80]={0},server[80]={0},network_server[160]={0},ports[40]={0},password[40]={0};
+			char *old_server_entry="";
+			sprintf(network,"%c%08i",(rand()%26)+'a',z);
+			sprintf(server,"server%i",z);
+			sprintf(password,"%i",rand());			
+			trim_str(network);
+			trim_str(server);
+			trim_str(ports);
+			trim_str(password);
+			if(stricmp(server,"SETTINGS")==0 || stricmp(server,"SERVERS")==0 ||
+				stricmp(server,"CHANNELS")==0){
+				MessageBox(0,"invalid server name\r\nnothing saved","error",MB_OK);
+				return FALSE;
+			}
+			if(strlen(network)==0 || strlen(server)==0)
+				return FALSE;
+			_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
+			if(strlen(ports)==0)
+				_snprintf(ports,sizeof(ports),"6667");
+
+			empty=-1;match=-1;
+			for(i=MAX_SERVERS-1;i>=0;i--){
+				char str[160]={0};
+				get_ini_entry("SERVERS",i,str,sizeof(str));
+				if(str[0]==0)
+					empty=i;
+				if(edit_entry && old_server_entry[0]!=0 && stricmp(str,old_server_entry)==0){
+					delete_ini_section(old_server_entry);
+					match=i;
+				}
+				else if(str[0]!=0 && stricmp(str,network_server)==0)
+					match=i;
+			}
+			if((match>=0) || (empty>=0)){
+				int num=-1;
+				if(match>=0)
+					num=match;
+				else if(empty>=0)
+					num=empty;
+				if(set_ini_entry("SERVERS",num,network_server)){
+					write_ini_str(network_server,"NETWORK",network);
+					write_ini_str(network_server,"SERVER",server);
+					write_ini_str(network_server,"PORT",ports);
+					write_ini_str(network_server,"SSL",SSL?"1":"0");
+					write_ini_str(network_server,"CONNECT_STARTUP",connect_start?"1":"0");
+					write_ini_str(network_server,"PASSWORD",password);
+				}
+			}
+		}
+	}
+}
 int save_channel_entry(HWND hwnd,int edit_entry,char *old_channel)
 {
 	int i,empty,match,join_connect=FALSE;
@@ -554,17 +641,6 @@ int save_ini_channel_listview(HWND hlistview)
 		write_ini_value("SETTINGS","channel_dlg_width",rect.right-rect.left);
 		write_ini_value("SETTINGS","channel_dlg_height",rect.bottom-rect.top);
 	}
-	return TRUE;
-}
-int do_channel_deletion(HWND hlistview)
-{
-	int count,item=get_focused_item(hlistview);
-	delete_selected_channel(hlistview);
-	load_ini_channels(hlistview);
-	count=ListView_GetItemCount(hlistview);
-	if(item>=count)
-		item-=1;
-	ListView_SetItemState(hlistview,item,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
 	return TRUE;
 }
 int delete_selected_channel(HWND hlistview)
