@@ -112,6 +112,23 @@ static int lua_find_channel_window(lua_State *L)
 	lua_pushlightuserdata(L,result);
 	return 1;
 }
+static int lua_find_network_session(lua_State *L)
+{
+	const char *network;
+	void *result=0;
+	if(lua_gettop(L)==1){
+		//(char *network)
+		network=lua_tostring(L,1);
+		if(network){
+			void *win=0;
+			win=find_server_by_network(network);
+			if(win)
+				get_session_from_window(win,&result);
+		}
+	}
+	lua_pushlightuserdata(L,result);
+	return 1;
+}
 static int lua_add_line_mdi(lua_State *L)
 {
 	const void *win;
@@ -185,6 +202,7 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"post_message",lua_post_message,"(session,nch,msg)"},
 	{"send_privmsg",lua_send_privmsg,"(session,origin,mynick,msg,type)"},
 	{"find_channel_window",lua_find_channel_window,"(session,channel)"},
+	{"find_network_session",lua_find_network_session,"(network)"},
 	{"add_line_mdi",lua_add_line_mdi,"(win,str)"},
 	{"get_win_linecount",lua_get_win_linecount,"(win)"},
 	{"get_win_line",lua_get_win_line,"(win,line)"},

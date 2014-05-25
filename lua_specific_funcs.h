@@ -22,3 +22,11 @@ int get_win_line(IRC_WINDOW *win,int line,char *str,int len)
 	}
 	return result;
 }
+int get_session_from_window(IRC_WINDOW *win,void **session)
+{
+	if(win && session){
+		*session=win->session;
+		return TRUE;
+	}
+	return FALSE;
+}
