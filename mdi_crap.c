@@ -1390,6 +1390,15 @@ int custom_dispatch(MSG *msg)
 			break;
 		case WM_LBUTTONDOWN:
 			if(type==MDI_STATIC){
+				CHARRANGE cr={0};
+				int index,line;
+				//this keeps the window current scroll position when first clicking on the edit window when its out of focus
+				//other wise the edit will bring the caret position into view which could be anywhere
+				line=SendMessage(msg->hwnd,EM_GETFIRSTVISIBLELINE,0,0);
+				index=SendMessage(msg->hwnd,EM_LINEINDEX,line+1,0);
+				cr.cpMin=cr.cpMax=index;
+				SendMessage(msg->hwnd,EM_EXSETSEL,0,&cr);
+				//this allows you to begin block selection immediately in rich edit control when its not in focus
 				mbutton_down=TRUE;
 				DispatchMessage(msg);
 				msg->message=WM_LBUTTONUP;
