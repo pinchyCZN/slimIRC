@@ -273,15 +273,20 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			fpos=SendMessage(hmdi_static,EM_FINDTEXT,dir,&ftext);
 			//printf("pos=%i fpos=%i last=%i\n",pos,fpos,last_search_pos);
 			if(fpos>=0){
-				int line,line2;
+				int line,line2,ltmp;
 				RECT rect;
 				POINT point;
 				GetClientRect(hmdi_static,&rect);
-				point.y=0;
-				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos);
 				//printf(" point.x=%i point.y=%i rect.bottom=%i\n",point.x,point.y,rect.bottom);
 				line2=SendMessage(hmdi_static,EM_GETFIRSTVISIBLELINE,0,0);
+				ltmp=SendMessage(hmdi_static,EM_LINEINDEX,line2,0);
+				point.y=0;
+				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,ltmp);
+				if(point.y<0) //check if first visible line is actually visible
+					line2++;
 				line=SendMessage(hmdi_static,EM_LINEFROMCHAR,fpos,0);
+				point.y=0;
+				SendMessage(hmdi_static,EM_POSFROMCHAR,&point,fpos);
 				if(line-line2==0){
 					if(point.y<0){
 						line=0;line2=1;
