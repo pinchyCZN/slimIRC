@@ -692,6 +692,29 @@ int load_icon(HWND hwnd)
 	}
 	return FALSE;
 }
+int save_window_position(HWND hwnd)
+{
+	RECT rect={0};
+	WINDOWPLACEMENT wp;
+	int w=0,h=0,maximized=0;
+	if(GetKeyState(VK_SHIFT)&0x8000)
+		return FALSE;
+	wp.length=sizeof(wp);
+	if(GetWindowPlacement(hwnd,&wp)!=0){
+		rect=wp.rcNormalPosition;
+		if(wp.flags&WPF_RESTORETOMAXIMIZED)
+			maximized=1;
+		w=rect.right-rect.left;
+		h=rect.bottom-rect.top;
+		write_ini_value("SETTINGS","main_dlg_width",w);
+		write_ini_value("SETTINGS","main_dlg_height",h);
+		write_ini_value("SETTINGS","main_dlg_xpos",rect.left);
+		write_ini_value("SETTINGS","main_dlg_ypos",rect.top);
+		write_ini_value("SETTINGS","main_dlg_maximized",maximized);
+		return TRUE;
+	}
+	return FALSE;
+}
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if(control_debug(IDC_TOP_WNDPROC,0,0))
@@ -821,6 +844,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return 0;
 		break;
 	case WM_QUERYENDSESSION:
+		save_window_position(hwnd);
 		return 1; //ok to end session
 		break;
 	case WM_ENDSESSION:
@@ -832,29 +856,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		return 0;
 	case WM_CLOSE:
+		save_window_position(hwnd);
 		exit_irc(FALSE);
         break;
 	case WM_DESTROY:
-		{
-			RECT rect={0};
-			WINDOWPLACEMENT wp;
-			int w=0,h=0,maximized=0;
-			if(GetKeyState(VK_SHIFT)&0x8000)
-				break;
-			wp.length=sizeof(wp);
-			if(GetWindowPlacement(hwnd,&wp)!=0){
-				rect=wp.rcNormalPosition;
-				if(wp.flags&WPF_RESTORETOMAXIMIZED)
-					maximized=1;
-				w=rect.right-rect.left;
-				h=rect.bottom-rect.top;
-				write_ini_value("SETTINGS","main_dlg_width",w);
-				write_ini_value("SETTINGS","main_dlg_height",h);
-				write_ini_value("SETTINGS","main_dlg_xpos",rect.left);
-				write_ini_value("SETTINGS","main_dlg_ypos",rect.top);
-				write_ini_value("SETTINGS","main_dlg_maximized",maximized);
-			}
-		}
 		PostQuitMessage(0);
         break;
     }
