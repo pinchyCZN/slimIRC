@@ -191,8 +191,6 @@ BOOL CALLBACK text_search(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		last_search_pos=0;
 		at_top=FALSE;
-		search_text[0]=0;
-		get_ini_str("SETTINGS","text_search_last",search_text,sizeof(search_text)-1);
 		SetWindowText(GetDlgItem(hwnd,IDC_SEARCH_BOX),search_text);
 		SendMessage(GetDlgItem(hwnd,IDC_SEARCH_BOX),EM_SETSEL,0,80);
 		if(hmdi_static!=0){
@@ -378,8 +376,6 @@ quit:
 			timer=0;
 		}
 		hide_tooltip();
-		GetWindowText(GetDlgItem(hwnd,IDC_SEARCH_BOX),search_text,sizeof(search_text));
-		write_ini_str("SETTINGS","text_search_last",search_text);
 		EndDialog(hwnd,0);
 		break;
 	}
