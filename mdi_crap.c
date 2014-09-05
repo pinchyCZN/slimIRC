@@ -1073,7 +1073,7 @@ int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 
 		while(start>0){
 			start--;
-			if(str[start]<=' '){
+			if(str[start]<=' ' || str[start]=='<'){
 				start++;
 				break;
 			}
