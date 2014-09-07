@@ -708,47 +708,44 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			set_scroll_lock(hwnd,scroll);
 		}
 		break;
-	case WM_APP+1: //send clipboard
-		if(lparam!=0)
-			SetWindowText(lparam,"");
-		if(IsClipboardFormatAvailable(CF_TEXT))
-			if(OpenClipboard(NULL)){
-				HGLOBAL hglobal;
-				hglobal=GetClipboardData(CF_TEXT);
-				if(hglobal!=NULL){
-					char *cpstr=GlobalLock(hglobal);
-					if(cpstr!=0){
-						int len;
-						len=strlen(cpstr);
-						if(len>0){
-							char str[80];
-							_snprintf(str,sizeof(str),
-								"Ok to send this?(len=%i):\r\n%s",len,cpstr);
-							str[sizeof(str)-1]=0;
-							str[sizeof(str)-2]='.';
-							str[sizeof(str)-3]='.';
-							str[sizeof(str)-4]='.';
-							if(MessageBox(hwnd,str,"Warning",MB_OKCANCEL)==IDOK){
-								char *s;
-								if(len>4096)
-									len=4096;
-								s=malloc(len+1);
-								if(s!=0){
-									memcpy(s,cpstr,len);
-									s[len]=0;
-									if(valid_text(s)){
-										trim_return(s);
-										post_message(hwnd,s);
-									}
-									free(s);
-								}
-							}
-						}
-						GlobalUnlock(hglobal);
+	case WM_APP+1: //send multiple lines
+		{
+			char *str;
+			int str_len=2048;
+			HWND hedit=lparam;
+			if(hedit==0)
+				break;
+			str=malloc(str_len);
+			if(str){
+				char msg[80];
+				int i,len,lines=0;
+				GetWindowText(hedit,str,str_len);
+				len=strlen(str);
+				for(i=0;i<len;i++){
+					if(str[i]=='\n')
+						lines++;
+					if(lines>15){
+						str[i]=0;
+						len=strlen(str);
+						break;
 					}
 				}
-				CloseClipboard();
+				_snprintf(msg,sizeof(msg),"Ok to send this?(len=%i,lines=%i):\r\n%s",len,lines,str);
+				msg[sizeof(msg)-1]=0;
+				msg[sizeof(msg)-2]='.';
+				msg[sizeof(msg)-3]='.';
+				msg[sizeof(msg)-4]='.';
+				if(MessageBox(hwnd,msg,"Warning",MB_OKCANCEL)==IDOK){
+					if(valid_text(str)){
+						trim_return(str);
+						post_message(hwnd,str);
+					}
+				}
+
+				free(str);
 			}
+			SetWindowText(hedit,"");
+		}
 		break;
 	case WM_SIZE:
 		resize_mdi_window(hwnd);
