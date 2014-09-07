@@ -597,7 +597,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						if(str[i]=='\n')
 							lines++;
 					}
-					if((lines>=2) || (len>350)){
+					if(lines>=2){
 						PostMessage(hwnd,WM_APP+1,0,hedit);
 						break;
 					}
