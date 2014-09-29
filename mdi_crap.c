@@ -1070,7 +1070,7 @@ int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 
 		while(start>0){
 			start--;
-			if(str[start]<=' ' || str[start]=='<'){
+			if(!isalnum(str[start])){
 				start++;
 				break;
 			}
@@ -1079,7 +1079,7 @@ int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 		len=strlen(str+start);
 		index=0;
 		for(i=0;i<len;i++){
-			if(str[start+i]<=' '){
+			if(!isalnum(str[start+i])){
 				break;
 			}
 			else
