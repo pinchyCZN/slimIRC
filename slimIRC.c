@@ -173,8 +173,10 @@ connect_channel:
 							ListView_GetItemText(ghlistview,item,2,port,sizeof(port));
 							ListView_GetItemText(ghlistview,item,4,ssl,sizeof(ssl));
 							ListView_GetItemText(ghlistview,item,5,password,sizeof(password));
-							connect_server(ghmdiclient,network,server,atoi(port),ssl[0]!=0,password);
-							EndDialog(hwnd,0);
+							if(connect_server(ghmdiclient,network,server,atoi(port),ssl[0]!=0,password))
+								EndDialog(hwnd,0);
+							else
+								SetFocus(ghlistview);
 						}
 					}
 					break;

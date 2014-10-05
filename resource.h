@@ -92,6 +92,7 @@
 #define IDC_INSTALL_INFO                1085
 #define IDC_LIST                        1085
 #define IDC_TXT_APPDATA                 1086
+#define DCC_WINDOW                      1086
 #define ID_SERVERS                      40001
 #define ID_CHANNELS                     40003
 #define ID_CONNECT                      40006
@@ -105,7 +106,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        121
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1086
+#define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

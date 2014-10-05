@@ -373,9 +373,12 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 		}
 		switch(win->type){
 		default:
-		case SERVER_WINDOW:text=win->network;break;
-		case CHANNEL_WINDOW:text=win->channel;break;
-		case PRIVMSG_WINDOW:text=win->channel;break;
+		case SERVER_WINDOW:
+			text=win->network;break;
+		case CHANNEL_WINDOW:
+		case PRIVMSG_WINDOW:
+		case DCC_WINDOW:
+			text=win->channel;break;
 		}
 		if(win->activity && (!win->pressed)){
 			//int c=(0xFFFFFF^GetSysColor(COLOR_BTNTEXT));

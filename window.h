@@ -169,6 +169,7 @@ int get_window_classname(char **s)
 	static char *cname="slimIRC_mdiframe";
 	if(s)
 		*s=cname;
+	return 0;
 }
 int create_mainwindow(void *wndproc,HMENU hmenu,HINSTANCE hinstance)
 {

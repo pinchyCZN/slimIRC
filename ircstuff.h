@@ -139,11 +139,26 @@ void event_privmsg(irc_session_t * session, const char * event, const char * ori
 		params[0], params[1] );
 }
 
+void dcc_event_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length)
+{
+	dcc_callback(session,status,ctx,data,length);
+}
 void irc_event_dcc_chat(irc_session_t * session, const char * nick, const char * addr, irc_dcc_t dccid)
 {
+	void *ctx=0;
 	dprintf(0,"DCC chat [%d] requested from '%s' (%s)\n", dccid, nick, addr);
 	echo_server_window(session,"DCC chat [%d] requested from '%s' (%s)", dccid, nick, addr);
-	irc_dcc_decline(session,dccid);
+	if(is_lua_active(session)){
+		const char *params[2]={"DCC","ACCEPT"};
+		if(lua_process_event(session,"CHECKIGNORE",nick,params,2))
+			return;
+	}
+	if(dcc_chat_event(session,dccid,nick,addr,&ctx)){
+		if(0!=irc_dcc_accept(session,dccid,ctx,dcc_event_callback)){
+			echo_server_window(session,"DCC accept failed error:%i",irc_errno(session));
+			add_line_mdi_nolog(ctx,"DCC accept failed error");
+		}
+	}
 }
 void irc_event_dcc_send(irc_session_t * session, const char * nick, const char * addr, const char * filename, unsigned long size, irc_dcc_t dccid)
 {

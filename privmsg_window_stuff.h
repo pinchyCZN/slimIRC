@@ -1,23 +1,3 @@
-int create_privmsg_window(HWND hmdiclient,IRC_WINDOW *win,char *nick)
-{
-	int maximized=0,style,handle;
-	MDICREATESTRUCT cs;
-	char title[256]={0};
-	get_ini_value("SETTINGS","MDI_MAXIMIZED",&maximized);
-	if(maximized!=0)
-		style = WS_MAXIMIZE|MDIS_ALLCHILDSTYLES;
-	else
-		style = MDIS_ALLCHILDSTYLES;
-	cs.cx=cs.cy=cs.x=cs.y=CW_USEDEFAULT;
-	cs.szClass="privmsgwindow";
-	_snprintf(title,sizeof(title),"%s on %s %s",nick,win->network,win->server);
-	cs.szTitle=title;
-	cs.style=style;
-	cs.hOwner=ghinstance;
-	cs.lParam=win;
-	handle=SendMessage(hmdiclient,WM_MDICREATE,0,&cs);
-	return handle;
-}
 int acquire_privmsg_window(char *network,char *channel)
 {
 	return acquire_channel_window(network,channel,PRIVMSG_WINDOW);
@@ -54,7 +34,7 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 				strncpy(privmsg_win->server,server_win->server,sizeof(privmsg_win->server));
 				strncpy(privmsg_win->nick,mynick,sizeof(privmsg_win->nick));
 				if(hwnd==0){
-					hwnd=create_privmsg_window(ghmdiclient,privmsg_win,nick);
+					hwnd=create_window_type(ghmdiclient,privmsg_win,PRIVMSG_WINDOW,nick);
 					BringWindowToTop(hwnd);
 				}
 				if(hwnd!=0){

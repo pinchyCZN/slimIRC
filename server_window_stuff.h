@@ -124,8 +124,14 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 		_snprintf(server,sizeof(server),"#%s",serv);
 	else
 		_snprintf(server,sizeof(server),"%s",serv);
-	win=find_server_window(server);
+	win=find_server_by_network(network);
 	if(win!=0){
+		if(stricmp(serv,win->server)!=0){
+			char str[256]={0};
+			_snprintf(str,sizeof(str),"Already connected to %s via [%s]\r\nDisconnect from that server and try again",network,win->server);
+			show_messagebox(hmdiclient,str,"Warning",MB_OK);
+			return FALSE;
+		}
 		BringWindowToTop(win->hwnd);
 		handle_switch_button(win->hbutton,FALSE);
 		return TRUE;
@@ -135,7 +141,7 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 		return FALSE;
 	win=acquire_server_window(network,server,port,password);
 	if(win!=0){
-		if(hwndmdi=create_server_window(hmdiclient,win)){
+		if(hwndmdi=create_window_type(hmdiclient,win,SERVER_WINDOW,NULL)){
 			win->hwnd=hwndmdi;
 			strncpy(win->password,password,sizeof(win->password));
 			strncpy(win->nick,"slimirc",sizeof(win->nick));
@@ -157,26 +163,6 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 	else
 		erase_server_thread(thread);
 	return FALSE;
-}
-int create_server_window(HWND hmdiclient,IRC_WINDOW *win)
-{ 
-	int maximized=0,style,handle;
-	MDICREATESTRUCT cs;
-	char title[256]={0};
-	get_ini_value("SETTINGS","MDI_MAXIMIZED",&maximized);
-	if(maximized!=0)
-		style = WS_MAXIMIZE|MDIS_ALLCHILDSTYLES;
-	else
-		style = MDIS_ALLCHILDSTYLES;
-	cs.cx=cs.cy=cs.x=cs.y=CW_USEDEFAULT;
-	cs.szClass="serverwindow";
-	_snprintf(title,sizeof(title),"%s %s",win->network,win->server);
-	cs.szTitle=title;
-	cs.style=style;
-	cs.hOwner=ghinstance;
-	cs.lParam=win;
-	handle=SendMessage(hmdiclient,WM_MDICREATE,0,&cs);
-	return handle;
 }
 int update_status_window(HWND hwnd,HMENU hmenu)
 {

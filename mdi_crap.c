@@ -36,6 +36,7 @@ typedef struct{
 	char password[20];
 	int port;
 	int ssl;
+	int dccid;
 	void *session;
 	int disconnect;
 	HWND hwnd,hbutton,hstatic,hlist,hedit,hscroll_lock;
@@ -510,6 +511,9 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			case CHANNEL_WINDOW:
 				part_channel(win);
 				break;
+			case DCC_WINDOW:
+				dcc_close_window(win);
+				break;
 			}
 		}
 		break;
@@ -778,7 +782,39 @@ BOOL setup_mdi_classes(HINSTANCE hinstance)
 		result=FALSE;
 	return result;
 }
-
+int create_window_type(HWND hmdiclient,IRC_WINDOW *win,int type,char *nick)
+{
+	int maximized=0,style,handle;
+	char title[256]={0};
+	MDICREATESTRUCT cs;
+	get_ini_value("SETTINGS","MDI_MAXIMIZED",&maximized);
+	if(maximized!=0)
+		style = WS_MAXIMIZE|MDIS_ALLCHILDSTYLES;
+	else
+		style = MDIS_ALLCHILDSTYLES;
+	cs.cx=cs.cy=cs.x=cs.y=CW_USEDEFAULT;
+	if(type==CHANNEL_WINDOW){
+		cs.szClass="channelwindow";
+		cs.szTitle=win->channel;
+	}else if(type==SERVER_WINDOW){
+		cs.szClass="serverwindow";
+		_snprintf(title,sizeof(title),"%s %s",win->network,win->server);
+		cs.szTitle=title;
+	}else if(type==PRIVMSG_WINDOW){
+		cs.szClass="privmsgwindow";
+		_snprintf(title,sizeof(title),"%s on %s %s",nick,win->network,win->server);
+		cs.szTitle=title;
+	}else if(type==DCC_WINDOW){
+		cs.szClass="privmsgwindow";
+		_snprintf(title,sizeof(title),"DCC from %s on %s %s",nick,win->network,win->server);
+		cs.szTitle=title;
+	}
+	cs.style=style;
+	cs.hOwner=ghinstance;
+	cs.lParam=win;
+	handle=SendMessage(hmdiclient,WM_MDICREATE,0,&cs);
+	return handle;
+}
 int acquire_server_window(char *network,char *server,int port,int ssl)
 {
 	int i;
@@ -1481,5 +1517,6 @@ int init_mdi_stuff()
 #include "server_window_stuff.h"
 #include "channel_window_stuff.h"
 #include "privmsg_window_stuff.h"
+#include "dcc_window_stuff.h"
 #include "lua_specific_funcs.h"
 #include "ircstuff.h"

@@ -35,6 +35,10 @@ int post_message(HWND hwnd,char *str)
 	if(win!=0){
 		if(win->session==0 || (!irc_is_connected(win->session)))
 			return FALSE;
+		if(win->type==DCC_WINDOW){
+			post_dcc_msg(win,str);
+			return TRUE;
+		}
 		handle_debug(str);
 		{
 			int start,len,index,lines;
@@ -138,24 +142,6 @@ int post_message(HWND hwnd,char *str)
 	}
 	return TRUE;
 }
-int create_channel_window(HWND hmdiclient,IRC_WINDOW *win)
-{
-	int maximized=0,style,handle;
-	MDICREATESTRUCT cs;
-	get_ini_value("SETTINGS","MDI_MAXIMIZED",&maximized);
-	if(maximized!=0)
-		style = WS_MAXIMIZE|MDIS_ALLCHILDSTYLES;
-	else
-		style = MDIS_ALLCHILDSTYLES;
-	cs.cx=cs.cy=cs.x=cs.y=CW_USEDEFAULT;
-	cs.szClass="channelwindow";
-	cs.szTitle=win->channel;
-	cs.style=style;
-	cs.hOwner=ghinstance;
-	cs.lParam=win;
-	handle=SendMessage(hmdiclient,WM_MDICREATE,0,&cs);
-	return handle;
-}
 int add_nick(IRC_WINDOW *win,char *nick)
 {
 	int i,index=LB_ERR;
@@ -190,7 +176,7 @@ int join_channel_event(void *session,const char *origin,const char *channel)
 			strncpy(channel_win->server,server_win->server,sizeof(channel_win->server));
 			strncpy(channel_win->nick,server_win->nick,sizeof(channel_win->nick));
 			if(hwnd==0)
-				hwnd=create_channel_window(ghmdiclient,channel_win);
+				hwnd=create_window_type(ghmdiclient,channel_win,CHANNEL_WINDOW,NULL);
 			if(hwnd!=0){
 				char nick[20]={0};
 				channel_win->hwnd=hwnd;

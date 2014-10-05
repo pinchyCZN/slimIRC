@@ -476,6 +476,10 @@ SOURCE=.\channel_window_stuff.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\dcc_window_stuff.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\file_logging.h
 # End Source File
 # Begin Source File
@@ -543,9 +547,5 @@ SOURCE=.\resource.rc
 SOURCE=.\slimirc.ico
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\ReadMe.txt
-# End Source File
 # End Target
 # End Project
