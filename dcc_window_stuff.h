@@ -106,7 +106,6 @@ int dcc_callback(void *session,int status,IRC_WINDOW *win,const char *data,int l
 				if(length>0){
 					print_nick_msg(win->channel,data,str,sizeof(str));
 					add_line_mdi_nolog(win,str);
-					//irc_dcc_msg(win->session,win->dccid,"\6");
 				}
 			}
 			else if(status==LIBIRC_ERR_CLOSED){
@@ -132,7 +131,7 @@ int post_dcc_msg(IRC_WINDOW *win,char *msg)
 				add_line_mdi_nolog(win,str);
 				add_history(msg);
 			}else
-				irc_dcc_msg(win->session,win->dccid,"\6 ");
+				irc_dcc_msg(win->session,win->dccid," ");
 		}
 	}
 	return TRUE;

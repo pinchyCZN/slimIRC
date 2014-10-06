@@ -150,8 +150,10 @@ void irc_event_dcc_chat(irc_session_t * session, const char * nick, const char *
 	echo_server_window(session,"DCC chat [%d] requested from '%s' (%s)", dccid, nick, addr);
 	if(is_lua_active(session)){
 		const char *params[2]={"DCC","ACCEPT"};
-		if(lua_process_event(session,"CHECKIGNORE",nick,params,2))
+		if(lua_process_event(session,"CHECKIGNORE",nick,params,2)){
+			irc_dcc_decline(session,dccid);
 			return;
+		}
 	}
 	if(dcc_chat_request(session,dccid,nick,addr,&ctx)){
 		if(0!=irc_dcc_accept(session,dccid,ctx,dcc_event_callback)){
