@@ -605,10 +605,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						PostMessage(hwnd,WM_APP+1,0,hedit);
 						break;
 					}
-					if(valid_text(str)){
-						trim_return(str);
-						post_message(hwnd,str);
-					}
+					post_message(hwnd,str);
 					SetWindowText(hedit,"");
 
 				}
@@ -739,13 +736,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				msg[sizeof(msg)-2]='.';
 				msg[sizeof(msg)-3]='.';
 				msg[sizeof(msg)-4]='.';
-				if(MessageBox(hwnd,msg,"Warning",MB_OKCANCEL)==IDOK){
-					if(valid_text(str)){
-						trim_return(str);
-						post_message(hwnd,str);
-					}
-				}
-
+				if(MessageBox(hwnd,msg,"Warning",MB_OKCANCEL)==IDOK)
+					post_message(hwnd,str);
 				free(str);
 			}
 			SetWindowText(hedit,"");
@@ -907,28 +899,6 @@ int get_hwnd_by_session(void *session,char *channel)
 	return 0;
 }
 
-int trim_return(char *str)
-{
-	int i,len;
-	len=strlen(str);
-	for(i=len-1;i>0;i--){
-		if((unsigned char)str[i]>=' ')
-			break;
-		else
-			str[i]=0;
-	}
-	return TRUE;
-}
-int valid_text(char *str)
-{
-	int i,len;
-	len=strlen(str);
-	for(i=0;i<len;i++){
-		if((unsigned char)str[i]>=' ')
-			return TRUE;
-	}
-	return FALSE;
-}
 int restore_buffer(HWND hedit,int dir)
 {
 	int len;
@@ -1515,8 +1485,8 @@ int init_mdi_stuff()
 }
 #include "switchbar_stuff.h"
 #include "server_window_stuff.h"
+#include "dcc_window_stuff.h"
 #include "channel_window_stuff.h"
 #include "privmsg_window_stuff.h"
-#include "dcc_window_stuff.h"
 #include "lua_specific_funcs.h"
 #include "ircstuff.h"

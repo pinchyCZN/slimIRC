@@ -27,6 +27,28 @@ int update_chat_sessions(void *session)
 	}
 	return TRUE;
 }
+int trim_return(char *str)
+{
+	int i,len;
+	len=strlen(str);
+	for(i=len-1;i>0;i--){
+		if((unsigned char)str[i]>=' ')
+			break;
+		else
+			str[i]=0;
+	}
+	return TRUE;
+}
+int valid_text(char *str)
+{
+	int i,len;
+	len=strlen(str);
+	for(i=0;i<len;i++){
+		if((unsigned char)str[i]>=' ')
+			return TRUE;
+	}
+	return FALSE;
+}
 int post_message(HWND hwnd,char *str)
 {
 	int i;
@@ -39,6 +61,9 @@ int post_message(HWND hwnd,char *str)
 			post_dcc_msg(win,str);
 			return TRUE;
 		}
+		if(!valid_text(str))
+			return FALSE;
+		trim_return(str);
 		handle_debug(str);
 		{
 			int start,len,index,lines;
@@ -65,6 +90,18 @@ int post_message(HWND hwnd,char *str)
 					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
 					irc_cmd_ctcp_request(win->session,channel,msg);
 					echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+				}
+				else if(strnicmp(str,"/dcc ",sizeof("/dcc ")-1)==0){
+					IRC_WINDOW *dcc_win=0;
+					tmp[0]=0;
+					sscanf(str+sizeof("/dcc ")-1,"%32s",tmp);
+					dcc_chat_init(win->session,tmp,&dcc_win);
+					if(dcc_win){
+						extern void dcc_event_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length);
+						if(0!=irc_dcc_chat(dcc_win->session,dcc_win,tmp,dcc_event_callback,&dcc_win->dccid))
+							add_line_mdi_nolog(dcc_win,"DCC CHAT FAILED");
+					}
+					echo_server_window(win->session,"DCC CHAT :%s",tmp);
 				}
 				else if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0){
 					channel[0]=0;msg[0]=0;

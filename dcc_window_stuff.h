@@ -24,10 +24,55 @@ int acquire_dcc_window(IRC_WINDOW *server_win,int dccid)
 	}
 	return 0;
 }
-int dcc_chat_event(void *session,int dccid,const char *origin,const char *addr,void **ctx)
+int init_dcc_window(void *session,int dccid,char *nick,char *origin,IRC_WINDOW **win)
 {
 	int result=FALSE;
-	IRC_WINDOW *server_win,*dcc_win;
+	IRC_WINDOW *server_win,*dcc_win=0;
+	server_win=find_server_by_session(session);
+	if(server_win!=0){
+		dcc_win=acquire_dcc_window(server_win,dccid);
+		if(dcc_win!=0){
+			HWND hwnd=dcc_win->hwnd;
+			dcc_win->session=session;
+			strncpy(dcc_win->server,server_win->server,sizeof(dcc_win->server));
+			strncpy(dcc_win->nick,server_win->nick,sizeof(dcc_win->nick));
+			strncpy(dcc_win->channel,nick,sizeof(dcc_win->channel));
+			if(hwnd==0){
+				char *s=nick;
+				if(origin && origin[0]!=0)
+					s=origin;
+				hwnd=create_window_type(ghmdiclient,dcc_win,DCC_WINDOW,s);
+			}
+			if(hwnd!=0){
+				dcc_win->hwnd=hwnd;
+				if(dcc_win->hbutton==0)
+					SendMessage(ghswitchbar,WM_APP,MSG_ADD_BUTTON,dcc_win->hwnd);
+			}
+		}
+	}
+	if(dcc_win){
+		if(win)
+			*win=dcc_win;
+		result=TRUE;
+	}
+	return result;
+}
+int dcc_chat_init(void *session,char *nick,IRC_WINDOW **win)
+{
+	int result=FALSE;
+	IRC_WINDOW *dcc_win=0;
+	init_dcc_window(session,0,nick,0,&dcc_win);
+	if(dcc_win){
+		if(win)
+			*win=dcc_win;
+		result=TRUE;
+	}
+	return result;
+}
+int dcc_chat_request(void *session,int dccid,const char *origin,const char *addr,void **ctx)
+{
+	int result=FALSE;
+	IRC_WINDOW *dcc_win;
 	char nick[20]={0};
 	extract_nick(origin,nick,sizeof(nick));
 
@@ -35,25 +80,7 @@ int dcc_chat_event(void *session,int dccid,const char *origin,const char *addr,v
 	if(dcc_win==0){
 //		if(IDOK!=show_messagebox(ghmainframe,"Do want to accept DCC from","Accept DCC?",MB_OKCANCEL))
 //			return FALSE;
-		server_win=find_server_by_session(session);
-		if(server_win!=0){
-			dcc_win=acquire_dcc_window(server_win,dccid);
-			if(dcc_win!=0){
-				HWND hwnd=dcc_win->hwnd;
-				dcc_win->session=session;
-				strncpy(dcc_win->server,server_win->server,sizeof(dcc_win->server));
-				strncpy(dcc_win->nick,server_win->nick,sizeof(dcc_win->nick));
-				strncpy(dcc_win->channel,nick,sizeof(dcc_win->channel));
-				if(hwnd==0){
-					hwnd=create_window_type(ghmdiclient,dcc_win,DCC_WINDOW,origin);
-				}
-				if(hwnd!=0){
-					dcc_win->hwnd=hwnd;
-					if(dcc_win->hbutton==0)
-						SendMessage(ghswitchbar,WM_APP,MSG_ADD_BUTTON,dcc_win->hwnd);
-				}
-			}
-		}
+		init_dcc_window(session,dccid,nick,origin,&dcc_win);
 	}
 	if(dcc_win!=0 && dcc_win->hwnd!=0){
 		if(ctx)
@@ -79,6 +106,7 @@ int dcc_callback(void *session,int status,IRC_WINDOW *win,const char *data,int l
 				if(length>0){
 					print_nick_msg(win->channel,data,str,sizeof(str));
 					add_line_mdi_nolog(win,str);
+					//irc_dcc_msg(win->session,win->dccid,"\6");
 				}
 			}
 			else if(status==LIBIRC_ERR_CLOSED){
@@ -97,9 +125,14 @@ int post_dcc_msg(IRC_WINDOW *win,char *msg)
 {
 	if(win && win->session){
 		if(0==irc_dcc_msg(win->session,win->dccid,msg)){
-			char str[512+20];
-			print_nick_msg(win->nick,msg,str,sizeof(str));
-			add_line_mdi_nolog(win,str);
+			if(valid_text(msg)){
+				char str[512+20];
+				trim_return(msg);
+				print_nick_msg(win->nick,msg,str,sizeof(str));
+				add_line_mdi_nolog(win,str);
+				add_history(msg);
+			}else
+				irc_dcc_msg(win->session,win->dccid,"\6 ");
 		}
 	}
 	return TRUE;

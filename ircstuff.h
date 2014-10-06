@@ -153,7 +153,7 @@ void irc_event_dcc_chat(irc_session_t * session, const char * nick, const char *
 		if(lua_process_event(session,"CHECKIGNORE",nick,params,2))
 			return;
 	}
-	if(dcc_chat_event(session,dccid,nick,addr,&ctx)){
+	if(dcc_chat_request(session,dccid,nick,addr,&ctx)){
 		if(0!=irc_dcc_accept(session,dccid,ctx,dcc_event_callback)){
 			echo_server_window(session,"DCC accept failed error:%i",irc_errno(session));
 			add_line_mdi_nolog(ctx,"DCC accept failed error");
