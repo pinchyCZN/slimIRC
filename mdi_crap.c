@@ -1041,27 +1041,41 @@ int update_nick_in_list(HWND hlist,const char *oldnick,const char *newnick)
 	}
 	return index;
 }
+int save_new_nick(const char *nick)
+{
+	if(nick && nick[0]!=0){
+		write_ini_str("SETTINGS","NICK",nick);
+	}
+	return TRUE;
+}
 int update_nick(void *session,const char *oldnick,const char *nick)
 {
-	int i;
+	int i,save_nick=FALSE;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].session==session){
 			update_nick_in_list(irc_windows[i].hlist,oldnick,nick);
-			if(strcmp(irc_windows[i].nick,oldnick)==0)
+			if(strcmp(irc_windows[i].nick,oldnick)==0){
 				strncpy(irc_windows[i].nick,nick,sizeof(irc_windows[i].nick));
+				save_nick=TRUE;
+			}
 		}
 	}
+	if(save_nick)
+		save_new_nick(nick);
 	return TRUE;
 }
 int update_user_nick(void *session,char *nick)
 {
-	int i;
+	int i,save_nick=TRUE;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].session==session){
 			update_nick_in_list(irc_windows[i].hlist,irc_windows[i].nick,nick);
 			strncpy(irc_windows[i].nick,nick,sizeof(irc_windows[i].nick));
+			save_nick=TRUE;
 		}
 	}
+	if(save_nick)
+		save_new_nick(nick);
 	return TRUE;
 }
 int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
