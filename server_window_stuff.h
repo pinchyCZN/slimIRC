@@ -30,6 +30,23 @@ int find_server_by_session(void *session)
 	}
 	return 0;
 }
+//add more params as needed
+int get_session_info(void *session,char *network,int nlen)
+{
+	int result=FALSE;
+	IRC_WINDOW *win=0;
+	if(session){
+		win=find_server_by_session(session);
+		if(win){
+			if(network && nlen>0){
+				strncpy(network,win->network,nlen);
+				network[nlen-1]=0;
+				result=TRUE;
+			}
+		}
+	}
+	return result;
+}
 int echo_server_window(void *session,const char *format,...)
 {
 	int i;
