@@ -1090,7 +1090,7 @@ int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 
 		while(start>0){
 			start--;
-			if(!isalnum(str[start])){
+			if(str[start]=='<' || isspace(str[start])){
 				start++;
 				break;
 			}
@@ -1099,7 +1099,7 @@ int get_substr(unsigned char *str,int start,char *substr,int size,int *pos)
 		len=strlen(str+start);
 		index=0;
 		for(i=0;i<len;i++){
-			if(!isalnum(str[start+i])){
+			if(str[start+i]=='>' || isspace(str[start+i])){
 				break;
 			}
 			else
