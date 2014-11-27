@@ -1132,20 +1132,45 @@ int replace_word(char *str,int max,char *word,char pos)
 }
 int find_next_nick(HWND hlist,char *substr,int last)
 {
-	int a,b,c;
+	int i,min,index[3];
 	char n[20]={0};
 	_snprintf(n,sizeof(n),"@%s",substr);
-	a=SendMessage(hlist,LB_FINDSTRING,last,n);
+	index[0]=SendMessage(hlist,LB_FINDSTRING,last,n);
 	_snprintf(n,sizeof(n),"+%s",substr);
-	b=SendMessage(hlist,LB_FINDSTRING,last,n);
+	index[1]=SendMessage(hlist,LB_FINDSTRING,last,n);
 	_snprintf(n,sizeof(n),"%s",substr);
-	c=SendMessage(hlist,LB_FINDSTRING,last,n);
-	if(a>last)	return a;
-	if(b>last)	return b;
-	if(c>last)	return c;
-	if(a>=0)	return a;
-	if(b>=0)	return b;
-	if(c>=0)	return c;
+	index[2]=SendMessage(hlist,LB_FINDSTRING,last,n);
+	min=-1;
+	for(i=0;i<sizeof(index)/sizeof(int);i++){
+		int v=index[i];
+		if(v>=0){
+			if(v>last){
+				if(min>=0){
+					if(v<min)
+						min=v;
+				}
+				else
+					min=v;
+			}
+
+		}
+	}
+	if(min>=0)
+		return min;
+	min=-1;
+	for(i=0;i<sizeof(index)/sizeof(int);i++){
+		int v=index[i];
+		if(v>=0){
+			if(min>=0){
+				if(v<min)
+					min=v;
+			}
+			else
+				min=v;
+		}
+	}
+	if(min>=0)
+		return min;
 	return LB_ERR;
 }
 int tab_next(HWND hwnd,char *substr,int pos)
