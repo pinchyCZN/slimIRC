@@ -142,6 +142,21 @@ static int lua_get_session_network(lua_State *L)
 	lua_pushstring(L,network);
 	return 1;
 }
+static int lua_add_line_mdi_nolog(lua_State *L)
+{
+	const void *win;
+	const char *str;
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==2){
+		//(void *win,char *str)
+		win=lua_touserdata(L,1);
+		str=lua_tostring(L,2);
+		if(win && str)
+			result=add_line_mdi_nolog(win,str);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
 static int lua_add_line_mdi(lua_State *L)
 {
 	const void *win;
@@ -218,6 +233,7 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"find_network_session",lua_find_network_session,"(network)"},
 	{"get_session_network",lua_get_session_network,"(session)"},
 	{"add_line_mdi",lua_add_line_mdi,"(win,str)"},
+	{"add_line_mdi_nolog",lua_add_line_mdi_nolog,"(win,str)"},
 	{"get_win_linecount",lua_get_win_linecount,"(win)"},
 	{"get_win_line",lua_get_win_line,"(win,line)"},
 	0
@@ -321,7 +337,7 @@ void lua_script_unload(lua_State **L,HANDLE **lua_filenotify)
 		*lua_filenotify=0;
 	}
 }
-enum{CHECK_IGNORE_FUNC,STANDARD_FUNC,NUMERIC_FUNC};
+enum{CHECK_IGNORE_FUNC,STANDARD_FUNC,USER_FUNC};
 typedef struct{
 	char *event;
 	char *lua_func;
@@ -334,8 +350,8 @@ LUA_FUNC_MAP lua_funcs[]={
 	{"CHANNEL","channel_event",STANDARD_FUNC},
 	{"POST_CONNECT","post_connect_event",STANDARD_FUNC},
 	{"JOIN","join_event",STANDARD_FUNC},
-	{"NUMERIC","numeric_event",NUMERIC_FUNC},
-	{"USER_CALLED","user_called_event",STANDARD_FUNC},
+	{"NUMERIC","numeric_event",STANDARD_FUNC},
+	{"USER_CALLED","user_called_event",USER_FUNC},
 	0
 };
 int lua_get_func_index(const char *event)
@@ -395,13 +411,20 @@ int lua_handle_event(lua_State *L,
 		else
 			result=lua_tointeger(L,-1);
 		break;
-	case NUMERIC_FUNC:
+	case USER_FUNC:
 		lua_getglobal(L,lua_funcs[index].lua_func);
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
-		lua_pushstring(L,params[0]); //nick
-		lua_pushstring(L,params[1]); //msg
-		if(lua_pcall(L,4,1,0)!=LUA_OK){
+		{
+			int i;
+			for(i=0;i<count;i++){
+				if(i<2)
+					lua_pushstring(L,params[i]); //nick,msg
+				else
+					lua_pushlightuserdata(L,params[i]); //window
+			}
+		}
+		if(lua_pcall(L,2+count,1,0)!=LUA_OK){
 			if(lua_error_msg<5){
 				printf("lua error:%s\n event=%s\n",lua_tostring(L, -1),event);
 				lua_error_msg++;
@@ -479,7 +502,8 @@ int lua_create_default_file(int(*mdi_window)(void *,char *),void *win)
 		for(i=0;i<sizeof(lua_funcs)/sizeof(LUA_FUNC_MAP);i++){
 			if(lua_funcs[i].event==0)
 				break;
-			fprintf(f,"\n-- function %s(session,origin,nch,msg)\n",lua_funcs[i].lua_func);
+			fprintf(f,"\n-- function %s(session,origin,nch,msg%s)\n",lua_funcs[i].lua_func,
+				lua_funcs[i].type==USER_FUNC?",win":"");
 			fprintf(f,"-- end\n");
 		}
 		fclose(f);

@@ -130,8 +130,8 @@ int post_message(HWND hwnd,char *str)
 					lua_create_default_file(add_line_mdi_nolog,win);
 				}
 				else if(strnicmp(str,"/lua ",sizeof("/lua ")-1)==0){
-					char *params[2]={win->channel,str+sizeof("/lua ")-1};
-					lua_process_event(win->session,"USER_CALLED",win->nick,&params,2);
+					char *params[3]={win->channel,str+sizeof("/lua ")-1,(char*)win};
+					lua_process_event(win->session,"USER_CALLED",win->nick,&params,3);
 				}
 				else if(strnicmp(str,"/flushlogs",sizeof("/flushlogs")-1)==0){
 					close_all_logs();

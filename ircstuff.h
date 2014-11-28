@@ -364,14 +364,15 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 		srand(GetTickCount());
 		donce=FALSE;
 	}
+	win=find_channel_window(session,channel);
 	get_ini_str("SETTINGS","SLAPMSG",msg,sizeof(msg));
 	if(msg[0]!=0)
 		_snprintf(slap,sizeof(slap),"slaps %s %s",nick,msg);
 	else if(lua_script_enable){
-		char *params[2]={channel,"GET_SLAP_COUNT"};
+		char *params[3]={channel,"GET_SLAP_COUNT",(char*)win};
 		int count=0;
 		if(is_lua_active(session))
-			count=lua_process_event(session,"USER_CALLED",nick,&params,2);
+			count=lua_process_event(session,"USER_CALLED",nick,&params,3);
 		if(count>=1){
 			int i,index,used=0;
 			char list[255];
@@ -411,7 +412,7 @@ int irc_slap(irc_session_t *session,char *channel,char *nick)
 			_snprintf(tmp,sizeof(tmp),"DO_SLAP %i",index);
 			params[0]=channel;
 			params[1]=tmp;
-			lua_process_event(session,"USER_CALLED",nick,&params,2);
+			lua_process_event(session,"USER_CALLED",nick,&params,3);
 			list[index]='1';
 			list[count]=0;
 			write_ini_str("SETTINGS","SLAPPED",list);
@@ -476,7 +477,6 @@ USUAL:
 		write_ini_str("SETTINGS","SLAPPED",list);
 	}
 	irc_cmd_me(session,channel,slap);
-	win=find_channel_window(session,channel);
 	if(win!=0){
 		char str[sizeof(slap)+40];
 		_snprintf(str,sizeof(str),"* %s %s",win->nick,slap);
