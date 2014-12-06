@@ -107,8 +107,12 @@ int post_message(HWND hwnd,char *str)
 					channel[0]=0;msg[0]=0;
 					sscanf(str+sizeof("/msg ")-1,"%39s %511[^\n\r]s",channel,msg);
 					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
-					irc_cmd_msg(win->session,channel,msg);
-					echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+					if(msg[0]!=0){
+						irc_cmd_msg(win->session,channel,msg);
+						echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+					}
+					if(channel[0]!='#')
+						initiate_privmsg(hwnd,channel);
 				}
 				else if(strnicmp(str,"/discon",sizeof("/discon")-1)==0){
 					IRC_WINDOW *ser=find_server_window(win->server);
