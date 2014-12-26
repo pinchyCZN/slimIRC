@@ -717,6 +717,30 @@ int save_window_position(HWND hwnd)
 	}
 	return FALSE;
 }
+int clamp_window_size(int *x,int *y,int *width,int *height,RECT *monitor)
+{
+	int mwidth,mheight;
+	mwidth=monitor->right-monitor->left;
+	mheight=monitor->bottom-monitor->top;
+	if(mwidth<=0)
+		return FALSE;
+	if(mheight<=0)
+		return FALSE;
+	if(*x<monitor->left)
+		*x=monitor->left;
+	if(*width>mwidth)
+		*width=mwidth;
+	if(*x+*width>monitor->right)
+		*x=monitor->right-*width;
+	if(*y<monitor->top)
+		*y=monitor->top;
+	if(*height>mheight)
+		*height=mheight;
+	if(*y+*height>monitor->bottom)
+		*y=monitor->bottom-*height;
+	return TRUE;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if(control_debug(IDC_TOP_WNDPROC,0,0))
@@ -738,13 +762,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			RECT rect;
 			int width=0,height=0,x=0,y=0,maximized=0;
 			load_icon(hwnd);
-			if(get_ini_value("SETTINGS","main_dlg_width",&width)&&
-				get_ini_value("SETTINGS","main_dlg_height",&height)){
-				if(width>0 && height>0)
-					SetWindowPos(hwnd,NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
-			}
 			get_ini_value("SETTINGS","main_dlg_xpos",&x);
 			get_ini_value("SETTINGS","main_dlg_ypos",&y);
+			get_ini_value("SETTINGS","main_dlg_width",&width);
+			get_ini_value("SETTINGS","main_dlg_height",&height);
 			rect.left=x;
 			rect.top=y;
 			rect.right=x+width;
@@ -752,12 +773,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			hmon=MonitorFromRect(&rect,MONITOR_DEFAULTTONEAREST);
 			mi.cbSize=sizeof(mi);
 			if(GetMonitorInfo(hmon,&mi)){
-				rect=mi.rcWork;
-				if(x>(rect.right-25) || x<(rect.left-25)
-					|| y<(rect.top-25) || y>(rect.bottom-25))
-					;
-				else
-					SetWindowPos(hwnd,HWND_TOP,x,y,0,0,SWP_NOZORDER|SWP_NOSIZE);
+				int flags=SWP_NOZORDER;
+				if(width<=50 || height<=50)
+					flags|=SWP_NOSIZE;
+				if(!clamp_window_size(&x,&y,&width,&height,&mi.rcWork))
+					flags|=SWP_NOMOVE;
+				SetWindowPos(hwnd,HWND_TOP,x,y,width,height,flags);
 			}
 			get_ini_value("SETTINGS","main_dlg_maximized",&maximized);
 			if(maximized!=0)
