@@ -66,9 +66,9 @@ enum {
 	CMD_COPYURL,
 	CMD_TEST,
 };
-#define MAX_EDIT_LENGTH 1024
+#define MAX_EDIT_LENGTH (512+2)
 #define MAX_EDIT_HISTORY 40
-static char edit_buffer[MAX_EDIT_HISTORY][256];
+static char edit_buffer[MAX_EDIT_HISTORY][MAX_EDIT_LENGTH];
 static int scroll_history_pos=0;
 static int buffer_pos=0;
 static char mouse_target[512]={0};

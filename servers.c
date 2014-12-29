@@ -821,7 +821,59 @@ int CALLBACK compare_func(LPARAM lparam1, LPARAM lparam2,struct find_helper *fh)
 	}
 	return 0;
 }
-
+int lv_get_column_count(HWND hlistview)
+{
+	HWND header;
+	int count=0;
+	header=SendMessage(hlistview,LVM_GETHEADER,0,0);
+	if(header!=0){
+		count=SendMessage(header,HDM_GETITEMCOUNT,0,0);
+		if(count<0)
+			count=0;
+	}
+	return count;
+}
+int update_sort_col(HWND hlistview,int dir,int column)
+{
+	int i,count;
+	count=lv_get_column_count(hlistview);
+	for(i=0;i<count;i++){
+		WCHAR str[80]={0};
+		LV_COLUMN col={0};
+		int j,len;
+		col.mask=LVCF_TEXT;
+		col.pszText=str;
+		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
+		SendMessageW(hlistview,LVM_GETCOLUMNW,i,&col);
+		len=wcslen(col.pszText);
+		if(column!=i){
+			for(j=0;j<len;j++){
+				unsigned char tmp[16]={0};
+				wctomb(tmp,str[j]);
+				if(tmp[0]<' ' || tmp[0]>='z')
+					str[i]=0;
+			}
+		}else{
+			if(len>0 && len<((sizeof(str)/sizeof(WCHAR))-1)){
+				WCHAR n,c=str[len-1];
+				if(dir)
+					n=0x25B2;
+				else
+					n=0x25BC;
+				if(c==0x25B2 || c==0x25BC)
+					str[len-1]=n;
+				else{
+					str[len]=n;
+					str[len+1]=0;
+				}
+			}
+		}
+		col.pszText=str;
+		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
+		SendMessageW(hlistview,LVM_SETCOLUMNW,i,&col);
+	}
+	return TRUE;
+}
 int sort_listview(HWND hlistview,int dir,int column)
 {
 	struct find_helper fh;
@@ -829,6 +881,7 @@ int sort_listview(HWND hlistview,int dir,int column)
 	fh.dir=dir;
 	fh.col=column;
 	ListView_SortItems(hlistview,compare_func,&fh);
+	//update_sort_col(hlistview,dir,column);
 	return TRUE;
 }
 int create_listview(HWND hwnd,HWND hinstance)
