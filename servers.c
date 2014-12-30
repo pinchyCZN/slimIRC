@@ -22,7 +22,7 @@ COLUMN server_columns[]={
 	{"ssl",0},
 	{"password",0},
 };
-int get_str_width(HWND hwnd,char *str)
+int get_str_width(HWND hwnd,char *str,int wide_char)
 {
 	if(hwnd!=0 && str!=0){
 		SIZE size={0};
@@ -34,12 +34,18 @@ int get_str_width(HWND hwnd,char *str)
 			if(hfont!=0){
 				HGDIOBJ hold=0;
 				hold=SelectObject(hdc,hfont);
-				GetTextExtentPoint32(hdc,str,strlen(str),&size);
+				if(wide_char)
+					GetTextExtentPoint32W(hdc,str,wcslen(str),&size);
+				else
+					GetTextExtentPoint32(hdc,str,strlen(str),&size);
 				if(hold!=0)
 					SelectObject(hdc,hold);
 			}
 			else{
-				GetTextExtentPoint32(hdc,str,strlen(str),&size);
+				if(wide_char)
+					GetTextExtentPoint32W(hdc,str,wcslen(str),&size);
+				else
+					GetTextExtentPoint32(hdc,str,strlen(str),&size);
 			}
 			ReleaseDC(hwnd,hdc);
 			return size.cx;
@@ -222,7 +228,7 @@ int load_ini_server_listview(HWND hlistview)
 	for(i=0;i<sizeof(server_columns)/sizeof(COLUMN);i++){
 		sprintf(key,"server_width_%s",server_columns[i].name);
 		if(server_columns[i].width==0){
-			server_columns[i].width=get_str_width(hlistview,server_columns[i].name);
+			server_columns[i].width=get_str_width(hlistview,server_columns[i].name,FALSE);
 			server_columns[i].width+=14;
 		}
 		get_ini_value("SETTINGS",key,&server_columns[i].width);
@@ -607,7 +613,7 @@ int load_ini_channel_listview(HWND hlistview)
 	for(i=0;i<sizeof(channel_columns)/sizeof(COLUMN);i++){
 		sprintf(key,"channel_width_%s",channel_columns[i].name);
 		if(channel_columns[i].width==0){
-			channel_columns[i].width=get_str_width(hlistview,channel_columns[i].name);
+			channel_columns[i].width=get_str_width(hlistview,channel_columns[i].name,FALSE);
 			channel_columns[i].width+=14;
 		}
 		get_ini_value("SETTINGS",key,&channel_columns[i].width);
@@ -841,32 +847,34 @@ int update_sort_col(HWND hlistview,int dir,int column)
 		WCHAR str[80]={0};
 		LV_COLUMN col={0};
 		int j,len;
-		col.mask=LVCF_TEXT;
+		col.mask=LVCF_TEXT|LVCF_WIDTH;
 		col.pszText=str;
 		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
 		SendMessageW(hlistview,LVM_GETCOLUMNW,i,&col);
 		len=wcslen(col.pszText);
-		if(column!=i){
+		{
+			int index=0;
 			for(j=0;j<len;j++){
-				unsigned char tmp[16]={0};
-				wctomb(tmp,str[j]);
-				if(tmp[0]<' ' || tmp[0]>='z')
-					str[i]=0;
-			}
-		}else{
-			if(len>0 && len<((sizeof(str)/sizeof(WCHAR))-1)){
-				WCHAR n,c=str[len-1];
-				if(dir)
-					n=0x25B2;
+				WCHAR c=str[j];
+				if(c==0x25BC || c==0x25B2)
+					c=c;
 				else
-					n=0x25BC;
-				if(c==0x25B2 || c==0x25BC)
-					str[len-1]=n;
-				else{
-					str[len]=n;
-					str[len+1]=0;
-				}
+					str[index++]=str[j];
 			}
+			str[index]=0;
+		}
+		if(column==i){
+			int width;
+			if( len<=((sizeof(str)/sizeof(WCHAR))-2) ){
+				str[len+1]=0;
+				for(j=len;j>0;j--){
+					str[j]=str[j-1];
+				}
+				str[0]=dir?0x25BC:0x25B2;
+			}
+			width=get_str_width(hlistview,str,TRUE)+14;
+			if(width>col.cx)
+				col.cx=width;
 		}
 		col.pszText=str;
 		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
@@ -881,7 +889,7 @@ int sort_listview(HWND hlistview,int dir,int column)
 	fh.dir=dir;
 	fh.col=column;
 	ListView_SortItems(hlistview,compare_func,&fh);
-	//update_sort_col(hlistview,dir,column);
+	update_sort_col(hlistview,dir,column);
 	return TRUE;
 }
 int create_listview(HWND hwnd,HWND hinstance)
