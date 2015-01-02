@@ -433,7 +433,6 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		}
 		break;
-	case WM_RBUTTONDOWN:
 	case WM_HELP:
 		default_color^=1;
 		if(default_color){
@@ -497,7 +496,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			short y=HIWORD(wparam);
 			int dir=0;
-			int modifier=(LOWORD(wparam)&MK_RBUTTON)?10:1;
+			int modifier=(LOWORD(wparam)&(MK_RBUTTON|MK_SHIFT))?10:1;
 			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			if(y>0){
 				if(line==0)
@@ -506,7 +505,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			else
 				dir=1;
-			line+=dir*modifier*5;
+			line+=dir*modifier*((wparam&MK_CONTROL)?1:5);
 			if(line>=count)
 				line=count-1;
 			else if(line<0)

@@ -95,13 +95,14 @@ int server_thread(SERVER_THREAD *thread)
 				thread->disconnected=FALSE;
 				irc_connect_run(session,thread->server,thread->port,thread->nick,thread->password);
 				EnterCriticalSection(&mutex);
-					win->session=0;
+					win=find_server_window(thread->server);
+					if(win!=0)
+						win->session=0;
 					irc_destroy_session(session);
 					erase_all_sessions(session);
 					thread->disconnected=TRUE;
 				LeaveCriticalSection(&mutex);
 				printf("disconnected\n");
-				win=find_server_window(thread->server);
 				if(win==0 || win->hwnd==0 || win->disconnect)
 					goto quit;
 				else
