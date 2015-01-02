@@ -303,7 +303,7 @@ static BOOL CALLBACK select_font(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 #define IDC_LIST_BOX (IDC_USER_EDIT+1)
 	static HWND hparent=0,hlist=0;
 	static int selected_font=0;
-	static char *fonts[5]={"Default","Arial","Tahoma","Verdana","MS Serif"};
+	static char *fonts[6]={"Default","Consolas","Arial","Tahoma","Verdana","MS Serif"};
 
 	switch(msg){
 	case WM_INITDIALOG:
@@ -389,7 +389,6 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		}
-		set_title(hwnd,view_utf8,default_color,line);
 		calc_scrollbar(hwnd,line);
 		default_color=0;
 		view_utf8=0;
@@ -398,6 +397,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
 		old_win_proc=SetWindowLong(GetDlgItem(hwnd,IDC_SCROLLBAR),GWL_WNDPROC,subclass_proc);
 		create_vga_font();
+		set_title(hwnd,view_utf8,default_color,line);
 		break;
 	case WM_SIZE:
 		{
