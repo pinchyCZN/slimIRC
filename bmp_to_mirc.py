@@ -38,7 +38,7 @@ def get_closest(r,g,b):
 #    print closest
     return closest
 
-fname="e:\\filexfer\\clip1.bmp"
+fname="B:\\Clipboard01.bmp"
 for files in os.listdir("."):
     if files.endswith(".bmp"):
         fname=files

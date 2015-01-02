@@ -535,6 +535,15 @@ int sanatize_string(unsigned char *str,int len)
 	}
 	return TRUE;
 }
+int print_lasterror()
+{
+  int error = GetLastError();
+  char buffer[128];
+  if (FormatMessageA(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
+      NULL, error, 0, buffer, sizeof(buffer)/sizeof(char), NULL))
+	printf("error=%s\n",buffer);
+  return 0;
+}
 /*
 //----------------------------------------------------------------------------
 // ObjectWindows

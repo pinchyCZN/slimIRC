@@ -2,6 +2,7 @@
 #define _WIN32_WINNT 0x400
 #endif
 #include <windows.h>
+#include <richedit.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "resource.h"
@@ -11,6 +12,8 @@ extern HINSTANCE ghinstance;
 static HWND hstatic;
 int client_width=0,client_height=0;
 int default_color=FALSE;
+char *vgargb=0;
+char *fontname=0;
 
 #define MIRC_MAX_COLORS 15
 #define MAX_COLOR_LOOKUP 18
@@ -38,18 +41,26 @@ enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MI
 
 int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
 {
-	int i,j;
-	unsigned char *p=vga737_bin+a*12;
-	for(i=0;i<12;i++){
-		for(j=0;j<8;j++){
-			int c=0;
-			if(p[i]&(1<<(7-j)))
-				c=cf;
-			else
-				c=cb;
-			SetPixel(hdc,x+j,y+i,c);
-		}
-	}
+	struct TMP{
+		BITMAPINFOHEADER bmiHeader;
+		DWORD colors[2];
+	};
+	struct TMP bmi={0};
+	bmi.bmiHeader.biBitCount=8;
+	bmi.bmiHeader.biWidth=8;
+	bmi.bmiHeader.biHeight=12;
+	bmi.bmiHeader.biPlanes=1;
+	bmi.bmiHeader.biSizeImage=8*12;
+	bmi.bmiHeader.biXPelsPerMeter=12;
+	bmi.bmiHeader.biYPelsPerMeter=12;
+	bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+	bmi.colors[1]=cf;
+	bmi.colors[0]=cb;
+	SetDIBitsToDevice(hdc,x,y,8,12,
+		0,0, //src xy
+		0,12, //startscan,scanlines
+		vgargb+a*12*8,
+		(BITMAPINFO*)&bmi,DIB_RGB_COLORS);
 	return 0;
 }
 int clear_screen(HDC hdc)
@@ -181,10 +192,97 @@ do_draw:
 	}
 	return 0;
 }
-static int set_title(HWND hwnd,int line)
+int draw_unicode(HDC hdc,int line,int line_count)
+{
+	char str[768];
+	int i,offset=3;
+	HFONT hfont=0,hfold=0;
+	clear_screen(hdc);
+	if(fontname){
+		TEXTMETRIC tm;
+		GetTextMetrics(hdc,&tm);
+		hfont=CreateFont(tm.tmHeight,tm.tmAveCharWidth,0,0,tm.tmWeight,
+			0,0,0,tm.tmCharSet,
+			OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,
+			DEFAULT_QUALITY,DEFAULT_PITCH,
+			fontname);
+		if(hfont)
+			hfold=SelectObject(hdc,hfont);
+	}
+	if(default_color){
+		SetBkColor(hdc,color_lookup[0]);
+		SetTextColor(hdc,color_lookup[1]);
+	}else{
+		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
+		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
+	}
+	for(i=0;i<line_count;i++){
+		int cpy;
+		memset(str,0,sizeof(str));
+		((short*)(str+offset))[0]=sizeof(str)-offset;
+		cpy=SendMessage(hstatic,EM_GETLINE,line+i,str+offset);
+		if(cpy>0 && cpy<(sizeof(str)/sizeof(WCHAR))){
+			WCHAR tmp[1024];
+			SIZE size={0};
+			RECT rect={0};
+			int len;
+			str[0]=0xEF;
+			str[1]=0xBB;
+			str[2]=0xBF;
+			cpy+=offset;
+			len=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,str,cpy,tmp,sizeof(tmp)/sizeof(WCHAR));
+			if(len>0){
+				GetTextExtentPoint32W(hdc,tmp,len,&size);
+				rect.right=size.cx;
+				rect.top=i*size.cy;
+				rect.bottom=rect.top+size.cy;
+				DrawTextExW(hdc,tmp,len,&rect,0,NULL);
+			}
+		}
+	}
+	if(hfold){
+		SelectObject(hdc,hfold);
+		DeleteObject(hfont);
+	}
+	return 0;
+}
+static int free_vga_font()
+{
+	if(vgargb){
+		free(vgargb);
+		vgargb=0;
+	}
+	return 0;
+}
+static int create_vga_font()
+{
+	if(vgargb==0)
+		vgargb=malloc(8*12*256);
+	if(vgargb){
+		int i,j,k;
+		for(k=0;k<256;k++){
+			for(i=0;i<12;i++){
+				for(j=0;j<8;j++){
+					int c;
+					char *p=vga737_bin+k*12;
+					if(p[i]&(1<<(7-j)))
+						c=1;
+					else
+						c=0;
+					//flip y
+					vgargb[k*8*12+j+(11-i)*8]=c;
+				}
+			}
+		}
+	}
+	return 0;
+}
+static int set_title(HWND hwnd,int view_utf8,int default_color,int line)
 {
 	char str[80];
-	_snprintf(str,sizeof(str),"Ascii art  %u",line);
+	_snprintf(str,sizeof(str),"%s - %s , line %i",
+		view_utf8?"UTF8 view":"Art viewer",
+		default_color?"default color":"system color",line);
 	SetWindowText(hwnd,str);
 	return 0;
 }
@@ -200,23 +298,86 @@ static int calc_scrollbar(HWND hwnd,int line)
 	SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETPOS,ratio,TRUE);
 	return 0;
 }
+static BOOL CALLBACK select_font(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+#define IDC_LIST_BOX (IDC_USER_EDIT+1)
+	static HWND hparent=0,hlist=0;
+	static int selected_font=0;
+	static char *fonts[5]={"Default","Arial","Tahoma","Verdana","MS Serif"};
+
+	switch(msg){
+	case WM_INITDIALOG:
+		{
+			RECT rect={0};
+			hparent=lparam;
+			GetWindowRect(GetDlgItem(hwnd,IDC_USER_EDIT),&rect);
+			MapWindowPoints(0,hwnd,&rect,2);
+			hlist=CreateWindow("COMBOBOX","combo",WS_CHILD|WS_TABSTOP|WS_VISIBLE|CBS_DROPDOWNLIST|CBS_SIMPLE,
+				rect.left,rect.top,rect.right-rect.left,600,
+				hwnd,IDC_LIST_BOX,ghinstance,0);
+			DestroyWindow(GetDlgItem(hwnd,IDC_USER_EDIT));
+			if(hlist){
+				int i;
+				for(i=0;i<sizeof(fonts)/sizeof(char*);i++)
+					SendMessage(hlist,CB_ADDSTRING,0,fonts[i]);
+				SendMessage(hlist,CB_SETCURSEL,selected_font,0);
+				SetFocus(hlist);
+			}
+			SetWindowText(hwnd,"Select font");
+			if(hparent){
+				RECT rparent={0};
+				GetWindowRect(hparent,&rparent);
+				GetWindowRect(hwnd,&rect);
+				SetWindowPos(hwnd,0,
+					rparent.right-(rect.right-rect.left),
+					rparent.top,0,0,SWP_NOZORDER|SWP_NOSIZE);
+			}
+		}
+		break;
+	case WM_QUIT:
+	case WM_CLOSE:
+		EndDialog(hwnd,0);
+		break;
+	case WM_COMMAND:
+		switch(LOWORD(wparam)){
+		case IDOK:
+		case IDCANCEL:
+			EndDialog(hwnd,0);
+			break;
+		case IDC_USER_EDIT+1:
+			if(HIWORD(wparam)==CBN_SELCHANGE){
+				selected_font=SendMessage(hlist,CB_GETCURSEL,0,0);
+				if(selected_font==0)
+					fontname=0;
+				else
+					fontname=fonts[selected_font];
+				InvalidateRect(hparent,NULL,TRUE);
+			}
+			break;
+		}
+		break;
+	}
+	return 0;
+}
+static WNDPROC old_win_proc=0;
+static LRESULT CALLBACK subclass_proc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam)
+{
+	switch(msg){
+	case WM_KEYFIRST:
+		SendMessage(GetParent(hwnd),WM_APP,LOWORD(wparam),0);
+		break;
+	}
+	return CallWindowProc(old_win_proc,hwnd,msg,wparam,lparam);
+}
+
 BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HWND grippy=0;
 	static int line=0;
 	static int vlines=30;
+	static int view_utf8=0;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	if(FALSE)
-	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE/*&&msg!=WM_NOTIFY*/)
-	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
-	{
-		static DWORD tick;
-		if((GetTickCount()-tick)>500)
-			printf("--\n");
-		print_msg(msg,lparam,wparam,hwnd);
-		tick=GetTickCount();
-	}
 	switch(msg){
 	case WM_INITDIALOG:
 		grippy=create_grippy(hwnd);
@@ -228,12 +389,15 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		}
-		set_title(hwnd,line);
+		set_title(hwnd,view_utf8,default_color,line);
 		calc_scrollbar(hwnd,line);
 		default_color=0;
+		view_utf8=0;
 		color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
 		color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
 		color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
+		old_win_proc=SetWindowLong(GetDlgItem(hwnd,IDC_SCROLLBAR),GWL_WNDPROC,subclass_proc);
+		create_vga_font();
 		break;
 	case WM_SIZE:
 		{
@@ -255,6 +419,20 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		}
 		break;
+	case WM_APP:
+		switch(wparam){
+		case VK_F2:
+			view_utf8^=1;
+			set_title(hwnd,view_utf8,default_color,line);
+			InvalidateRect(hwnd,NULL,TRUE);
+			break;
+		case ' ':
+		case VK_F3:
+			if(view_utf8)
+				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_USER_INPUT),hwnd,select_font,hwnd);
+			break;
+		}
+		break;
 	case WM_RBUTTONDOWN:
 	case WM_HELP:
 		default_color^=1;
@@ -262,19 +440,19 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			color_lookup[0]=0xFFFFFF;
 			color_lookup[MIRC_BG]=0xFFFFFF;
 			color_lookup[MIRC_FG]=0;
-			SetWindowText(hwnd,"Art viewer - default color");
 		}
 		else{
 			color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
 			color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
 			color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
-			SetWindowText(hwnd,"Art viewer - system color");
 		}
+		set_title(hwnd,view_utf8,default_color,line);
 		InvalidateRect(hwnd,NULL,TRUE);
 		break;
 	case WM_COMMAND:
 		switch(LOWORD(wparam)){
 		case IDCANCEL:
+			free_vga_font();
 			EndDialog(hwnd,0);
 			break;
 		}
@@ -310,7 +488,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				if(line>=count)
 					line=count-1;
 			}
-			set_title(hwnd,line);
+			set_title(hwnd,view_utf8,default_color,line);
 			calc_scrollbar(hwnd,line);
 			InvalidateRect(hwnd,NULL,TRUE);
 		}
@@ -333,7 +511,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				line=count-1;
 			else if(line<0)
 				line=0;
-			set_title(hwnd,line);
+			set_title(hwnd,view_utf8,default_color,line);
 			calc_scrollbar(hwnd,line);
 			InvalidateRect(hwnd,NULL,TRUE);
 		}
@@ -342,11 +520,15 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		return TRUE;
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
-		draw_edit_art(hdc,line,vlines);
+		if(view_utf8)
+			draw_unicode(hdc,line,vlines);
+		else
+			draw_edit_art(hdc,line,vlines);
 		EndPaint(hwnd,&ps);
 		break;
 	case WM_CLOSE:
 	case WM_QUIT:
+		free_vga_font();
 		EndDialog(hwnd,0);
 		break;	
 	}
