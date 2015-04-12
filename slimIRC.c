@@ -717,6 +717,39 @@ int save_window_position(HWND hwnd)
 	}
 	return FALSE;
 }
+int snap_window(HWND hwnd,RECT *rect)
+{
+	if(hwnd && rect){
+		HMONITOR hmon;
+		MONITORINFO mi;
+		hmon=MonitorFromRect(rect,MONITOR_DEFAULTTONEAREST);
+		mi.cbSize=sizeof(mi);
+		if(GetMonitorInfo(hmon,&mi)){
+			long d_top,d_bottom,d_left,d_right;
+			d_right=mi.rcWork.right-rect->right;
+			if(d_right<=8 && d_right>=-4){
+				rect->right=mi.rcWork.right;
+				rect->left+=d_right;
+			}
+			d_left=rect->left-mi.rcWork.left;
+			if(d_left<=8 && d_left>=-4){
+				rect->left=mi.rcWork.left;
+				rect->right-=d_left;
+			}
+			d_top=rect->top-mi.rcWork.top;
+			if(d_top<=8 && d_top>=-4){
+				rect->top=mi.rcWork.top;
+				rect->bottom-=d_top;
+			}
+			d_bottom=mi.rcWork.bottom-rect->bottom;
+			if(d_bottom<=8 && d_bottom>=-4){
+				rect->bottom=mi.rcWork.bottom;
+				rect->top+=d_bottom;
+			}
+		}
+	}
+	return 0;
+}
 int clamp_window_size(int *x,int *y,int *width,int *height,RECT *monitor)
 {
 	int mwidth,mheight;
@@ -743,7 +776,7 @@ int clamp_window_size(int *x,int *y,int *width,int *height,RECT *monitor)
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if(control_debug(IDC_TOP_WNDPROC,0,0))
+	//if(control_debug(IDC_TOP_WNDPROC,0,0))
 	if(msg!=WM_MOUSEFIRST&&msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE&&msg!=WM_NOTIFY)
 	//if(msg!=WM_NCHITTEST&&msg!=WM_SETCURSOR&&msg!=WM_ENTERIDLE)
 	{
@@ -861,6 +894,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_KILLFOCUS:
 		break;
 	case WM_NCCALCSIZE:
+		break;
+	case WM_MOVING:
+		if(GetKeyState(VK_CONTROL)&0x8000)
+			snap_window(hwnd,lparam);
 		break;
 	case WM_SIZE:
 		resize_switchbar(hwnd,ghmdiclient,ghswitchbar,switch_height);
