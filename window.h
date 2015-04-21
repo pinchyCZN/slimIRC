@@ -15,7 +15,7 @@ int move_console()
 	GetConsoleTitle(title,sizeof(title));
 	if(title[0]!=0){
 		hcon=FindWindow(NULL,title);
-		SetWindowPos(hcon,0,600,0,800,600,SWP_NOZORDER);
+		SetWindowPos(hcon,0,0,0,800,600,SWP_NOZORDER);
 	}
 	return 0;
 }

@@ -535,9 +535,6 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		irc_connect_ptr=irc_connect6;
 		srv+=sizeof("IPV6:")-1;
 	}
-	// If the port number is specified in the server string, use the port 0 so it gets parsed
-	if(strchr(srv,':')!=0)
-		port=0;
 
 	// To handle the "SSL certificate verify failed" from command line we allow passing ## in front 
 	// of the server name, and in this case tell libircclient not to verify the cert

@@ -169,14 +169,6 @@ int irc_connect (irc_session_t * session,
 	session->nick = strdup (nick);
 	session->server = strdup (server);
 
-	// If port number is zero and server contains the port, parse it
-	if ( port == 0 && (p = strchr( session->server, ':' )) != 0 )
-	{
-		// Terminate the string and parse the port number
-		*p++ = '\0';
-		port = atoi( p );
-	}
-
 	// IPv4 address resolving
 	memset( &saddr, 0, sizeof(saddr) );
 	saddr.sin_family = AF_INET;
@@ -254,16 +246,19 @@ int irc_connect6 (irc_session_t * session,
 			const char * realname)
 {
 #if defined (ENABLE_IPV6)
+#if defined (_WIN32)
+	//need 28 byte struct
+	struct sockaddr_in6{
+		short	sin6_family;   	/* AF_INET6 */
+		u_short sin6_port;	/* Transport level port number */
+		u_long	sin6_flowinfo;	/* IPv6 flow information */
+		struct in_addr6 sin6_addr; /* IPv6 address */
+		u_long sin6_scope_id; /* Scope ID (new in 2.4) */
+	};
+#endif
 	struct sockaddr_in6 saddr;
 	struct addrinfo ainfo, *res = NULL;
 	char portStr[32], *p;
-#if defined (_WIN32)
-	int addrlen = sizeof(saddr);
-	HMODULE hWsock;
-	getaddrinfo_ptr_t getaddrinfo_ptr;
-	freeaddrinfo_ptr_t freeaddrinfo_ptr;
-	int resolvesuccess = 0;
-#endif
 
 	// Check and copy all the specified fields
 	if ( !server || !nick )
@@ -305,14 +300,6 @@ int irc_connect6 (irc_session_t * session,
 	session->nick = strdup (nick);
 	session->server = strdup (server);
 
-	// If port number is zero and server contains the port, parse it
-	if ( port == 0 && (p = strchr( session->server, ':' )) != 0 )
-	{
-		// Terminate the string and parse the port number
-		*p++ = '\0';
-		port = atoi( p );
-	}
-	
 	memset( &saddr, 0, sizeof(saddr) );
 	saddr.sin6_family = AF_INET6;
 	saddr.sin6_port = htons (port);	
@@ -320,10 +307,17 @@ int irc_connect6 (irc_session_t * session,
 	sprintf( portStr, "%u", (unsigned)port );
 
 #if defined (_WIN32)
+	{
+	int addrlen = sizeof(saddr);
 	if ( WSAStringToAddressA( (LPSTR)session->server, AF_INET6, NULL, (struct sockaddr *)&saddr, &addrlen ) == SOCKET_ERROR )
 	{
+		HMODULE hWsock;
+		int resolvesuccess = 0;
+		getaddrinfo_ptr_t getaddrinfo_ptr;
+		freeaddrinfo_ptr_t freeaddrinfo_ptr;
 		hWsock = LoadLibraryA("ws2_32");
 
+		print_lastwsaerror();
 		if (hWsock)
 		{
 			/* Determine functions at runtime, because windows systems < XP do not
@@ -353,6 +347,8 @@ int irc_connect6 (irc_session_t * session,
 			return 1;
 		}
 	}
+	}
+	saddr.sin6_port=port;
 #else
 	if ( inet_pton( AF_INET6, session->server, (void*) &saddr.sin6_addr ) <= 0 )
 	{		
@@ -399,10 +395,11 @@ int irc_connect6 (irc_session_t * session,
 	{
 		session->lasterror = LIBIRC_ERR_SOCKET;
 		return 1;
-	}	
+	}
     // and connect to the IRC server
     if ( socket_connect (&session->sock, (struct sockaddr *) &saddr, sizeof(saddr)) )
     {
+		print_lastwsaerror();
     	session->lasterror = LIBIRC_ERR_CONNECT;
 		return 1;
     }
