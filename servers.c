@@ -251,12 +251,12 @@ int load_ini_server_listview(HWND hlistview)
 }
 int load_ini_servers(HWND hlistview)
 {
-	int i;
+	int i,count=0;
 	ListView_DeleteAllItems(hlistview);
 	for(i=0;i<MAX_SERVERS;i++){
 		char network_server[160]={0};
 		if(get_ini_entry("SERVERS",i,network_server,sizeof(network_server))){
-			int j,count=0;
+			int j;
 			char str[160]={0};
 			struct LV_INI_DATA{
 				char *col_name;
@@ -310,7 +310,7 @@ int load_ini_servers(HWND hlistview)
 					listItem.pszText = str;
 					listItem.iItem = item;
 					listItem.iSubItem = j;
-					listItem.lParam = count++;
+					listItem.lParam = count;
 					if(j==0){
 						item=ListView_InsertItem(hlistview,&listItem);
 					}
@@ -318,6 +318,7 @@ int load_ini_servers(HWND hlistview)
 						ListView_SetItemText(hlistview,item,j,str);
 					}
 				}
+				count++;
 			}
 		}
 	}
