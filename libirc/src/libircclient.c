@@ -259,6 +259,8 @@ int irc_connect6 (irc_session_t * session,
 	struct sockaddr_in6 saddr;
 	struct addrinfo ainfo, *res = NULL;
 	char portStr[32], *p;
+	int addrlen = sizeof(saddr);
+	wchar_t tmp[100]={0};
 
 	// Check and copy all the specified fields
 	if ( !server || !nick )
@@ -305,19 +307,18 @@ int irc_connect6 (irc_session_t * session,
 	saddr.sin6_port = htons (port);	
 	
 	sprintf( portStr, "%u", (unsigned)port );
+	mbstowcs(tmp,session->server,sizeof(tmp));
 
 #if defined (_WIN32)
-	{
-	int addrlen = sizeof(saddr);
-	if ( WSAStringToAddressA( (LPSTR)session->server, AF_INET6, NULL, (struct sockaddr *)&saddr, &addrlen ) == SOCKET_ERROR )
+	if ( WSAStringToAddressW( (LPSTR)tmp, AF_INET6, NULL, (struct sockaddr *)&saddr, &addrlen ) == SOCKET_ERROR )
 	{
 		HMODULE hWsock;
 		int resolvesuccess = 0;
 		getaddrinfo_ptr_t getaddrinfo_ptr;
 		freeaddrinfo_ptr_t freeaddrinfo_ptr;
 		hWsock = LoadLibraryA("ws2_32");
-
 		print_lastwsaerror();
+
 		if (hWsock)
 		{
 			/* Determine functions at runtime, because windows systems < XP do not
@@ -337,6 +338,8 @@ int irc_connect6 (irc_session_t * session,
 					resolvesuccess = 1;
 					memcpy( &saddr, res->ai_addr, res->ai_addrlen );
 					freeaddrinfo_ptr( res );
+				}else{
+					print_lastwsaerror();
 				}
 			}
 			FreeLibrary(hWsock);
@@ -347,8 +350,7 @@ int irc_connect6 (irc_session_t * session,
 			return 1;
 		}
 	}
-	}
-	saddr.sin6_port=port;
+	saddr.sin6_port = htons (port);
 #else
 	if ( inet_pton( AF_INET6, session->server, (void*) &saddr.sin6_addr ) <= 0 )
 	{		
@@ -397,6 +399,7 @@ int irc_connect6 (irc_session_t * session,
 		return 1;
 	}
     // and connect to the IRC server
+	//if(!WSAConnectByNameA(session->sock,portStr,&addrlen, &saddr,NULL,NULL,2000,NULL))
     if ( socket_connect (&session->sock, (struct sockaddr *) &saddr, sizeof(saddr)) )
     {
 		print_lastwsaerror();

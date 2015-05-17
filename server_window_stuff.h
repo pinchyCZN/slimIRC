@@ -93,7 +93,7 @@ int server_thread(SERVER_THREAD *thread)
 			if(win!=0){
 				win->session=session;
 				thread->disconnected=FALSE;
-				irc_connect_run(session,thread->server,thread->port,thread->nick,thread->password);
+				irc_connect_run(session,thread->server,thread->port,thread->nick,thread->password,thread->user);
 				EnterCriticalSection(&mutex);
 					win=find_server_window(thread->server);
 					if(win!=0)
@@ -131,7 +131,8 @@ quit:
 	PostMessage(ghmainframe,WM_APP,MSG_UPDATE_STATUS,0);
 	return _endthread();
 }
-int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,char *password)
+int connect_server(HWND hmdiclient,
+				   char *network,char *serv,int port,int ssl,char *password,char *user,char *nick)
 {
 	char server[80];
 	HWND hwndmdi;
@@ -154,7 +155,7 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 		handle_switch_button(win->hbutton,FALSE);
 		return TRUE;
 	}
-	thread=acquire_server_thread(network,server,port,password);
+	thread=acquire_server_thread(network,server,port,password,user,nick);
 	if(thread==0)
 		return FALSE;
 	win=acquire_server_window(network,server,port,password);
@@ -164,7 +165,10 @@ int connect_server(HWND hmdiclient,char *network,char *serv,int port,int ssl,cha
 			strncpy(win->password,password,sizeof(win->password));
 			strncpy(win->nick,"slimirc",sizeof(win->nick));
 			get_ini_str("SETTINGS","NICK",win->nick,sizeof(win->nick));
-			strncpy(thread->nick,win->nick,sizeof(thread->nick));
+			if(thread->nick[0]==0)
+				strncpy(thread->nick,win->nick,sizeof(thread->nick));
+			else
+				strncpy(win->nick,thread->nick,sizeof(win->nick));
 			if(win->hbutton==0)
 				SendMessage(ghswitchbar,WM_APP,MSG_ADD_BUTTON,win->hwnd);
 			if(!thread->thread_started){

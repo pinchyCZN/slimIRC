@@ -21,6 +21,8 @@ COLUMN server_columns[]={
 	{"connect_on_startup",0},
 	{"ssl",0},
 	{"password",0},
+	{"user",0},
+	{"nick",0},
 };
 int get_str_width(HWND hwnd,char *str,int wide_char)
 {
@@ -162,42 +164,44 @@ int delete_selected_server(HWND hlistview)
 }
 int populate_add_server_win(HWND hlistview,HWND hwnd)
 {
-	char str[100]={0};
-	LV_ITEM lvi={0};
+	int i;
+	struct LV_DATA{
+		int idc;
+		int subitem;
+		int is_check;
+	};
+	struct LV_DATA lv_data_list[]={
+		{IDC_NETWORK,0,0},
+		{IDC_SERVER,1,0},
+		{IDC_PORTS,2,0},
+		{IDC_CONNECT_STARTUP,3,1},
+		{IDC_SSL,4,1},
+		{IDC_PASSWORD,5,0},
+		{IDC_USER,6,0},
+		{IDC_NICK,7,0}
+	};
 	int item=get_focused_item(hlistview);
 	if(item<0)
 		return FALSE;
-	lvi.mask=LVIF_TEXT;
-	lvi.iItem=item;
-	lvi.iSubItem=0;
-	lvi.pszText=str;
-	lvi.cchTextMax=sizeof(str);
-	if(ListView_GetItem(hlistview,&lvi))
-		SetDlgItemText(hwnd,IDC_NETWORK,str);
-	str[0]=0;
-	lvi.iSubItem=1;
-	if(ListView_GetItem(hlistview,&lvi))
-		SetDlgItemText(hwnd,IDC_SERVER,str);
-	str[0]=0;
-	lvi.iSubItem=2;
-	if(ListView_GetItem(hlistview,&lvi))
-		SetDlgItemText(hwnd,IDC_PORTS,str);
-	str[0]=0;
-	lvi.iSubItem=3;
-	if(ListView_GetItem(hlistview,&lvi)){
-		if(str[0]!=0)
-			CheckDlgButton(hwnd,IDC_CONNECT_STARTUP,TRUE);
+	for(i=0;i<sizeof(lv_data_list)/sizeof(struct LV_DATA);i++){
+		char str[100]={0};
+		LV_ITEM lvi={0};
+		lvi.mask=LVIF_TEXT;
+		lvi.iItem=item;
+		lvi.iSubItem=lv_data_list[i].subitem;
+		lvi.pszText=str;
+		lvi.cchTextMax=sizeof(str);
+		if(ListView_GetItem(hlistview,&lvi)){
+			if(str[0]!=0){
+				int idc=lv_data_list[i].idc;
+				if(lv_data_list[i].is_check)
+					CheckDlgButton(hwnd,idc,TRUE);
+				else
+					SetDlgItemText(hwnd,idc,str);
+			}
+		}
+
 	}
-	str[0]=0;
-	lvi.iSubItem=4;
-	if(ListView_GetItem(hlistview,&lvi)){
-		if(str[0]!=0)
-			CheckDlgButton(hwnd,IDC_SSL,TRUE);
-	}
-	str[0]=0;
-	lvi.iSubItem=5;
-	if(ListView_GetItem(hlistview,&lvi))
-		SetDlgItemText(hwnd,IDC_PASSWORD,str);
 	return TRUE;
 }
 
@@ -247,48 +251,71 @@ int load_ini_server_listview(HWND hlistview)
 }
 int load_ini_servers(HWND hlistview)
 {
-	int i,count=0;
+	int i;
 	ListView_DeleteAllItems(hlistview);
 	for(i=0;i<MAX_SERVERS;i++){
 		char network_server[160]={0};
 		if(get_ini_entry("SERVERS",i,network_server,sizeof(network_server))){
-			char server[80]={0};
-			char network[80]={0};
-			if(network_server[0]!=0 
-				&& get_ini_str(network_server,"NETWORK",network,sizeof(network))
-				&& get_ini_str(network_server,"SERVER",server,sizeof(server))){
-				int ssl=0,connect_startup=0;
-				char password[40]={0},port[40]={0};
+			int j,count=0;
+			char str[160]={0};
+			struct LV_INI_DATA{
+				char *col_name;
+				char *ini_key;
+				int is_required;
+				int is_bool;
+				char *bool_text;
+				char *def_text;
+			};
+			struct LV_INI_DATA lv_ini_list[]={
+				{server_columns[0].name,"NETWORK",1,0,0,0},
+				{server_columns[1].name,"SERVER",1,0,0,0},
+				{server_columns[2].name,"PORT",0,0,0,"6667"},
+				{server_columns[3].name,"CONNECT_STARTUP",0,1,"connect on startup",0},
+				{server_columns[4].name,"SSL",0,1,"SSL",0},
+				{server_columns[5].name,"PASSWORD",0,0,0,0},
+				{server_columns[6].name,"USER",0,0,0,0},
+				{server_columns[7].name,"NICK",0,0,0,0},
+			};
+			int have_required=TRUE;
+			for(j=0;j<sizeof(lv_ini_list)/sizeof(struct LV_INI_DATA);j++){
+				if(lv_ini_list[j].is_required){
+					str[0]=0;
+					get_ini_str(network_server,lv_ini_list[j].ini_key,str,sizeof(str));
+					if(str[0]==0){
+						have_required=FALSE;
+						break;
+					}
+				}
+			}
+			if(have_required){
 				int item=0x80000000-1; //add to end of list
 				LVITEM listItem;
-				_snprintf(port,sizeof(port),"6667");
-				get_ini_str(network_server,"PORT",port,sizeof(port));
-				get_ini_value(network_server,"SSL",&ssl);
-				get_ini_value(network_server,"CONNECT_STARTUP",&connect_startup);
-				get_ini_str(network_server,"PASSWORD",password,sizeof(password));
-				listItem.mask = LVIF_TEXT|LVIF_PARAM;
-				listItem.pszText = network;
-				listItem.iItem = item;
-				listItem.iSubItem =0;
-				listItem.lParam = count++;
-
-				item=ListView_InsertItem(hlistview,&listItem);
-				if(item>=0){
-					int j;
-					for(j=1;j<sizeof(server_columns)/sizeof(COLUMN);j++){
-						char *text=0;
-						if(strstri(server_columns[j].name,"SERVER")!=0)
-							text=server;
-						else if(stricmp(server_columns[j].name,"PORT")==0)
-							text=port;
-						else if(stricmp(server_columns[j].name,"SSL")==0)
-							text=ssl!=0?"SSL":"";
-						else if(strstri(server_columns[j].name,"STARTUP")!=0)
-							text=connect_startup!=0?"connect on startup":"";
-						else if(strstri(server_columns[j].name,"PASSWORD")!=0)
-							text=password;
-						if(text!=0)
-							ListView_SetItemText(hlistview,item,j,text);
+				for(j=0;j<sizeof(lv_ini_list)/sizeof(struct LV_INI_DATA);j++){
+					str[0]=0;
+					if(lv_ini_list[j].is_bool){
+						int val=0;
+						get_ini_value(network_server,lv_ini_list[j].ini_key,&val);
+						if(val && lv_ini_list[j].bool_text){
+							_snprintf(str,sizeof(str),"%s",lv_ini_list[j].bool_text);
+							str[sizeof(str)-1]=0;
+						}
+					}else{
+						get_ini_str(network_server,lv_ini_list[j].ini_key,str,sizeof(str));
+						if(str[0]==0 && lv_ini_list[j].def_text){
+							_snprintf(str,sizeof(str),"%s",lv_ini_list[j].def_text);
+							str[sizeof(str)-1]=0;
+						}
+					}
+					listItem.mask = LVIF_TEXT|LVIF_PARAM;
+					listItem.pszText = str;
+					listItem.iItem = item;
+					listItem.iSubItem = j;
+					listItem.lParam = count++;
+					if(j==0){
+						item=ListView_InsertItem(hlistview,&listItem);
+					}
+					if(j>0 && item>=0){
+						ListView_SetItemText(hlistview,item,j,str);
 					}
 				}
 			}
@@ -298,57 +325,103 @@ int load_ini_servers(HWND hlistview)
 }
 int save_server_entry(HWND hwnd,int edit_entry,char *old_server_entry)
 {
-	int i,empty,match,SSL=FALSE,connect_start=FALSE;
-	char network[80]={0},server[80]={0},network_server[160]={0},ports[40]={0},password[40]={0};
-	GetDlgItemText(hwnd,IDC_NETWORK,network,sizeof(network));
-	GetDlgItemText(hwnd,IDC_SERVER,server,sizeof(server));
-	GetDlgItemText(hwnd,IDC_PORTS,ports,sizeof(ports));
-	GetDlgItemText(hwnd,IDC_PASSWORD,password,sizeof(password));
-	if(IsDlgButtonChecked(hwnd,IDC_SSL)==BST_CHECKED)
-		SSL=TRUE;
-	if(IsDlgButtonChecked(hwnd,IDC_CONNECT_STARTUP)==BST_CHECKED)
-		connect_start=TRUE;
-	trim_str(network);
-	trim_str(server);
-	trim_str(ports);
-	trim_str(password);
-	if(stricmp(server,"SETTINGS")==0 || stricmp(server,"SERVERS")==0 ||
-		stricmp(server,"CHANNELS")==0){
-		MessageBox(hwnd,"invalid server name\r\nnothing saved","error",MB_OK);
-		return FALSE;
-	}
-	if(strlen(network)==0 || strlen(server)==0)
-		return FALSE;
-	_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
-	if(strlen(ports)==0)
-		_snprintf(ports,sizeof(ports),"6667");
-
-	empty=-1;match=-1;
-	for(i=MAX_SERVERS-1;i>=0;i--){
-		char str[160]={0};
-		get_ini_entry("SERVERS",i,str,sizeof(str));
-		if(str[0]==0)
-			empty=i;
-		if(edit_entry && old_server_entry[0]!=0 && stricmp(str,old_server_entry)==0){
-			delete_ini_section(old_server_entry);
-			match=i;
+	char network[80]={0},server[80]={0},network_server[160]={0};
+	struct SERVER_ENTRY{
+		int idc;
+		char *ini_key;
+		char *invalid_names[3];
+		int is_check;
+		int needs_trim;
+		int is_required;
+		char *def_text;
+	};
+	struct SERVER_ENTRY slist[]={
+		{IDC_NETWORK,"NETWORK",{0},0,1,1,0},
+		{IDC_SERVER,"SERVER",{"SETTINGS","SERVERS","CHANNELS"},0,1,1,0},
+		{IDC_PORTS,"PORT",{0},0,1,0,"6667"},
+		{IDC_PASSWORD,"PASSWORD",{0},0,1,0,0},
+		{IDC_USER,"USER",{0},0,1,0,0},
+		{IDC_NICK,"NICK",{0},0,1,0,0},
+		{IDC_SSL,"SSL",{0},1,0,0,0},
+		{IDC_CONNECT_STARTUP,"CONNECT_STARTUP",{0},1,0,0,0},
+	};
+	int i;
+	for(i=0;i<sizeof(slist)/sizeof(struct SERVER_ENTRY);i++){
+		if(slist[i].is_required){
+			int j;
+			char str[80]={0};
+			GetDlgItemText(hwnd,slist[i].idc,str,sizeof(str));
+			if(slist[i].needs_trim)
+				trim_str(str);
+			if(str[0]==0){
+				return FALSE;
+			}
+			if(slist[i].invalid_names){
+				for(j=0;j<sizeof(slist[i].invalid_names)/sizeof(char *);j++){
+					if(0!=slist[i].invalid_names[j]){
+						if(0==stricmp(str,slist[i].invalid_names[j])){
+							_snprintf(str,sizeof(str),"invalid named entry:%s\r\nnothing saved",
+								slist[i].invalid_names[j]);
+							str[sizeof(str)-1]=0;
+							MessageBox(hwnd,str,"error",MB_OK);
+							return FALSE;
+						}
+					}
+				}
+			}
+			if(slist[i].idc==IDC_NETWORK){
+				strncpy(network,str,sizeof(network));
+				network[sizeof(network)-1]=0;
+			}
+			else if(slist[i].idc==IDC_SERVER){
+				strncpy(server,str,sizeof(server));
+				server[sizeof(server)-1]=0;
+			}
 		}
-		else if(str[0]!=0 && stricmp(str,network_server)==0)
-			match=i;
+
 	}
-	if((match>=0) || (empty>=0)){
-		int num=-1;
-		if(match>=0)
-			num=match;
-		else if(empty>=0)
-			num=empty;
-		if(set_ini_entry("SERVERS",num,network_server)){
-			write_ini_str(network_server,"NETWORK",network);
-			write_ini_str(network_server,"SERVER",server);
-			write_ini_str(network_server,"PORT",ports);
-			write_ini_str(network_server,"SSL",SSL?"1":"0");
-			write_ini_str(network_server,"CONNECT_STARTUP",connect_start?"1":"0");
-			write_ini_str(network_server,"PASSWORD",password);
+	if(network[0]!=0 && server[0]!=0)
+	{
+		int empty=-1,match=-1;
+		_snprintf(network_server,sizeof(network_server),"%s|%s",network,server);
+		network_server[sizeof(network_server)-1]=0;
+		for(i=MAX_SERVERS-1;i>=0;i--){
+			char str[160]={0};
+			get_ini_entry("SERVERS",i,str,sizeof(str));
+			if(str[0]==0)
+				empty=i;
+			if(edit_entry && old_server_entry[0]!=0 && stricmp(str,old_server_entry)==0){
+				delete_ini_section(old_server_entry);
+				match=i;
+			}
+			else if(str[0]!=0 && stricmp(str,network_server)==0)
+				match=i;
+		}
+		if((match>=0) || (empty>=0)){
+			int num=-1;
+			if(match>=0)
+				num=match;
+			else if(empty>=0)
+				num=empty;
+			set_ini_entry("SERVERS",num,network_server);
+			for(i=0;i<sizeof(slist)/sizeof(struct SERVER_ENTRY);i++){
+				char str[160]={0};
+				if(slist[i].is_check){
+					str[0]='0';str[1]=0;
+					if(IsDlgButtonChecked(hwnd,slist[i].idc)==BST_CHECKED)
+						str[0]='1';
+				}
+				else
+					GetDlgItemText(hwnd,slist[i].idc,str,sizeof(str));
+				if(slist[i].needs_trim)
+					trim_str(str);
+				if(str[0]==0 && slist[i].def_text){
+					strncpy(str,slist[i].def_text,sizeof(str));
+					str[sizeof(str)-1]=0;
+				}
+				write_ini_str(network_server,slist[i].ini_key,str);
+				
+			}
 		}
 	}
 	return TRUE;
@@ -929,14 +1002,17 @@ int auto_connect(HWND hmdi)
 		if(get_ini_entry("SERVERS",i,entry,sizeof(entry))){
 			int port=6667,connect=0,ssl=0;
 			char server[80]={0},network[80]={0},password[40]={0};
+			char user[40]={0},nick[20]={0};
 			get_ini_str(entry,"NETWORK",network,sizeof(network));
 			get_ini_str(entry,"SERVER",server,sizeof(server));
 			get_ini_str(entry,"PASSWORD",password,sizeof(password));
+			get_ini_str(entry,"USER",user,sizeof(user));
+			get_ini_str(entry,"NICK",nick,sizeof(nick));
 			get_ini_value(entry,"CONNECT_STARTUP",&connect);
 			get_ini_value(entry,"SSL",&ssl);
 			get_ini_value(entry,"PORT",&port);
 			if(network[0]!=0 && connect!=0){
-				connect_server(hmdi,network,server,port,ssl,password);
+				connect_server(hmdi,network,server,port,ssl,password,user,nick);
 				count++;
 			}
 		}

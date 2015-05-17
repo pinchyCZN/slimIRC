@@ -519,7 +519,7 @@ int create_session(irc_callbacks_t *callbacks)
 	else
 		return (int)s;
 }
-int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *password)
+int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *password,char *user)
 {
 	char real_name[80]={0},user_name[80]={0},pw[20]={0};
 	char *srv=server;
@@ -544,16 +544,11 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		srv=srv+1;
 	}
 	get_ini_str("SETTINGS","user_name",user_name,sizeof(user_name));
-	if(strchr(password,'|')!=0){
-		char *s=strchr(password,'|')+1;
-		strncpy(pw,s,sizeof(pw));
-		strncpy(user_name,password,sizeof(user_name));
-		s=strchr(user_name,'|');
-		if(s!=0)
-			s[0]=0;
+	if(user[0]!=0){
+		strncpy(user_name,user,sizeof(user_name));
+		user_name[sizeof(user_name)-1]=0;
 	}
-	else
-		strncpy(pw,password,sizeof(pw));
+	strncpy(pw,password,sizeof(pw));
 
 	get_ini_str("SETTINGS","real_name",real_name,sizeof(real_name));
 	if(irc_connect_ptr(s,srv,port,
@@ -581,7 +576,7 @@ int find_server_thread(char *network,char *server)
 	}
 	return 0;
 }
-int acquire_server_thread(char *network,char *server,int port,char *password)
+int acquire_server_thread(char *network,char *server,int port,char *password,char *user,char *nick)
 {
 	int i;
 	SERVER_THREAD *thread=0;
@@ -593,6 +588,8 @@ int acquire_server_thread(char *network,char *server,int port,char *password)
 				strncpy(thread->network,network,sizeof(thread->network));
 				strncpy(thread->server,server,sizeof(thread->server));
 				strncpy(thread->password,password,sizeof(thread->password));
+				strncpy(thread->user,user,sizeof(thread->user));
+				strncpy(thread->nick,nick,sizeof(thread->nick));
 				return thread;
 			}
 	}
@@ -603,6 +600,8 @@ int acquire_server_thread(char *network,char *server,int port,char *password)
 			strncpy(thread->network,network,sizeof(thread->network));
 			strncpy(thread->server,server,sizeof(thread->server));
 			strncpy(thread->password,password,sizeof(thread->password));
+			strncpy(thread->user,user,sizeof(thread->user));
+			strncpy(thread->nick,nick,sizeof(thread->nick));
 			return thread;
 		}
 	}

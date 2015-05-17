@@ -22,6 +22,7 @@ typedef struct{
 	int port;
 	char password[40];
 	char nick[20];
+	char user[40];
 	int thread_started;
 	int disconnected;
 }SERVER_THREAD;

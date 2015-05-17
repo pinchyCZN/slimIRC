@@ -41,7 +41,6 @@ int restore_list_pos(HWND hlistview,RECT *rect,int item)
 
 BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	extern short add_server_anchors[];
 	static HWND grippy=0;
 	static char old_server[160]={0};
 	static int help_active=FALSE;
@@ -53,6 +52,8 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		SendDlgItemMessage(hwnd,IDC_SERVER,EM_LIMITTEXT,80,0);
 		SendDlgItemMessage(hwnd,IDC_PORTS,EM_LIMITTEXT,40,0);
 		SendDlgItemMessage(hwnd,IDC_PASSWORD,EM_LIMITTEXT,40,0);
+		SendDlgItemMessage(hwnd,IDC_USER,EM_LIMITTEXT,40,0);
+		SendDlgItemMessage(hwnd,IDC_NICK,EM_LIMITTEXT,20,0);
 		grippy=create_grippy(hwnd);
 		list_edit=lparam;
 		if(list_edit){
@@ -74,7 +75,7 @@ BOOL CALLBACK add_server(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		break;
 	case WM_SIZE:
 		grippy_move(hwnd,grippy);
-		reposition_controls(hwnd,add_server_anchors);
+		reposition_add_server(hwnd);
 		break;
 	case WM_HELP:
 		if(!help_active){
@@ -165,6 +166,7 @@ BOOL CALLBACK server_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					else{
 						int item;
 						char server[80]={0},network[80]={0},port[40]={0},ssl[20]={0},password[40]={0};
+						char user[40]={0},nick[20]={0};
 connect_channel:
 						item=get_focused_item(ghlistview);
 						if(item>=0){
@@ -173,7 +175,9 @@ connect_channel:
 							ListView_GetItemText(ghlistview,item,2,port,sizeof(port));
 							ListView_GetItemText(ghlistview,item,4,ssl,sizeof(ssl));
 							ListView_GetItemText(ghlistview,item,5,password,sizeof(password));
-							if(connect_server(ghmdiclient,network,server,atoi(port),ssl[0]!=0,password))
+							ListView_GetItemText(ghlistview,item,6,user,sizeof(user));
+							ListView_GetItemText(ghlistview,item,7,nick,sizeof(nick));
+							if(connect_server(ghmdiclient,network,server,atoi(port),ssl[0]!=0,password,user,nick))
 								EndDialog(hwnd,0);
 							else
 								SetFocus(ghlistview);
@@ -979,7 +983,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	ctrls.dwSize=sizeof(ctrls);
     ctrls.dwICC = ICC_LISTVIEW_CLASSES;
 	InitCommonControlsEx(&ctrls);
-	WSAStartup(MAKEWORD(1,1),&wsaData);
+	WSAStartup(MAKEWORD(2,2),&wsaData);
 	
 	InitializeCriticalSection(&mutex);
 
