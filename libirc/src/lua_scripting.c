@@ -217,6 +217,31 @@ static int lua_irc_cmd_ctcp_reply(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+static int lua_shell_execute(lua_State *L)
+{
+	int result=0;
+	int count=lua_gettop(L);
+	if(count>=1){
+		char *file;
+		char *params=0,*dir=0;
+		int showcmd=SW_SHOWNORMAL;
+		//(file[,params,dir,showcmd])
+		file=lua_tostring(L,1);
+		if(count>=2)
+			params=lua_tostring(L,2);
+		if(count>=3)
+			dir=lua_tostring(L,3);
+		if(count>=4)
+			showcmd=lua_tointeger(L,4);
+		if(file){
+			if(32<ShellExecute(NULL,"open",file,params,dir,showcmd))
+				result=1;
+		}
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+
 typedef struct{
 	char *lua_name;
 	int(*lua_func)(lua_State *L);
@@ -236,6 +261,7 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"add_line_mdi_nolog",lua_add_line_mdi_nolog,"(win,str)"},
 	{"get_win_linecount",lua_get_win_linecount,"(win)"},
 	{"get_win_line",lua_get_win_line,"(win,line)"},
+	{"shell_execute",lua_shell_execute,"(file[,params,dir,showcmd])"},
 	0
 };
 int lua_register_c_functions(lua_State *L)

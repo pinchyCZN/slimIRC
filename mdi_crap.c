@@ -98,7 +98,7 @@ int control_debug(int type,char *name,char *set)
 		{"mdistatic",MDI_STATIC,FALSE},
 		{"wndproc",IDC_TOP_WNDPROC,FALSE}};
 #ifndef _DEBUG
-//	return FALSE;
+	return FALSE;
 #endif
 	if(set!=0){
 		if(stricmp(set,"on")==0){flag=TRUE;readonly=FALSE;}

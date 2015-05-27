@@ -6,9 +6,13 @@
 -- post_message (session,nch,msg)
 -- send_privmsg (session,origin,mynick,msg,type)
 -- find_channel_window (session,channel)
+-- find_network_session (network)
+-- get_session_network (session)
 -- add_line_mdi (win,str)
+-- add_line_mdi_nolog (win,str)
 -- get_win_linecount (win)
 -- get_win_line (win,line)
+-- shell_execute (file[,params,dir,showcmd])
 
 
 -- lua functions that get called after certain events
@@ -40,4 +44,5 @@
 
 -- function user_called_event(session,origin,nch,msg)
 -- slap menu calls this with msg GET_SLAP_COUNT and DO_SLAP rnd#
+-- URL_CLICK[:CS]=url as msg string, [CS] ctrl and shift modifiers
 -- end

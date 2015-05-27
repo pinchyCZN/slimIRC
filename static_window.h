@@ -299,6 +299,31 @@ int find_nick_in_list(HWND hlist,char *nick)
 	}
 	return ret;
 }
+int handle_lua_web_click(HWND hwnd,char *url)
+{
+	extern int lua_script_enable;
+	IRC_WINDOW *win;
+	int result=FALSE;
+	win=find_window_by_hwnd(hwnd);
+	if(win!=0){
+		if(lua_script_enable && is_lua_active(win->session)){
+			char *params[2]={win->channel,0};
+			char str[1024]={0};
+			char tmp[4]={0};
+			int shift,ctrl;
+			shift=GetKeyState(VK_SHIFT)&0x8000;
+			ctrl=GetKeyState(VK_CONTROL)&0x8000;
+			_snprintf(tmp,sizeof(tmp),"%s%s%s",shift||ctrl?":":"",shift?"S":"",ctrl?"C":"");
+			tmp[sizeof(tmp)-1]=0;
+			_snprintf(str,sizeof(str),"%s%s=%s","URL_CLICK",tmp,url);
+			str[sizeof(str)-1]=0;
+			params[1]=str;
+			if(0<lua_process_event(win->session,"USER_CALLED",win->nick,&params,sizeof(params)/sizeof(char*)))
+				result=TRUE;
+		}
+	}
+	return result;
+}
 int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
 {
 	int i,index=0,len,ret,cursor_set=FALSE;
@@ -477,8 +502,10 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				if(match==0){
 					SetCursor(LoadCursor(NULL,IDC_HAND));
 					cursor_set=TRUE;
-					if(mouse_button==WM_LBUTTONDBLCLK)
-						ShellExecute(NULL,"open",mouse_target,NULL,NULL,SW_SHOWNORMAL);
+					if(mouse_button==WM_LBUTTONDBLCLK){
+						if(!handle_lua_web_click(GetParent(hwnd),mouse_target))
+							ShellExecute(NULL,"open",mouse_target,NULL,NULL,SW_SHOWNORMAL);
+					}
 					else if(mouse_button==WM_CONTEXTMENU){
 						POINT screen={0};
 						GetCursorPos(&screen);
