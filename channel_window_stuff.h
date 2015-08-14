@@ -138,7 +138,7 @@ int post_message(HWND hwnd,char *str)
 					lua_process_event(win->session,"USER_CALLED",win->nick,&params,3);
 				}
 				else if(strnicmp(str,"/flushlogs",sizeof("/flushlogs")-1)==0){
-					close_all_logs();
+					flush_all_logs();
 					add_line_mdi_nolog(win,"log files flushed");
 				}
 				else
