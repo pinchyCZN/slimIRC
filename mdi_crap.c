@@ -41,7 +41,7 @@ typedef struct{
 	void *session;
 	int disconnect;
 	HWND hwnd,hbutton,hstatic,hlist,hedit,hscroll_lock;
-	int button_id,pressed,activity,scroll_free;
+	int button_id,pressed,activity,scroll_free,selecting;
 }IRC_WINDOW;
 
 static IRC_WINDOW irc_windows[100];
@@ -969,12 +969,22 @@ int add_history(char *str)
 
 int add_line_mdi_nolog(IRC_WINDOW *win,char *str)
 {
-	int len;
+	int len,selecting;
+	CHARRANGE chr={0};
+	selecting=win->selecting;
+	if(selecting){ //save current selection
+		SendMessage(win->hstatic,EM_EXGETSEL,0,&chr);
+		SendMessage(win->hstatic,WM_LBUTTONUP,0,0);
+	}
 	len=GetWindowTextLength(win->hstatic);
 	SendMessage(win->hstatic,EM_SETSEL,len,len);
 	if(len>0)
 		SendMessage(win->hstatic,EM_REPLACESEL,FALSE,"\r\n");
 	SendMessage(win->hstatic,EM_REPLACESEL,FALSE,str);
+	if(selecting){
+		SendMessage(win->hstatic,WM_LBUTTONDOWN,0,0);
+		SendMessage(win->hstatic,EM_EXSETSEL,0,&chr);
+	}
 	if(!win->scroll_free)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	return TRUE;
@@ -1424,6 +1434,7 @@ int custom_dispatch(MSG *msg)
 			if(type==MDI_STATIC){
 				CHARRANGE cr={0};
 				int index,line;
+				win->selecting=TRUE;
 				//this keeps the window current scroll position when first clicking on the edit window when its out of focus
 				//other wise the edit will bring the caret position into view which could be anywhere
 				line=SendMessage(msg->hwnd,EM_GETFIRSTVISIBLELINE,0,0);
@@ -1442,12 +1453,14 @@ int custom_dispatch(MSG *msg)
 			break;
 		case WM_LBUTTONUP:
 			if(mbutton_down){
+				win->selecting=FALSE;
 				mbutton_down=FALSE;
 				DispatchMessage(msg);
 				msg->hwnd=win->hstatic;
 				msg->message=WM_APP;
 				msg->lParam=MAKELPARAM(msg->pt.x,msg->pt.y);
 				DispatchMessage(msg);
+				set_scroll_lock(win->hwnd,-1);
 				return TRUE;
 			}
 			break;
