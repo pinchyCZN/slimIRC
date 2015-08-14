@@ -1024,6 +1024,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		LeaveCriticalSection(&mutex);
     }
 	wait_for_disconnect(&mutex);
+	close_all_logs();
 	CoUninitialize();
 	DeleteCriticalSection(&mutex);
     return msg.wParam;
