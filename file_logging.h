@@ -43,6 +43,17 @@ int close_all_logs()
 	LeaveCriticalSection(&log_mutex);
 	return TRUE;
 }
+int flush_all_logs()
+{
+	int i;
+	EnterCriticalSection(&log_mutex);
+	for(i=0;i<sizeof(log_files)/sizeof(LOG_FILE);i++){
+		if(log_files[i].f!=0)
+			fflush(log_files[i].f);
+	}
+	LeaveCriticalSection(&log_mutex);
+	return TRUE;
+}
 int close_old_files()
 {
 	int i;
