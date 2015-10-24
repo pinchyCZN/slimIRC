@@ -129,7 +129,6 @@ int post_dcc_msg(IRC_WINDOW *win,char *msg)
 				trim_return(msg);
 				print_nick_msg(win->nick,msg,str,sizeof(str));
 				add_line_mdi_nolog(win,str);
-				add_history(msg);
 			}else
 				irc_dcc_msg(win->session,win->dccid," ");
 		}

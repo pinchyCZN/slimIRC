@@ -143,12 +143,10 @@ int post_message(HWND hwnd,char *str)
 				}
 				else
 					irc_send_raw(win->session,str+1);
-				add_history(str);
 				return TRUE;
 			}
 			else if(win->type==SERVER_WINDOW){
 				irc_send_raw(win->session,str);
-				add_history(str);
 				return TRUE;
 			}
 
@@ -160,7 +158,6 @@ int post_message(HWND hwnd,char *str)
 						_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
 						msg[sizeof(msg)-1]=0;
 						add_line_mdi(win,msg);
-						add_history(tmp);
 						irc_cmd_msg(win->session,channel,tmp);
 						start=FALSE;
 						Sleep(20);

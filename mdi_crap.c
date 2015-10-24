@@ -607,6 +607,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						break;
 					}
 					post_message(hwnd,str);
+					add_history(str);
 					SetWindowText(hedit,"");
 
 				}
