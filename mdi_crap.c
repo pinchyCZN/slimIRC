@@ -510,6 +510,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				break;
 			default:
 			case CHANNEL_WINDOW:
+				close_log(win->channel,win->network);
 				part_channel(win);
 				break;
 			case DCC_WINDOW:
