@@ -754,6 +754,45 @@ int snap_window(HWND hwnd,RECT *rect)
 	}
 	return 0;
 }
+int snap_sizing(HWND hwnd,RECT *rect,int side)
+{
+	int result=FALSE;
+	if(hwnd && rect){
+		HMONITOR hmon;
+		MONITORINFO mi;
+		hmon=MonitorFromRect(rect,MONITOR_DEFAULTTONEAREST);
+		mi.cbSize=sizeof(mi);
+		if(GetMonitorInfo(hmon,&mi)){
+			RECT *rwork=&mi.rcWork;
+			const int snap_size=10;
+			if(side==WMSZ_TOP || side==WMSZ_TOPLEFT || side==WMSZ_TOPRIGHT){
+				if(abs(rect->top - rwork->top)<snap_size){
+					rect->top=rwork->top;
+					result=TRUE;
+				}
+			}
+			if(side==WMSZ_BOTTOM || side==WMSZ_BOTTOMLEFT || side==WMSZ_BOTTOMRIGHT){
+				if(abs(rect->bottom - rwork->bottom)<snap_size){
+					rect->bottom=rwork->bottom;
+					result=TRUE;
+				}
+			}
+			if(side==WMSZ_LEFT || side==WMSZ_TOPLEFT || side==WMSZ_BOTTOMLEFT){
+				if(abs(rect->left - rwork->left)<snap_size){
+					rect->left=rwork->left;
+					result=TRUE;
+				}
+			}
+			if(side==WMSZ_RIGHT || side==WMSZ_TOPRIGHT || side==WMSZ_BOTTOMRIGHT){
+				if(abs(rect->right - rwork->right)<snap_size){
+					rect->right=rwork->right;
+					result=TRUE;
+				}
+			}
+		}
+	}
+	return result;
+}
 int clamp_window_size(int *x,int *y,int *width,int *height,RECT *monitor)
 {
 	int mwidth,mheight;
@@ -902,6 +941,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_MOVING:
 		if(GetKeyState(VK_CONTROL)&0x8000)
 			snap_window(hwnd,lparam);
+		break;
+	case WM_SIZING:
+		if(GetKeyState(VK_CONTROL)&0x8000)
+			return snap_sizing(hwnd,lparam,wparam);
 		break;
 	case WM_SIZE:
 		resize_switchbar(hwnd,ghmdiclient,ghswitchbar,switch_height);
