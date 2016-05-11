@@ -35,7 +35,7 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 				strncpy(privmsg_win->nick,mynick,sizeof(privmsg_win->nick));
 				if(hwnd==0){
 					hwnd=create_window_type(ghmdiclient,privmsg_win,PRIVMSG_WINDOW,nick);
-					BringWindowToTop(hwnd);
+					bring_window_top(hwnd);
 				}
 				if(hwnd!=0){
 					privmsg_win->hwnd=hwnd;
@@ -58,7 +58,7 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 			highlight_button_text(privmsg_win);
 		}
 		else
-			BringWindowToTop(privmsg_win->hwnd);
+			bring_window_top(privmsg_win->hwnd);
 	}
 	return TRUE;
 }

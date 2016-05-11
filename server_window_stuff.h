@@ -151,7 +151,7 @@ int connect_server(HWND hmdiclient,
 			show_messagebox(hmdiclient,str,"Warning",MB_OK);
 			return FALSE;
 		}
-		BringWindowToTop(win->hwnd);
+		bring_window_top(win->hwnd);
 		handle_switch_button(win->hbutton,FALSE);
 		return TRUE;
 	}

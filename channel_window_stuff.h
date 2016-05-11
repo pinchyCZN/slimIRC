@@ -222,7 +222,7 @@ int join_channel_event(void *session,const char *origin,const char *channel)
 					SendMessage(ghswitchbar,WM_APP,MSG_ADD_BUTTON,channel_win->hwnd);
 				extract_nick(origin,nick,sizeof(nick));
 				if(stricmp(nick,channel_win->nick)==0){
-					BringWindowToTop(channel_win->hwnd);
+					bring_window_top(channel_win->hwnd);
 					SendDlgItemMessage(channel_win->hlist,MDI_LIST,LB_RESETCONTENT,0,0);
 				}
 				else{
@@ -247,7 +247,7 @@ int join_channel(HWND hmdiclient,char *network,char *channel,char *password)
 		if(channel_win==0)
 			irc_cmd_join(server_win->session,channel,password);
 		else{
-			BringWindowToTop(channel_win->hwnd);
+			bring_window_top(channel_win->hwnd);
 			handle_switch_button(channel_win->hbutton,FALSE);
 		}
 		return TRUE;		

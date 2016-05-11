@@ -198,3 +198,16 @@ int create_mainwindow(void *wndproc,HMENU hmenu,HINSTANCE hinstance)
 	}
 	return hframe;
 }
+int bring_window_top(HWND hwnd)
+{
+	static DWORD last_tick=0;
+	DWORD delta,tick;
+	int result=FALSE;
+	tick=GetTickCount();
+	delta=tick-last_tick;
+	if(delta>8000){
+		last_tick=tick;
+		result=BringWindowToTop(hwnd);
+	}
+	return result;
+}

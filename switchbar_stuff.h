@@ -294,7 +294,7 @@ int handle_switch_button(HWND hbutton,int top)
 				RedrawWindow(irc_windows[i].hbutton,NULL,NULL,RDW_INVALIDATE);
 			}else{
 				if(top)
-					BringWindowToTop(irc_windows[i].hwnd);
+					bring_window_top(irc_windows[i].hwnd);
 				irc_windows[i].pressed=TRUE;
 //		printf("handle 3\n");
 				RedrawWindow(irc_windows[i].hbutton,NULL,NULL,RDW_INVALIDATE);
@@ -399,7 +399,7 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 	if(redraw!=0)
 		RedrawWindow(redraw->hbutton,NULL,NULL,RDW_INVALIDATE);
 	if(bring_top!=0)
-		BringWindowToTop(bring_top->hwnd);
+		bring_window_top(bring_top->hwnd);
 
 	return TRUE;
 }

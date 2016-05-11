@@ -86,7 +86,7 @@ int dcc_chat_request(void *session,int dccid,const char *origin,const char *addr
 		if(ctx)
 			*ctx=dcc_win;
 		result=TRUE;
-		BringWindowToTop(dcc_win->hwnd);
+		bring_window_top(dcc_win->hwnd);
 	}
 	return result;
 }
