@@ -241,6 +241,52 @@ static int lua_shell_execute(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
+static int lua_beep(lua_State *L)
+{
+	int result=0;
+	int count=lua_gettop(L);
+	if(count>=2){
+		unsigned int freq,duration;
+		const unsigned int MAX_TIME=10000;
+		freq=lua_tounsigned(L,1);
+		duration=lua_tounsigned(L,2);
+		if(duration>=MAX_TIME)
+			duration=MAX_TIME;
+		Beep(freq,duration);
+		result=1;
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_flash_window(lua_State *L)
+{
+	extern HWND ghmainframe;
+	int result=0;
+	int count=lua_gettop(L);
+	if(count>=1){
+		unsigned int i,count;
+		count=lua_tounsigned(L,1);
+		if(count>5)
+			count=5;
+		for(i=0;i<count;i++){
+			FlashWindow(ghmainframe,1);
+			Sleep(500);
+			FlashWindow(ghmainframe,0);
+			Sleep(500);
+		}
+		result=1;
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
+static int lua_bring_window_top(lua_State *L)
+{
+	extern HWND ghmainframe;
+	int result=1;
+	SetForegroundWindow(ghmainframe);
+	lua_pushinteger(L,result);
+	return 1;
+}
 
 typedef struct{
 	char *lua_name;
@@ -262,6 +308,9 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"get_win_linecount",lua_get_win_linecount,"(win)"},
 	{"get_win_line",lua_get_win_line,"(win,line)"},
 	{"shell_execute",lua_shell_execute,"(file[,params,dir,showcmd])"},
+	{"beep",lua_beep,"(freq,duration)"},
+	{"flash_window",lua_flash_window,"(count)"},
+	{"bring_win_top",lua_bring_window_top,""},
 	0
 };
 int lua_register_c_functions(lua_State *L)
