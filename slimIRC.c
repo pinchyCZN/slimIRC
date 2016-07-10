@@ -191,6 +191,7 @@ connect_channel:
 						case VK_INSERT:
 							PostMessage(hwnd,WM_COMMAND,IDC_ADD,0);
 							break;
+						case VK_F2:
 						case VK_SPACE:
 							PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 							break;
@@ -412,6 +413,7 @@ join_channel:
 					{
 						LV_KEYDOWN *key=lparam;
 						switch(key->wVKey){
+						case VK_F2:
 						case VK_SPACE:
 							PostMessage(hwnd,WM_COMMAND,IDC_EDIT,0);
 							break;
