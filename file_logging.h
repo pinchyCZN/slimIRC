@@ -127,6 +127,29 @@ int init_log_mutex()
 	}
 	return log_mutex_init;
 }
+int sanitize_fname(char *str,int len)
+{
+	const char exclude[]={'<','>',':','\"','/','\\','|','?','*'};
+	int i;
+	for(i=0;i<len;i++){
+		unsigned char a=str[i];
+		if(0==a)
+			break;
+		if(a<' ' || a>=0x7F)
+			a='_';
+		else{
+			int j;
+			for(j=0;j<sizeof(exclude);j++){
+				if(exclude[j]==a)
+					a='_';
+			}
+		}
+		str[i]=a;
+	}
+	if(len>0)
+		str[len-1]=0;
+	return TRUE;
+}
 int log_str(char *chan,char *network,char *str)
 {
 	LOG_FILE *log;
