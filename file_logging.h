@@ -167,6 +167,7 @@ int log_str(char *chan,char *network,char *str)
 	}
 	else{
 		_snprintf(name,sizeof(name),"%s.%s.log",chan,network);
+		sanitize_fname(name,sizeof(name));
 		log=0;
 		acquire_log_file(name,&log);
 		if(log!=0){
