@@ -74,7 +74,7 @@ PostBuild_Cmds=upx .\release\slimIRC.exe	echo program files path=%PROGRAMFILES%	
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /I ".\ssl\include\\" /I "." /I ".\lua\\" /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /D "ENABLE_IPV6" /FR /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\libirc\\" /I ".\ssl\include\\" /I "." /I ".\lua\\" /FI"pragma.h" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_THREADS" /D "ENABLE_SSL" /D "ENABLE_IPV6" /D "ENABLE_DEBUG" /FR /FD /GZ /c
 # SUBTRACT CPP /u
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
