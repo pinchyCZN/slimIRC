@@ -521,7 +521,7 @@ int create_session(irc_callbacks_t *callbacks)
 }
 int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *password,char *user)
 {
-	char real_name[80]={0},user_name[80]={0},pw[20]={0};
+	char real_name[80]={0},user_name[80]={0},pw[40]={0};
 	char *srv=server;
 	int (*irc_connect_ptr) (irc_session_t * session,
 				const char * server, 
@@ -535,7 +535,9 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		irc_connect_ptr=irc_connect6;
 		srv+=sizeof("IPV6:")-1;
 	}
-
+#if defined (ENABLE_DEBUG)
+	irc_option_set(s,LIBIRC_OPTION_DEBUG);
+#endif
 	// To handle the "SSL certificate verify failed" from command line we allow passing ## in front 
 	// of the server name, and in this case tell libircclient not to verify the cert
 	if(srv[0]=='#' && srv[1]=='#')
@@ -549,6 +551,7 @@ int irc_connect_run(irc_session_t *s,char *server,int port,char *nick,char *pass
 		user_name[sizeof(user_name)-1]=0;
 	}
 	strncpy(pw,password,sizeof(pw));
+	pw[sizeof(pw)-1]=0;
 
 	get_ini_str("SETTINGS","real_name",real_name,sizeof(real_name));
 	if(irc_connect_ptr(s,srv,port,
