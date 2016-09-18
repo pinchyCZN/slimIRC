@@ -630,6 +630,9 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		{
 			int scroll=-1;
 			switch(wparam){
+				case 0x17: //ctrl-w
+					delete_word(GetDlgItem(hwnd,MDI_EDIT));
+					break;
 				case 0x12: //ctrl-r
 					{
 					char str[2]={22,0};
@@ -1238,6 +1241,43 @@ int tab_completion(HWND hwnd)
 	}
 	return tab_continue;
 }
+int delete_word(HWND hedit)
+{
+	int result=FALSE;
+	char *buf;
+	int size=4096;
+	if(0==hedit)
+		return result;
+	buf=calloc(size,1);
+	if(buf!=0){
+		int cursor=0;
+		SendMessage(hedit,EM_GETSEL,&cursor,NULL);
+		GetWindowText(hedit,buf,size);
+		if(cursor<size){
+			int i,start,end,type;
+			i=cursor-1;
+			if(i<0)
+				i=0;
+			type=!isspace(buf[i]);
+			start=end=cursor;
+			for(;i>=0;i--){
+				if(type!=(!isspace(buf[i]))){
+					end=i+1;
+					break;
+				}else if(0==i){
+					end=i;
+					break;
+				}
+			}
+			if(start!=end){
+				char *replace="";
+				SendMessage(hedit,EM_SETSEL,start,end);
+				SendMessage(hedit,EM_REPLACESEL,TRUE,replace);
+			}
+		}
+		free(buf);
+	}
+}
 int do_cmd_on_list(HWND hwnd,int cmd)
 {
 	IRC_WINDOW *win;
@@ -1368,6 +1408,7 @@ int custom_dispatch(MSG *msg)
 		case WM_CHAR:
 			if(type==MDI_EDIT){
 				switch(msg->wParam){
+				case 0x17: //ctrl-w
 				case 0x12: //ctrl-R
 				case 0xB: //ctrl-K
 				case 0x6: //ctr-f
