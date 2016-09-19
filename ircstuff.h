@@ -281,6 +281,9 @@ void event_ctcp_action(irc_session_t * session, const char * event, const char *
 {
 	dump_event(session,event,origin,params,count);
 	if(strnicmp(event,"ACTION",6)==0){
+		if(is_lua_active(session))
+			if(lua_process_event(session,"CHECKIGNORE",origin,params,count))
+				return;
 		if(params[0][0]=='#')
 			channel_msg_event(session,origin,params[0],params[1],'N');
 		else
