@@ -127,7 +127,6 @@ int irc_connect (irc_session_t * session,
 			const char * realname)
 {
 	struct sockaddr_in saddr;
-	char * p;
 
 	// Check and copy all the specified fields
 	if ( !server || !nick )
@@ -258,7 +257,7 @@ int irc_connect6 (irc_session_t * session,
 #endif
 	struct sockaddr_in6 saddr;
 	struct addrinfo ainfo, *res = NULL;
-	char portStr[32], *p;
+	char portStr[32];
 	int addrlen = sizeof(saddr);
 	wchar_t tmp[100]={0};
 
@@ -1284,7 +1283,7 @@ int irc_cmd_whois (irc_session_t * session, const char * nick)
 		return 1;
 	}
 
-	return irc_send_raw (session, "WHOIS %s %s", nick, nick);
+	return irc_send_raw (session, "WHOIS %s", nick);
 }
 
 int lua_process_event(irc_session_t *session,
