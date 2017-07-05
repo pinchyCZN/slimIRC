@@ -18,19 +18,20 @@ char *fontname=0;
 #define MIRC_MAX_COLORS 15
 #define MAX_COLOR_LOOKUP 18
 int color_lookup[MAX_COLOR_LOOKUP]={
+	//RRGGBB
 	0xFFFFFF, //0 white
 	0x000000, //1 black
-	0x7F0000, //2 blue (navy)
+	0x00007F, //2 blue (navy)
 	0x009300, //3 green
-	0x0000FF, //4 red
-	0x00007F, //5 brown (maroon)
+	0xFF0000, //4 red
+	0x7F0000, //5 brown (maroon)
 	0x9C009C, //6 purple
-	0x007FFC, //7 orange (olive)
-	0x00FFFF, //8 yellow
+	0xFC7F00, //7 orange (olive)
+	0xFFFF00, //8 yellow
 	0x00FC00, //9 light green (lime)
-	0x939300, //10 teal (a green/blue cyan)
-	0xFFFF00, //11 light cyan (cyan) (aqua)
-	0xFC0000, //12 light blue (royal)
+	0x009393, //10 teal (a green/blue cyan)
+	0x00FFFF, //11 light cyan (cyan) (aqua)
+	0x0000FC, //12 light blue (royal)
 	0xFF00FF, //13 pink (light purple) (fuchsia)
 	0x7F7F7F, //14 grey
 	0xD2D2D2, //15 light grey (silver)
@@ -38,6 +39,22 @@ int color_lookup[MAX_COLOR_LOOKUP]={
 	0x00FF00  //17 windows foreground
 };
 enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=16,MIRC_FG=17};
+int get_RGB(DWORD bgr)
+{
+	BYTE r,g,b;
+	r=bgr;
+	g=bgr>>8;
+	b=bgr>>16;
+	return (r<<16)|(g<<8)|b;
+}
+int get_BGR(DWORD rgb)
+{
+	BYTE r,g,b;
+	r=rgb>>16;
+	g=rgb>>8;
+	b=rgb;
+	return (b<<16)|(g<<8)|r;
+}
 
 int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
 {
@@ -54,8 +71,8 @@ int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
 	bmi.bmiHeader.biXPelsPerMeter=12;
 	bmi.bmiHeader.biYPelsPerMeter=12;
 	bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-	bmi.colors[1]=cf;
 	bmi.colors[0]=cb;
+	bmi.colors[1]=cf;
 	SetDIBitsToDevice(hdc,x,y,8,12,
 		0,0, //src xy
 		0,12, //startscan,scanlines
@@ -210,8 +227,8 @@ int draw_unicode(HDC hdc,int line,int line_count)
 			hfold=SelectObject(hdc,hfont);
 	}
 	if(default_color){
-		SetBkColor(hdc,color_lookup[0]);
-		SetTextColor(hdc,color_lookup[1]);
+		SetBkColor(hdc,get_BGR(color_lookup[0]));
+		SetTextColor(hdc,get_BGR(color_lookup[1]));
 	}else{
 		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
 		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
@@ -392,9 +409,9 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		calc_scrollbar(hwnd,line);
 		default_color=0;
 		view_utf8=0;
-		color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
-		color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
-		color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
+		color_lookup[0]=get_RGB(GetSysColor(COLOR_BACKGROUND));
+		color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
+		color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
 		old_win_proc=SetWindowLong(GetDlgItem(hwnd,IDC_SCROLLBAR),GWL_WNDPROC,subclass_proc);
 		create_vga_font();
 		set_title(hwnd,view_utf8,default_color,line);
@@ -441,9 +458,9 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			color_lookup[MIRC_FG]=0;
 		}
 		else{
-			color_lookup[0]=GetSysColor(COLOR_BACKGROUND);
-			color_lookup[MIRC_BG]=GetSysColor(COLOR_BACKGROUND);
-			color_lookup[MIRC_FG]=GetSysColor(COLOR_WINDOWTEXT);
+			color_lookup[0]=get_RGB(GetSysColor(COLOR_BACKGROUND));
+			color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
+			color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
 		}
 		set_title(hwnd,view_utf8,default_color,line);
 		InvalidateRect(hwnd,NULL,TRUE);
