@@ -88,6 +88,181 @@ int clear_screen(HDC hdc)
 	BitBlt(hdc,0,0,client_width,client_height,hdc,0,0,back_ground);
 	return 0;
 }
+int is_utf8(BYTE a,int *len)
+{
+	int result=FALSE;
+	if((a&0xE0)==0xC0){
+		*len=2;
+		result=TRUE;
+	}else if((a&0xF0)==0xE0){
+		*len=3;
+		result=TRUE;
+	}else if((a&0xF8)==0xF0){
+		*len=4;
+		result=TRUE;
+	}
+	return result;
+}
+int get_utf8_code(int len,BYTE *data)
+{
+	int result=0;
+	switch(len){
+	case 2:
+		result=((data[0]&0x1F)<<6)|(data[1]&0x3F);
+		break;
+	case 3:
+		result=((data[0]&0x0F)<<12)|((data[1]&0x3F)<<6)|(data[2]&0x3F);
+		break;
+	case 4:
+		result=((data[0]&0x07)<<18)|((data[1]&0x3F)<<12)|((data[2]&0x3F)<<6)|(data[3]&0x3F);
+		break;
+	}
+	return result;
+}
+int convert_utf8(int code)
+{
+	int result=code&0xFF;
+	int i;
+	//DOS CP / UTF8
+	static WORD utf8_table[]={
+		0x80,0x00C7,
+		0x81,0x00FC,
+		0x82,0x00E9,
+		0x83,0x00E2,
+		0x84,0x00E4,
+		0x85,0x00E0,
+		0x86,0x00E5,
+		0x87,0x00E7,
+		0x88,0x00EA,
+		0x89,0x00EB,
+		0x8A,0x00E8,
+		0x8B,0x00EF,
+		0x8C,0x00EE,
+		0x8D,0x00EC,
+		0x8E,0x00C4,
+		0x8F,0x00C5,
+		0x90,0x00C9,
+		0x91,0x00E6,
+		0x92,0x00C6,
+		0x93,0x00F4,
+		0x94,0x00F6,
+		0x95,0x00F2,
+		0x96,0x00FB,
+		0x97,0x00F9,
+		0x98,0x00FF,
+		0x99,0x00D6,
+		0x9A,0x00DC,
+		0x9B,0x00A2,
+		0x9C,0x00A3,
+		0x9D,0x00A5,
+		0x9E,0x20A7,
+		0x9F,0x0192,
+		0xA0,0x00E1,
+		0xA1,0x00ED,
+		0xA2,0x00F3,
+		0xA3,0x00FA,
+		0xA4,0x00F1,
+		0xA5,0x00D1,
+		0xA6,0x00AA,
+		0xA7,0x00BA,
+		0xA8,0x00BF,
+		0xA9,0x2310,
+		0xAA,0x00AC,
+		0xAB,0x00BD,
+		0xAC,0x00BC,
+		0xAD,0x00A1,
+		0xAE,0x00AB,
+		0xAF,0x00BB,
+		0xB0,0x2591,
+		0xB1,0x2592,
+		0xB2,0x2593,
+		0xB3,0x2502,
+		0xB4,0x2524,
+		0xB5,0x2561,
+		0xB6,0x2562,
+		0xB7,0x2556,
+		0xB8,0x2555,
+		0xB9,0x2563,
+		0xBA,0x2551,
+		0xBB,0x2557,
+		0xBC,0x255D,
+		0xBD,0x255C,
+		0xBE,0x255B,
+		0xBF,0x2510,
+		0xC0,0x2514,
+		0xC1,0x2534,
+		0xC2,0x252C,
+		0xC3,0x251C,
+		0xC4,0x2500,
+		0xC5,0x253C,
+		0xC6,0x255E,
+		0xC7,0x255F,
+		0xC8,0x255A,
+		0xC9,0x2554,
+		0xCA,0x2569,
+		0xCB,0x2566,
+		0xCC,0x2560,
+		0xCD,0x2550,
+		0xCE,0x256C,
+		0xCF,0x2567,
+		0xD0,0x2568,
+		0xD1,0x2564,
+		0xD2,0x2565,
+		0xD3,0x2559,
+		0xD4,0x2558,
+		0xD5,0x2552,
+		0xD6,0x2553,
+		0xD7,0x256B,
+		0xD8,0x256A,
+		0xD9,0x2518,
+		0xDA,0x250C,
+		0xDB,0x2588,
+		0xDC,0x2584,
+		0xDD,0x258C,
+		0xDE,0x2590,
+		0xDF,0x2580,
+		0xE0,0x03B1,
+		0xE1,0x00DF,
+		0xE2,0x0393,
+		0xE3,0x03C0,
+		0xE4,0x03A3,
+		0xE5,0x03C3,
+		0xE6,0x00B5,
+		0xE7,0x03C4,
+		0xE8,0x03A6,
+		0xE9,0x0398,
+		0xEA,0x03A9,
+		0xEB,0x03B4,
+		0xEC,0x221E,
+		0xED,0x03C6,
+		0xEE,0x03B5,
+		0xEF,0x2229,
+		0xF0,0x2261,
+		0xF1,0x00B1,
+		0xF2,0x2265,
+		0xF3,0x2264,
+		0xF4,0x2320,
+		0xF5,0x2321,
+		0xF6,0x00F7,
+		0xF7,0x2248,
+		0xF8,0x00B0,
+		0xF9,0x2219,
+		0xFA,0x00B7,
+		0xFB,0x221A,
+		0xFC,0x207F,
+		0xFD,0x00B2,
+		0xFE,0x25A0,
+		0xFF,0x00A0
+	};
+	for(i=0;i<sizeof(utf8_table)/sizeof(WORD);i+=2){
+		if(code==utf8_table[i+1]){
+			result=utf8_table[i]&0xFF;
+			break;
+		}
+	}
+	return result;
+}
+
 int draw_edit_art(HDC hdc,int line,int line_count)
 {
 	unsigned char str[1024];
@@ -97,17 +272,23 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 	cb=MIRC_BG;
 	x=y=0;
 	clear_screen(hdc);
-	for(i=0;i<100;i++){
+	for(i=0;i<1000;i++){
 		memset(str,0,sizeof(str));
 		str[0]=sizeof(str)-1;
 		str[1]=(sizeof(str)-1)>>8;
 		str[sizeof(str)-1]=0;
 		cpy=SendMessage(hstatic,EM_GETLINE,line+i,str);
-		if(cpy>0 && cpy<sizeof(str)){
+		if(cpy>0){
 			int j;
+			int utf8_len,utf8_count;
+			BYTE utf8_block[4];
+			if(cpy>sizeof(str))
+				cpy=sizeof(str);
 			//printf("%s\n",str);
 			for(j=0;j<cpy;j++){
-				if(str[j]=='\r'){
+				BYTE current_char;
+				current_char=str[j];
+				if(current_char=='\r'){
 					cf=MIRC_FG;
 					cb=MIRC_BG;
 					x=0;
@@ -117,44 +298,60 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 						return 0;
 					continue;
 				}
-				else if(str[j]==0)
+				else if(current_char==0){
+					state=0;
+					count=0;
 					continue;
-				else if(str[j]==MIRC_REVERSE){
+				}
+				else if(current_char==MIRC_REVERSE){
 					state=0;
 					cf=MIRC_BG;
 					cb=MIRC_FG;
 				}
-				else if(str[j]==MIRC_COLOR){
+				else if(current_char==MIRC_COLOR){
 					state=1;
 					count=0;
 				}
-				else if(str[j]==MIRC_PLAIN){
+				else if(current_char==MIRC_PLAIN){
 					state=0;
 					cf=MIRC_FG;
 					cb=MIRC_BG;
 				}
-				else if(str[j]>=' '){
+				else{
+					if(current_char<' ')
+						current_char=' ';
 					switch(state){
 					case 0:
 do_draw:
 						{
-							int fg=cf,bg=cb;
-							if(fg==bg && (!default_color)){
-								if(bg==0 || bg==1){ //black or white
-									bg=MIRC_BG;fg=MIRC_FG;
+							utf8_len=0;
+							if(is_utf8(current_char,&utf8_len)){
+								utf8_block[0]=current_char;
+								utf8_count=1;
+								state=3;
+							}
+							else{
+do_draw_utf:
+								{
+									int fg=cf,bg=cb;
+									if(fg==bg && (!default_color)){
+										if(bg==0 || bg==1){ //black or white
+											bg=MIRC_BG;fg=MIRC_FG;
+										}
+									}
+									draw_char(hdc,current_char,x,y,color_lookup[fg%MAX_COLOR_LOOKUP],color_lookup[bg%MAX_COLOR_LOOKUP]);
+									x+=8;
 								}
 							}
-							draw_char(hdc,str[j],x,y,color_lookup[fg%MAX_COLOR_LOOKUP],color_lookup[bg%MAX_COLOR_LOOKUP]);
 						}
-						x+=8;
 						count=0;
 						break;
 					case 1:
-						if(isdigit(str[j])){
+						if(isdigit(current_char)){
 							if(count==0)
 								cf=0;
 							cf*=10;
-							cf+=str[j]-'0';
+							cf+=current_char-'0';
 							if(cf>MIRC_MAX_COLORS)
 								cf=MIRC_FG;
 							count++;
@@ -163,7 +360,7 @@ do_draw:
 									state=0;
 							}
 						}
-						else if(str[j]==','){
+						else if(current_char==','){
 							if(isdigit(str[j+1])){
 								state=2;
 								count=0;
@@ -182,11 +379,11 @@ do_draw:
 						}
 						break;
 					case 2:
-						if(isdigit(str[j])){
+						if(isdigit(current_char)){
 							if(count==0)
 								cb=0;
 							cb*=10;
-							cb+=str[j]-'0';
+							cb+=current_char-'0';
 							if(cb>MIRC_MAX_COLORS)
 								cb=MIRC_BG;
 							count++;
@@ -198,6 +395,18 @@ do_draw:
 							goto do_draw;
 						}
 						break;
+					case 3:
+						{
+							utf8_block[utf8_count]=current_char;
+							utf8_count++;
+							if(utf8_count>=utf8_len){
+								int code=get_utf8_code(utf8_len,utf8_block);
+								current_char=convert_utf8(code);
+								state=0;
+								goto do_draw_utf;
+							}
+						}
+						break;
 					default:
 						state=0;
 						count=0;
@@ -206,6 +415,8 @@ do_draw:
 				}
 			}
 		}
+		else
+			break;
 	}
 	return 0;
 }
@@ -247,7 +458,7 @@ int draw_unicode(HDC hdc,int line,int line_count)
 			str[1]=0xBB;
 			str[2]=0xBF;
 			cpy+=offset;
-			len=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,str,cpy,tmp,sizeof(tmp)/sizeof(WCHAR));
+			len=MultiByteToWideChar(CP_UTF8,0,str,cpy,tmp,sizeof(tmp)/sizeof(WCHAR));
 			if(len>0){
 				GetTextExtentPoint32W(hdc,tmp,len,&size);
 				rect.right=size.cx;
@@ -438,6 +649,12 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		break;
 	case WM_APP:
 		switch(wparam){
+		case 'H':
+			MessageBox(hwnd,"F5=update main window pos\r\n"
+							"F2=UTF8 view\r\n"
+							"F1=change default color",
+							"HELP",MB_OK|MB_SYSTEMMODAL);
+			break;
 		case VK_F2:
 			view_utf8^=1;
 			set_title(hwnd,view_utf8,default_color,line);
@@ -447,6 +664,13 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case VK_F3:
 			if(view_utf8)
 				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_USER_INPUT),hwnd,select_font,hwnd);
+			break;
+		case VK_F5:
+			{
+				int pos=SendMessage(hstatic,EM_GETFIRSTVISIBLELINE,0,0);
+				pos=line-pos;
+				SendMessage(hstatic,EM_LINESCROLL,0,pos);
+			}
 			break;
 		}
 		break;
@@ -479,8 +703,8 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			int dir=0;
 			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			switch(LOWORD(wparam)){
-			case SB_PAGEDOWN:dir=1;modifier=10;break;
-			case SB_PAGEUP:dir=-1;modifier=10;break;
+			case SB_PAGEDOWN:dir=1;modifier=vlines;break;
+			case SB_PAGEUP:dir=-1;modifier=vlines;break;
 			case SB_LINEUP:dir=-1;modifier=1;break;
 			case SB_LINEDOWN:dir=1;modifier=1;break;
 			case SB_BOTTOM:line=count-1;break;
@@ -513,7 +737,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			short y=HIWORD(wparam);
 			int dir=0;
-			int modifier=(LOWORD(wparam)&(MK_RBUTTON|MK_SHIFT))?10:1;
+			int modifier=3;
 			int count=SendMessage(hstatic,EM_GETLINECOUNT,0,0);
 			if(y>0){
 				if(line==0)
@@ -522,7 +746,11 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 			else
 				dir=1;
-			line+=dir*modifier*((wparam&MK_CONTROL)?1:5);
+			if(LOWORD(wparam)&(MK_RBUTTON|MK_SHIFT))
+				modifier=vlines;
+			else if(wparam&MK_CONTROL)
+				modifier=1;
+			line+=dir*modifier;
 			if(line>=count)
 				line=count-1;
 			else if(line<0)
