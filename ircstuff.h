@@ -582,13 +582,13 @@ int find_server_thread(char *network,char *server)
 	}
 	return 0;
 }
-int acquire_server_thread(char *network,char *server,int port,char *password,char *user,char *nick)
+int acquire_network_thread(char *network,char *server,int port,char *password,char *user,char *nick)
 {
 	int i;
 	SERVER_THREAD *thread=0;
 	for(i=0;i<sizeof(server_threads)/sizeof(SERVER_THREAD);i++){
-		if(server_threads[i].server[0]!=0)
-			if(stricmp(server_threads[i].server,server)==0){
+		if(server_threads[i].network[0]!=0)
+			if(stricmp(server_threads[i].network,network)==0){
 				thread=&server_threads[i];
 				thread->port=port;
 				strncpy(thread->network,network,sizeof(thread->network));

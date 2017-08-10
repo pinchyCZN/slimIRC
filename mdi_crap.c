@@ -813,16 +813,16 @@ int create_window_type(HWND hmdiclient,IRC_WINDOW *win,int type,char *nick)
 	handle=SendMessage(hmdiclient,WM_MDICREATE,0,&cs);
 	return handle;
 }
-int acquire_server_window(char *network,char *server,int port,int ssl)
+int acquire_network_window(char *network,char *server,int port,int ssl)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 		if(irc_windows[i].type==SERVER_WINDOW)
-			if(stricmp(irc_windows[i].server,server)==0)
+			if(stricmp(irc_windows[i].network,network)==0)
 				return &irc_windows[i];
 	}
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-		if(irc_windows[i].server[0]==0){
+		if(irc_windows[i].network[0]==0){
 			strncpy(irc_windows[i].network,network,sizeof(irc_windows[i].network));
 			strncpy(irc_windows[i].server,server,sizeof(irc_windows[i].server));
 			irc_windows[i].port=port;
@@ -1277,6 +1277,7 @@ int delete_word(HWND hedit)
 		}
 		free(buf);
 	}
+	return result;
 }
 int do_cmd_on_list(HWND hwnd,int cmd)
 {

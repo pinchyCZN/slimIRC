@@ -1,4 +1,4 @@
-int find_server_by_network(char *network)
+int find_window_by_network(char *network)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -9,18 +9,7 @@ int find_server_by_network(char *network)
 	}
 	return 0;
 }
-int find_server_window(char *server)
-{
-	int i;
-	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-		if(irc_windows[i].type==SERVER_WINDOW)
-			if(irc_windows[i].server[0]!=0)
-				if(stricmp(irc_windows[i].server,server)==0)
-					return &irc_windows[i];
-	}
-	return 0;
-}
-int find_server_by_session(void *session)
+int find_window_by_session(void *session)
 {
 	int i;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -36,7 +25,7 @@ int get_session_info(void *session,char *network,int nlen)
 	int result=FALSE;
 	IRC_WINDOW *win=0;
 	if(session){
-		win=find_server_by_session(session);
+		win=find_window_by_session(session);
 		if(win){
 			if(network && nlen>0){
 				strncpy(network,win->network,nlen);
@@ -89,13 +78,13 @@ int server_thread(SERVER_THREAD *thread)
 	if(callbacks!=0){
 		while(session=thread->session=create_session(callbacks)){
 			tick=GetTickCount();
-			win=find_server_window(thread->server);
+			win=find_window_by_network(thread->network);
 			if(win!=0){
 				win->session=session;
 				thread->disconnected=FALSE;
 				irc_connect_run(session,thread->server,thread->port,thread->nick,thread->password,thread->user);
 				EnterCriticalSection(&mutex);
-					win=find_server_window(thread->server);
+					win=find_window_by_network(thread->network);
 					if(win!=0)
 						win->session=0;
 					irc_destroy_session(session);
@@ -124,7 +113,7 @@ quit:
 		free(callbacks);
 	}
 	printf("thread ending\n");
-	win=find_server_window(thread->server);
+	win=find_window_by_network(thread->network);
 	erase_server_thread(thread);
 	if(win!=0 && win->hwnd!=0)
 		PostMessage(win->hwnd,WM_CLOSE,0,0);
@@ -143,7 +132,7 @@ int connect_server(HWND hmdiclient,
 		_snprintf(server,sizeof(server),"#%s",serv);
 	else
 		_snprintf(server,sizeof(server),"%s",serv);
-	win=find_server_by_network(network);
+	win=find_window_by_network(network);
 	if(win!=0){
 		if(stricmp(serv,win->server)!=0){
 			char str[256]={0};
@@ -155,10 +144,10 @@ int connect_server(HWND hmdiclient,
 		handle_switch_button(win->hbutton,FALSE);
 		return TRUE;
 	}
-	thread=acquire_server_thread(network,server,port,password,user,nick);
+	thread=acquire_network_thread(network,server,port,password,user,nick);
 	if(thread==0)
 		return FALSE;
-	win=acquire_server_window(network,server,port,password);
+	win=acquire_network_window(network,server,port,password);
 	if(win!=0){
 		if(hwndmdi=create_window_type(hmdiclient,win,SERVER_WINDOW,NULL)){
 			win->hwnd=hwndmdi;

@@ -14,7 +14,7 @@ int update_chat_sessions(void *session)
 {
 	int i;
 	IRC_WINDOW *win;
-	win=find_server_by_session(session);
+	win=find_window_by_session(session);
 	if(win==0)
 		return FALSE;
 	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
@@ -115,7 +115,7 @@ int post_message(HWND hwnd,char *str)
 						initiate_privmsg(hwnd,channel);
 				}
 				else if(strnicmp(str,"/discon",sizeof("/discon")-1)==0){
-					IRC_WINDOW *ser=find_server_window(win->server);
+					IRC_WINDOW *ser=find_window_by_network(win->network);
 					if(ser!=0){
 						ser->disconnect=TRUE;
 						irc_disconnect(ser->session);
@@ -205,7 +205,7 @@ int show_joins=FALSE;
 int join_channel_event(void *session,const char *origin,const char *channel)
 {
 	IRC_WINDOW *server_win,*channel_win;
-	server_win=find_server_by_session(session);
+	server_win=find_window_by_session(session);
 	if(server_win!=0){
 		channel_win=acquire_channel_window(server_win->network,channel,CHANNEL_WINDOW);
 		if(channel_win!=0){
@@ -240,12 +240,12 @@ int join_channel_event(void *session,const char *origin,const char *channel)
 }
 int join_channel(HWND hmdiclient,char *network,char *channel,char *password)
 {
-	IRC_WINDOW *server_win,*channel_win;
-	server_win=find_server_by_network(network);
-	if(server_win!=0){
-		channel_win=find_channel_window(server_win->session,channel);
+	IRC_WINDOW *network_win,*channel_win;
+	network_win=find_window_by_network(network);
+	if(network_win!=0){
+		channel_win=find_channel_window(network_win->session,channel);
 		if(channel_win==0)
-			irc_cmd_join(server_win->session,channel,password);
+			irc_cmd_join(network_win->session,channel,password);
 		else{
 			bring_window_top(channel_win->hwnd);
 			handle_switch_button(channel_win->hbutton,FALSE);
@@ -267,7 +267,7 @@ int autojoin_channels(void *session)
 				IRC_WINDOW *win;
 				char channel[80]={0},network[80]={0},password[20]={0};
 				get_ini_str(chan_section,"NETWORK",network,sizeof(network));
-				win=find_server_by_session(session);
+				win=find_window_by_session(session);
 				if(win!=0 && network[0]!=0 && stricmp(win->network,network)==0){
 					get_ini_str(chan_section,"NAME",channel,sizeof(channel));
 					get_ini_str(chan_section,"PASSWORD",password,sizeof(password));

@@ -121,7 +121,7 @@ static int lua_find_network_session(lua_State *L)
 		network=lua_tostring(L,1);
 		if(network){
 			void *win=0;
-			win=find_server_by_network(network);
+			win=find_window_by_network(network);
 			if(win)
 				get_session_from_window(win,&result);
 		}

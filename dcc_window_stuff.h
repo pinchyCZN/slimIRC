@@ -28,7 +28,7 @@ int init_dcc_window(void *session,int dccid,char *nick,char *origin,IRC_WINDOW *
 {
 	int result=FALSE;
 	IRC_WINDOW *server_win,*dcc_win=0;
-	server_win=find_server_by_session(session);
+	server_win=find_window_by_session(session);
 	if(server_win!=0){
 		dcc_win=acquire_dcc_window(server_win,dccid);
 		if(dcc_win!=0){

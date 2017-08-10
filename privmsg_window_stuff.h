@@ -25,7 +25,7 @@ int privmsg_event(void *session,const char *origin,const char *mynick,const char
 
 	privmsg_win=find_msg_window(session,nick);
 	if(privmsg_win==0){
-		server_win=find_server_by_session(session);
+		server_win=find_window_by_session(session);
 		if(server_win!=0){
 			privmsg_win=acquire_privmsg_window(server_win->network,nick);
 			if(privmsg_win!=0){
