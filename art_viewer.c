@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "resource.h"
 #include "vga737.h"
+#include "unicode_font.h"
 
 extern HINSTANCE ghinstance;
 static HWND hstatic;
@@ -56,7 +57,7 @@ int get_BGR(DWORD rgb)
 	return (b<<16)|(g<<8)|r;
 }
 
-int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
+int draw_char(HDC hdc,unsigned char *font,unsigned char a,int x,int y,int cf,int cb)
 {
 	struct TMP{
 		BITMAPINFOHEADER bmiHeader;
@@ -76,7 +77,7 @@ int draw_char(HDC hdc,unsigned char a,int x,int y,int cf,int cb)
 	SetDIBitsToDevice(hdc,x,y,8,12,
 		0,0, //src xy
 		0,12, //startscan,scanlines
-		vgargb+a*12*8,
+		font+a*12*8,
 		(BITMAPINFO*)&bmi,DIB_RGB_COLORS);
 	return 0;
 }
@@ -262,7 +263,20 @@ int convert_utf8(int code)
 	}
 	return result;
 }
-
+__inline void draw_char_color(HDC hdc,unsigned char *font,int cf,int cb,
+							int x,int y,unsigned char current_char)
+{
+	int fg=cf,bg=cb;
+	if(fg==bg && (!default_color)){
+		if(bg==0 || bg==1){ //black or white
+			bg=MIRC_BG;fg=MIRC_FG;
+		}
+	}
+	draw_char(hdc,font,current_char,x,y,
+		color_lookup[fg%MAX_COLOR_LOOKUP],
+		color_lookup[bg%MAX_COLOR_LOOKUP]);
+	return;
+}
 int draw_edit_art(HDC hdc,int line,int line_count)
 {
 	unsigned char str[1024];
@@ -331,17 +345,8 @@ do_draw:
 								state=3;
 							}
 							else{
-do_draw_utf:
-								{
-									int fg=cf,bg=cb;
-									if(fg==bg && (!default_color)){
-										if(bg==0 || bg==1){ //black or white
-											bg=MIRC_BG;fg=MIRC_FG;
-										}
-									}
-									draw_char(hdc,current_char,x,y,color_lookup[fg%MAX_COLOR_LOOKUP],color_lookup[bg%MAX_COLOR_LOOKUP]);
-									x+=8;
-								}
+								draw_char_color(hdc,vgargb,cf,cb,x,y,current_char);
+								x+=8;
 							}
 						}
 						count=0;
@@ -400,10 +405,17 @@ do_draw_utf:
 							utf8_block[utf8_count]=current_char;
 							utf8_count++;
 							if(utf8_count>=utf8_len){
+								unsigned char *font=vgargb;
 								int code=get_utf8_code(utf8_len,utf8_block);
-								current_char=convert_utf8(code);
+								if((code>=0x2580) && (code<=0x259F)){
+									current_char=code-0x2580;
+									font=vgargb+8*12*256;
+								}
+								else
+									current_char=convert_utf8(code);
+								draw_char_color(hdc,font,cf,cb,x,y,current_char);
+								x+=8;
 								state=0;
-								goto do_draw_utf;
 							}
 						}
 						break;
@@ -484,15 +496,24 @@ static int free_vga_font()
 }
 static int create_vga_font()
 {
+	const int vga_count=(sizeof(vga737_bin)/12);
+	const int total=vga_count+(sizeof(block_elements)/12);
 	if(vgargb==0)
-		vgargb=malloc(8*12*256);
+		vgargb=malloc(8*12*total);
 	if(vgargb){
 		int i,j,k;
-		for(k=0;k<256;k++){
+		for(k=0;k<total;k++){
 			for(i=0;i<12;i++){
 				for(j=0;j<8;j++){
 					int c;
-					char *p=vga737_bin+k*12;
+					char *font=vga737_bin;
+					char *p;
+					int offset=k*12;
+					if(k>=vga_count){
+						font=block_elements;
+						offset=(k-vga_count)*12;
+					}
+					p=font+offset;
 					if(p[i]&(1<<(7-j)))
 						c=1;
 					else
