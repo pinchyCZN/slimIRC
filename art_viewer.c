@@ -342,7 +342,7 @@ do_draw:
 							if(is_utf8(current_char,&utf8_len)){
 								utf8_block[0]=current_char;
 								utf8_count=1;
-								state=3;
+								state=4;
 							}
 							else{
 								draw_char_color(hdc,vgargb,cf,cb,x,y,current_char);
@@ -360,20 +360,14 @@ do_draw:
 							if(cf>MIRC_MAX_COLORS)
 								cf=MIRC_FG;
 							count++;
-							if(count>=2){
-								if(str[j+1]!=',')
-									state=0;
+							if(count>=3){
+								count=0;
+								state=0;
 							}
 						}
 						else if(current_char==','){
-							if(isdigit(str[j+1])){
-								state=2;
-								count=0;
-							}
-							else{
-								state=0;
-								goto do_draw;
-							}
+							count=0;
+							state=3;
 						}
 						else{
 							if(count==0){
@@ -384,6 +378,16 @@ do_draw:
 						}
 						break;
 					case 2:
+						if(isdigit(current_char)){
+							state=3;
+							count=0;
+						}
+						else{
+							state=0;
+							goto do_draw;
+						}
+						break;
+					case 3:
 						if(isdigit(current_char)){
 							if(count==0)
 								cb=0;
@@ -400,7 +404,7 @@ do_draw:
 							goto do_draw;
 						}
 						break;
-					case 3:
+					case 4:
 						{
 							utf8_block[utf8_count]=current_char;
 							utf8_count++;
