@@ -342,7 +342,7 @@ do_draw:
 							if(is_utf8(current_char,&utf8_len)){
 								utf8_block[0]=current_char;
 								utf8_count=1;
-								state=4;
+								state=3;
 							}
 							else{
 								draw_char_color(hdc,vgargb,cf,cb,x,y,current_char);
@@ -367,7 +367,7 @@ do_draw:
 						}
 						else if(current_char==','){
 							count=0;
-							state=3;
+							state=2;
 						}
 						else{
 							if(count==0){
@@ -378,16 +378,6 @@ do_draw:
 						}
 						break;
 					case 2:
-						if(isdigit(current_char)){
-							state=3;
-							count=0;
-						}
-						else{
-							state=0;
-							goto do_draw;
-						}
-						break;
-					case 3:
 						if(isdigit(current_char)){
 							if(count==0)
 								cb=0;
@@ -404,7 +394,7 @@ do_draw:
 							goto do_draw;
 						}
 						break;
-					case 4:
+					case 3:
 						{
 							utf8_block[utf8_count]=current_char;
 							utf8_count++;
