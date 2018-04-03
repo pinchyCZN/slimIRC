@@ -290,13 +290,13 @@ int handle_switch_button(HWND hbutton,int top)
 		if(irc_windows[i].hbutton!=0){
 			if(irc_windows[i].hbutton!=hbutton){
 				irc_windows[i].pressed=FALSE;
-//		printf("handle 2\n");
 				RedrawWindow(irc_windows[i].hbutton,NULL,NULL,RDW_INVALIDATE);
 			}else{
-				if(top)
+				if(top){
 					BringWindowToTop(irc_windows[i].hwnd);
+					SetFocus(irc_windows[i].hedit);
+				}
 				irc_windows[i].pressed=TRUE;
-//		printf("handle 3\n");
 				RedrawWindow(irc_windows[i].hbutton,NULL,NULL,RDW_INVALIDATE);
 			}
 		}
@@ -328,10 +328,8 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 			if(irc_windows[i].button_id==di->CtlID){
 				win=&irc_windows[i];
 				if(di->itemState==(ODS_FOCUS|ODS_SELECTED)){
-					//irc_windows[i].pressed=TRUE;
 					irc_windows[i].pressed=!irc_windows[i].pressed;
 					irc_windows[i].activity=FALSE;
-//					printf("%08X draw bring to top\n",rnd);
 					if(irc_windows[i].pressed)
 						bring_top=&irc_windows[i];
 					else
@@ -342,13 +340,11 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 				count++;
 		}
 		if(count>1){
-//			printf("%08X count=%i\n",rnd,count);
 			for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 				if(irc_windows[i].hwnd!=0)
 					if(irc_windows[i].button_id!=di->CtlID){
 						if(irc_windows[i].pressed){
 							last_win=&irc_windows[i];
-							//RedrawWindow(irc_windows[i].hbutton,NULL,NULL,RDW_INVALIDATE);
 							redraw=&irc_windows[i];
 						}
 						irc_windows[i].pressed=FALSE;
@@ -356,7 +352,7 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 			}
 		}
 		else{
-//			printf("%08X only one\n",rnd);
+			//
 		}
 	}
 	if(win!=0){
