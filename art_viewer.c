@@ -16,9 +16,7 @@ int default_color=FALSE;
 char *vgargb=0;
 char *fontname=0;
 
-#define MIRC_MAX_COLORS 15
-#define MAX_COLOR_LOOKUP 18
-int color_lookup[MAX_COLOR_LOOKUP]={
+int color_lookup[]={
 	//RRGGBB
 	0xFFFFFF, //0 white
 	0x000000, //1 black
@@ -36,10 +34,91 @@ int color_lookup[MAX_COLOR_LOOKUP]={
 	0xFF00FF, //13 pink (light purple) (fuchsia)
 	0x7F7F7F, //14 grey
 	0xD2D2D2, //15 light grey (silver)
-	0x000000, //16 windows background
-	0x00FF00  //17 windows foreground
+	0x470000, //extended colors http://anti.teamidiot.de/static/nei/*/extended_mirc_color_proposal.html
+	0x472100,
+	0x474700,
+	0x324700,
+	0x004700,
+	0x00472C,
+	0x004747,
+	0x002747,
+	0x000047,
+	0x2E0047,
+	0x470047,
+	0x47002A,
+	0x740000,
+	0x743A00,
+	0x747400,
+	0x517400,
+	0x007400,
+	0x007449,
+	0x007474,
+	0x004074,
+	0x000074,
+	0x4B0074,
+	0x740074,
+	0x740045,
+	0xB50000,
+	0xB56300,
+	0xB5B500,
+	0x7DB500,
+	0x00B500,
+	0x00B571,
+	0x00B5B5,
+	0x0063B5,
+	0x0000B5,
+	0x7500B5,
+	0xB500B5,
+	0xB5006B,
+	0xFF0000,
+	0xFF8C00,
+	0xFFFF00,
+	0xB2FF00,
+	0x00FF00,
+	0x00FFA0,
+	0x00FFFF,
+	0x008CFF,
+	0x0000FF,
+	0xA500FF,
+	0xFF00FF,
+	0xFF0098,
+	0xFF5959,
+	0xFFB459,
+	0xFFFF71,
+	0xCFFF60,
+	0x6FFF6F,
+	0x65FFC9,
+	0x6DFFFF,
+	0x59B4FF,
+	0x5959FF,
+	0xC459FF,
+	0xFF66FF,
+	0xFF59BC,
+	0xFF9C9C,
+	0xFFD39C,
+	0xFFFF9C,
+	0xE2FF9C,
+	0x9CFF9C,
+	0x9CFFDB,
+	0x9CFFFF,
+	0x9CD3FF,
+	0x9C9CFF,
+	0xDC9CFF,
+	0xFF9CFF,
+	0xFF94D3,
+	0x000000,
+	0x131313,
+	0x282828,
+	0x363636,
+	0x4D4D4D,
+	0x656565,
+	0x818181,
+	0x9F9F9F,
+	0xBCBCBC,
+	0xE2E2E2,
+	0xFFFFFF
 };
-enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=16,MIRC_FG=17};
+enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=0,MIRC_FG=1};
 int get_RGB(DWORD bgr)
 {
 	BYTE r,g,b;
@@ -267,14 +346,16 @@ __inline void draw_char_color(HDC hdc,unsigned char *font,int cf,int cb,
 							int x,int y,unsigned char current_char)
 {
 	int fg=cf,bg=cb;
+	int table_size;
 	if(fg==bg && (!default_color)){
 		if(bg==0 || bg==1){ //black or white
 			bg=MIRC_BG;fg=MIRC_FG;
 		}
 	}
+	table_size=sizeof(color_lookup)/sizeof(int);
 	draw_char(hdc,font,current_char,x,y,
-		color_lookup[fg%MAX_COLOR_LOOKUP],
-		color_lookup[bg%MAX_COLOR_LOOKUP]);
+		color_lookup[fg%table_size],
+		color_lookup[bg%table_size]);
 	return;
 }
 int draw_edit_art(HDC hdc,int line,int line_count)
@@ -357,7 +438,7 @@ do_draw:
 								cf=0;
 							cf*=10;
 							cf+=current_char-'0';
-							if(cf>MIRC_MAX_COLORS)
+							if(cf>(sizeof(color_lookup)/sizeof(int)))
 								cf=MIRC_FG;
 							count++;
 							if(count>=3){
@@ -383,7 +464,7 @@ do_draw:
 								cb=0;
 							cb*=10;
 							cb+=current_char-'0';
-							if(cb>MIRC_MAX_COLORS)
+							if(cb>(sizeof(color_lookup)/sizeof(int)))
 								cb=MIRC_BG;
 							count++;
 							if(count>=2)
@@ -444,8 +525,8 @@ int draw_unicode(HDC hdc,int line,int line_count)
 			hfold=SelectObject(hdc,hfont);
 	}
 	if(default_color){
-		SetBkColor(hdc,get_BGR(color_lookup[0]));
-		SetTextColor(hdc,get_BGR(color_lookup[1]));
+		SetBkColor(hdc,get_BGR(color_lookup[MIRC_BG]));
+		SetTextColor(hdc,get_BGR(color_lookup[MIRC_FG]));
 	}else{
 		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
 		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
@@ -635,7 +716,6 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		calc_scrollbar(hwnd,line);
 		default_color=0;
 		view_utf8=0;
-		color_lookup[0]=get_RGB(GetSysColor(COLOR_BACKGROUND));
 		color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
 		color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
 		old_win_proc=SetWindowLong(GetDlgItem(hwnd,IDC_SCROLLBAR),GWL_WNDPROC,subclass_proc);
@@ -692,12 +772,10 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_HELP:
 		default_color^=1;
 		if(default_color){
-			color_lookup[0]=0xFFFFFF;
 			color_lookup[MIRC_BG]=0xFFFFFF;
 			color_lookup[MIRC_FG]=0;
 		}
 		else{
-			color_lookup[0]=get_RGB(GetSysColor(COLOR_BACKGROUND));
 			color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
 			color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
 		}
