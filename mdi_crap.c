@@ -406,7 +406,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 		LPCREATESTRUCT pcs = (LPCREATESTRUCT)lparam;
 		LPMDICREATESTRUCT pmdics = (LPMDICREATESTRUCT)(pcs->lpCreateParams);
 		create_mdi_window(hwnd,ghinstance,pmdics->lParam);
-		SendDlgItemMessage(hwnd,MDI_EDIT,EM_LIMITTEXT,MAX_EDIT_LENGTH,0);
+		SendDlgItemMessage(hwnd,MDI_EDIT,EM_LIMITTEXT,1024*64,0);
 		orig_static_proc=(WNDPROC)SetWindowLong(GetDlgItem(hwnd,MDI_STATIC),GWL_WNDPROC,static_proc);
 		SendDlgItemMessage(hwnd,MDI_STATIC,WM_SETFONT,(WPARAM)GetStockObject(SYSTEM_FIXED_FONT),0);
 		SendDlgItemMessage(hwnd,MDI_LIST,WM_SETFONT,(WPARAM)GetStockObject(SYSTEM_FIXED_FONT),0);
@@ -718,7 +718,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 	case WM_APP+1: //send multiple lines
 		{
 			char *str;
-			int str_len=2048;
+			int str_len=1024*64;
 			HWND hedit=lparam;
 			if(hedit==0)
 				break;
@@ -731,7 +731,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				for(i=0;i<len;i++){
 					if(str[i]=='\n')
 						lines++;
-					if(lines>15){
+					if(lines>100){
 						str[i]=0;
 						len=strlen(str);
 						break;
