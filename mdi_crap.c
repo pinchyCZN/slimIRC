@@ -603,7 +603,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						if(str[i]=='\n')
 							lines++;
 					}
-					if(lines>=2){
+					if(lines>=2 || len>=(MAX_EDIT_LENGTH-1)){
 						PostMessage(hwnd,WM_APP+1,0,hedit);
 						break;
 					}
@@ -724,26 +724,8 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				break;
 			str=malloc(str_len);
 			if(str){
-				char msg[80];
-				int i,len,lines=0;
 				GetWindowText(hedit,str,str_len);
-				len=strlen(str);
-				for(i=0;i<len;i++){
-					if(str[i]=='\n')
-						lines++;
-					if(lines>100){
-						str[i]=0;
-						len=strlen(str);
-						break;
-					}
-				}
-				_snprintf(msg,sizeof(msg),"Ok to send this?(len=%i,lines=%i):\r\n%s",len,lines,str);
-				msg[sizeof(msg)-1]=0;
-				msg[sizeof(msg)-2]='.';
-				msg[sizeof(msg)-3]='.';
-				msg[sizeof(msg)-4]='.';
-				if(MessageBox(hwnd,msg,"Warning",MB_OKCANCEL)==IDOK)
-					post_message(hwnd,str);
+				post_long_message(hwnd,str);
 				free(str);
 			}
 			SetWindowText(hedit,"");

@@ -49,6 +49,122 @@ int valid_text(char *str)
 	}
 	return FALSE;
 }
+int post_long_message(HWND hwnd,char *str)
+{
+	IRC_WINDOW *win=0;
+	DWORD tick,delta;
+	int timeout=0;
+	unsigned int i,len;
+	int count,line_index,lines;
+	char msg[512];
+	char tmp[40];
+	char channel[40];
+	const char *hfmt="len=%-10i lines=%-10i\r\n";
+	len=strlen(str);
+	_snprintf(msg,sizeof(msg),hfmt,0,0);
+	lines=count=line_index=0;
+	for(i=0;i<len;i++){
+		char a=str[i];
+		int is_cr;
+		is_cr='\n'==a;
+		if('\r'==a)
+			continue;
+		if(is_cr && i<(len-1)){
+			lines++;
+		}
+		if(count<sizeof(tmp)){
+			if(!is_cr){
+				tmp[count++]=a;
+			}
+		}
+		if(is_cr)
+			line_index=0;
+		else
+			line_index++;
+		if(i==(len-1) || is_cr || sizeof(msg)==line_index){
+			if(lines<5 && count>0){
+				if(count<sizeof(tmp))
+					tmp[count]=0;
+				tmp[sizeof(tmp)-1]=0;
+				_snprintf(msg,sizeof(msg),"%s%s%s\r\n",msg,tmp,count>=sizeof(tmp)?"...":"");
+				count=0;
+				line_index=0;
+			}
+		}
+	}
+	_snprintf(tmp,sizeof(tmp),hfmt,len,lines+1);
+	tmp[sizeof(tmp)-1]=0;
+	for(i=0;i<sizeof(tmp);i++){
+		char a;
+		a=tmp[i];
+		if(0==a)
+			break;
+		if(i<sizeof(msg))
+			msg[i]=a;
+	}
+	msg[sizeof(msg)-1]=0;
+	if(IDOK!=MessageBoxA(hwnd,msg,"Warning: Ok to post?",MB_OKCANCEL))
+		return 0;
+
+	win=find_window_by_hwnd(hwnd);
+	if(win!=0){
+		if(win->session==0 || (!irc_is_connected(win->session)))
+			return FALSE;
+	}
+	if(win->type==PRIVMSG_WINDOW)
+		extract_nick(win->channel,channel,sizeof(channel));
+	else
+		strncpy(channel,win->channel,sizeof(channel));
+
+
+	tick=GetTickCount();
+	lines=count=0;
+	for(i=0;i<len;i++){
+		char a=str[i];
+		int is_cr;
+		is_cr='\n'==a;
+		if('\r'==a)
+			continue;
+		if(!is_cr){
+			if(count<sizeof(msg))
+				msg[count++]=a;
+		}
+		if(i==(len-1) || is_cr || count>=sizeof(msg)){
+			char mdi_msg[512+20];
+			if(count<sizeof(msg))
+				msg[count]=0;
+			msg[sizeof(msg)-1]=0;
+			if(valid_text(msg)){
+				while(1){
+					if(0==win->hwnd || 0==win->session)
+						break;
+					if(0==irc_cmd_msg(win->session,channel,msg)){
+						_snprintf(mdi_msg,sizeof(mdi_msg),"<%s> %s",win->nick,msg);
+						mdi_msg[sizeof(mdi_msg)-1]=0;
+						add_line_mdi(win,mdi_msg);
+						break;
+					}else{
+						Sleep(20);
+					}
+					delta=GetTickCount()-tick;
+					if(delta>5000){
+						printf("timeout posting long message\n");
+						timeout=1;
+						break;
+					}
+				}
+			}
+			count=0;
+		}
+		if(is_cr)
+			lines++;
+		if(lines>250)
+			break;
+		if(timeout)
+			break;
+	}
+	return 1;
+}
 int post_message(HWND hwnd,char *str)
 {
 	int i;
@@ -66,7 +182,7 @@ int post_message(HWND hwnd,char *str)
 		trim_return(str);
 		handle_debug(str);
 		{
-			int start,len,index,lines;
+			unsigned int len;
 			char msg[512+20],tmp[512];
 			char channel[40]={0};
 			if(win->session==0)
@@ -150,32 +266,23 @@ int post_message(HWND hwnd,char *str)
 				return TRUE;
 			}
 
-			start=FALSE;index=0;lines=0;
-			for(i=0;i<len+1;i++){
-				if(start){
-					if((index>=sizeof(tmp)-1) || str[i]=='\r' || str[i]=='\n' || str[i]==0){
-						tmp[index++]=0;
-						_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
-						msg[sizeof(msg)-1]=0;
-						add_line_mdi(win,msg);
-						irc_cmd_msg(win->session,channel,tmp);
-						start=FALSE;
-						Sleep(20);
-						index=0;
-						if(!(str[i]=='\r' || str[i]=='\n' || str[i]==0))
-							tmp[index++]=str[i];
-						lines++;
-					}else
-						tmp[index++]=str[i];
-				}
-				else{
-					if(!(str[i]=='\r' || str[i]=='\n')){
-						tmp[index++]=str[i];
-						start=TRUE;
-					}
-				}
+			for(i=0;i<len;i++){
+				char a=str[i];
+				if('\r'==a)
+					continue;
+				if('\n'==a)
+					a=' ';
+				if(i>=sizeof(tmp))
+					break;
+				tmp[i]=a;
 			}
-
+			if(i<sizeof(tmp))
+				tmp[i]=0;
+			tmp[sizeof(tmp)-1]=0;
+			_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
+			msg[sizeof(msg)-1]=0;
+			add_line_mdi(win,msg);
+			irc_cmd_msg(win->session,channel,tmp);
 		}
 	}
 	return TRUE;
