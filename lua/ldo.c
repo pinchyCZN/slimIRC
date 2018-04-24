@@ -408,7 +408,7 @@ static void finishCcall (lua_State *L) {
   if (!(ci->callstatus & CIST_STAT))  /* no call status? */
     ci->u.c.status = LUA_YIELD;  /* 'default' status */
   lua_assert(ci->u.c.status != LUA_OK);
-  ci->callstatus = (ci->callstatus & ~(CIST_YPCALL | CIST_STAT)) | CIST_YIELDED;
+  ci->callstatus = (lu_byte)((ci->callstatus & ~(CIST_YPCALL | CIST_STAT)) | CIST_YIELDED);
   lua_unlock(L);
   n = (*ci->u.c.k)(L);
   lua_lock(L);

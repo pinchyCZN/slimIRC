@@ -13,16 +13,16 @@ int invoke_command(IContextMenu *c,int id,HWND hwnd)
 	c->lpVtbl->InvokeCommand(c,&ci);
 	return 0;
 }
-int get_wide_path(const char *fname,char *out_path,int psize,char *out_fname,int fsize)
+int get_wide_path(const char *fname,wchar_t *out_path,int pcount,wchar_t *out_fname,int fcount)
 {
 	char drive[_MAX_DRIVE],dir[_MAX_DIR],fn[_MAX_FNAME],ext[_MAX_EXT];
 	char tmp[MAX_PATH];
 	drive[0]=dir[0]=fn[0]=ext[0]=0;
 	_splitpath(fname,drive,dir,fn,ext);
 	_snprintf(tmp,sizeof(tmp),"%s%s",drive,dir);
-	mbstowcs(out_path,tmp,psize/2); //size_t=number of wide chars
+	mbstowcs((wchar_t*)out_path,tmp,pcount);
 	_snprintf(tmp,sizeof(tmp),"%s%s",fn,ext);
-	mbstowcs(out_fname,tmp,fsize/2);
+	mbstowcs((wchar_t*)out_fname,tmp,fcount);
 	return 0;
 }
 static WNDPROC old_win_proc=0;
@@ -80,8 +80,8 @@ int GetContextMenu(HWND hwnd,char *fname)
 	CoCreateInstance(&CLSID_ShellDesktop,NULL,CLSCTX_INPROC,&IID_IShellFolder,&shell);
 
 	if(shell!=0){
-		char wpath[MAX_PATH*2]={0,0},wfname[MAX_PATH*2]={0,0};
-		get_wide_path(fname,wpath,sizeof(wpath),wfname,sizeof(wfname));
+		wchar_t wpath[MAX_PATH]={0},wfname[MAX_PATH]={0};
+		get_wide_path(fname,wpath,sizeof(wpath)/sizeof(wchar_t),wfname,sizeof(wfname)/sizeof(wchar_t));
 		hr=shell->lpVtbl->ParseDisplayName(shell,NULL,NULL,wpath,NULL,&folder,NULL);
 		if(hr==S_OK){
 			shell->lpVtbl->BindToObject(shell,folder,NULL,&IID_IShellFolder,&parent);

@@ -14,7 +14,7 @@
 
 static void libirc_add_to_set (int fd, fd_set *set, int * maxfd)
 {
-	FD_SET (fd, set);
+	FD_SET ((unsigned int)fd, set);
 
 	if ( *maxfd < fd )
 		*maxfd = fd;

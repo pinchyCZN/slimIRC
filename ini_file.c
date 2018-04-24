@@ -245,7 +245,7 @@ int create_folder_all_access(char *path)
 		ea.grfInheritance = NO_INHERITANCE;
 		ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 		ea.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-		ea.Trustee.ptstrName  = (LPWSTR)everyone_sid;
+		ea.Trustee.ptstrName  = (LPTSTR)everyone_sid;
 
 		if(ERROR_SUCCESS==SetEntriesInAcl(1, &ea, NULL, &acl)){
 			PSECURITY_DESCRIPTOR sd = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);

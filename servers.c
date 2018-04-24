@@ -37,17 +37,17 @@ int get_str_width(HWND hwnd,char *str,int wide_char)
 				HGDIOBJ hold=0;
 				hold=SelectObject(hdc,hfont);
 				if(wide_char)
-					GetTextExtentPoint32W(hdc,str,wcslen(str),&size);
+					GetTextExtentPoint32W(hdc,(LPCWSTR)str,wcslen((LPCWSTR)str),&size);
 				else
-					GetTextExtentPoint32(hdc,str,strlen(str),&size);
+					GetTextExtentPoint32A(hdc,str,strlen(str),&size);
 				if(hold!=0)
 					SelectObject(hdc,hold);
 			}
 			else{
 				if(wide_char)
-					GetTextExtentPoint32W(hdc,str,wcslen(str),&size);
+					GetTextExtentPoint32W(hdc,(LPCWSTR)str,wcslen((LPCWSTR)str),&size);
 				else
-					GetTextExtentPoint32(hdc,str,strlen(str),&size);
+					GetTextExtentPoint32A(hdc,str,strlen(str),&size);
 			}
 			ReleaseDC(hwnd,hdc);
 			return size.cx;
@@ -621,6 +621,7 @@ int test_populate_ini()
 			}
 		}
 	}
+	return 0;
 }
 int save_channel_entry(HWND hwnd,int edit_entry,char *old_channel)
 {
@@ -922,10 +923,10 @@ int update_sort_col(HWND hlistview,int dir,int column)
 		LV_COLUMN col={0};
 		int j,len;
 		col.mask=LVCF_TEXT|LVCF_WIDTH;
-		col.pszText=str;
+		col.pszText=(LPTSTR)str;
 		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
 		SendMessageW(hlistview,LVM_GETCOLUMNW,i,&col);
-		len=wcslen(col.pszText);
+		len=wcslen((const wchar_t*)col.pszText);
 		{
 			int index=0;
 			for(j=0;j<len;j++){
@@ -946,11 +947,11 @@ int update_sort_col(HWND hlistview,int dir,int column)
 				}
 				str[0]=dir?0x25BC:0x25B2;
 			}
-			width=get_str_width(hlistview,str,TRUE)+14;
+			width=get_str_width(hlistview,(char*)str,TRUE)+14;
 			if(width>col.cx)
 				col.cx=width;
 		}
-		col.pszText=str;
+		col.pszText=(char*)str;
 		col.cchTextMax=sizeof(str)/sizeof(WCHAR);
 		SendMessageW(hlistview,LVM_SETCOLUMNW,i,&col);
 	}

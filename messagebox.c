@@ -27,7 +27,7 @@ BOOL CALLBACK message_box(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			GetWindowRect(hok,&rbutton);
 			GetClientRect(hwnd,&rect);
 			x=((rect.right+rect.left)/2) - ((rbutton.right-rbutton.left)/2);
-			MapWindowPoints(NULL,hwnd,&rbutton,2);
+			MapWindowPoints(NULL,hwnd,(LPPOINT)&rbutton,2);
 			y=rbutton.top;
 			SetWindowPos(hok,NULL,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER);
 		}

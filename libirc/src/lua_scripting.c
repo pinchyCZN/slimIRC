@@ -222,8 +222,8 @@ static int lua_shell_execute(lua_State *L)
 	int result=0;
 	int count=lua_gettop(L);
 	if(count>=1){
-		char *file;
-		char *params=0,*dir=0;
+		const char *file;
+		const char *params=0,*dir=0;
 		int showcmd=SW_SHOWNORMAL;
 		//(file[,params,dir,showcmd])
 		file=lua_tostring(L,1);
@@ -491,12 +491,12 @@ int lua_handle_event(lua_State *L,
 		lua_pushlightuserdata(L,session);
 		lua_pushstring(L,origin);
 		{
-			int i;
+			unsigned int i;
 			for(i=0;i<count;i++){
 				if(i<2)
 					lua_pushstring(L,params[i]); //nick,msg
 				else
-					lua_pushlightuserdata(L,params[i]); //window
+					lua_pushlightuserdata(L,(void*)params[i]); //window
 			}
 		}
 		if(lua_pcall(L,2+count,1,0)!=LUA_OK){

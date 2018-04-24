@@ -122,17 +122,17 @@ enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MI
 int get_RGB(DWORD bgr)
 {
 	BYTE r,g,b;
-	r=bgr;
-	g=bgr>>8;
-	b=bgr>>16;
+	r=(BYTE)(bgr);
+	g=(BYTE)(bgr>>8);
+	b=(BYTE)(bgr>>16);
 	return (r<<16)|(g<<8)|b;
 }
 int get_BGR(DWORD rgb)
 {
 	BYTE r,g,b;
-	r=rgb>>16;
-	g=rgb>>8;
-	b=rgb;
+	r=(BYTE)(rgb>>16);
+	g=(BYTE)(rgb>>8);
+	b=(BYTE)(rgb);
 	return (b<<16)|(g<<8)|r;
 }
 
@@ -369,8 +369,8 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 	clear_screen(hdc);
 	for(i=0;i<1000;i++){
 		memset(str,0,sizeof(str));
-		str[0]=sizeof(str)-1;
-		str[1]=(sizeof(str)-1)>>8;
+		str[0]=(unsigned char)(sizeof(str)-1);
+		str[1]=(unsigned char)((sizeof(str)-1)>>8);
 		str[sizeof(str)-1]=0;
 		cpy=SendMessage(hstatic,EM_GETLINE,line+i,str);
 		if(cpy>0){
@@ -541,9 +541,9 @@ int draw_unicode(HDC hdc,int line,int line_count)
 			SIZE size={0};
 			RECT rect={0};
 			int len;
-			str[0]=0xEF;
-			str[1]=0xBB;
-			str[2]=0xBF;
+			str[0]=(char)0xEF;
+			str[1]=(char)0xBB;
+			str[2]=(char)0xBF;
 			cpy+=offset;
 			len=MultiByteToWideChar(CP_UTF8,0,str,cpy,tmp,sizeof(tmp)/sizeof(WCHAR));
 			if(len>0){
@@ -618,7 +618,7 @@ static int calc_scrollbar(HWND hwnd,int line)
 	if(line==0)
 		ratio=0;
 	else
-		ratio=(float)line/(float)count*100.0;
+		ratio=(int)((float)line/(float)count*100.0);
 	SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETPOS,ratio,TRUE);
 	return 0;
 }
@@ -635,7 +635,7 @@ static BOOL CALLBACK select_font(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			RECT rect={0};
 			hparent=lparam;
 			GetWindowRect(GetDlgItem(hwnd,IDC_USER_EDIT),&rect);
-			MapWindowPoints(0,hwnd,&rect,2);
+			MapWindowPoints(0,hwnd,(LPPOINT)&rect,2);
 			hlist=CreateWindow("COMBOBOX","combo",WS_CHILD|WS_TABSTOP|WS_VISIBLE|CBS_DROPDOWNLIST|CBS_SIMPLE,
 				rect.left,rect.top,rect.right-rect.left,600,
 				hwnd,IDC_LIST_BOX,ghinstance,0);
@@ -805,7 +805,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			case SB_THUMBTRACK:
 				{
 				int pos=HIWORD(wparam);
-				line=(float)pos*(float)count/100.0;
+				line=(int)((float)pos*(float)count/100.0);
 				if(line>=count)
 					line=count-1;
 				}

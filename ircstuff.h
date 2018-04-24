@@ -48,7 +48,7 @@ int dprintf(int level,char *fmt,...)
 void dump_event(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
 	char buf[512];
-	int cnt;
+	unsigned int cnt;
 
 	if(debug_level<2)
 		return;
@@ -294,7 +294,7 @@ void event_ctcp_action(irc_session_t * session, const char * event, const char *
 void event_mode(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
 {
 	IRC_WINDOW *win=0;
-	int i,echo=TRUE;
+	unsigned int i,echo=TRUE;
 	char nick[20]={0};
 	char str[255]={0};
 	dump_event(session,event,origin,params,count);

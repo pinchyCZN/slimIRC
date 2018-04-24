@@ -85,12 +85,12 @@ int process_anchor_list(HWND hwnd,short *list)
 		case HUG_HEIGHT:
 			j=crect.bottom-crect.top;
 			f=(double)list[i+1]/1000.0;
-			y+=j*f;
+			y+=(int)(j*f);
 			break;
 		case HUG_WIDTH:
 			j=crect.right-crect.left;
 			f=(double)list[i+1]/1000.0;
-			x+=j*f;
+			x+=(int)(j*f);
 			break;
 		case HUG_CTRL_TXT_X:
 			if(last_text!=list[i+1]){
@@ -133,12 +133,12 @@ int process_anchor_list(HWND hwnd,short *list)
 		case SIZE_HEIGHT_PER:
 			j=crect.bottom-crect.top;
 			f=(double)list[i+1]/1000.0;
-			height+=f*j;
+			height+=(int)(f*j);
 			break;
 		case SIZE_WIDTH_PER:
 			j=crect.right-crect.left;
 			f=(double)list[i+1]/1000.0;
-			width+=f*j;
+			width+=(int)(f*j);
 			break;
 		case SIZE_TEXT_CTRL:
 			if(last_text!=list[i+1]){
@@ -431,7 +431,7 @@ int convert_coords_list(HWND hwnd,short *list,int count)
 				RECT rect={0};
 				rect.right=list[i+1];
 				if(MapDialogRect(hwnd,&rect))
-					list[i+1]=rect.right;
+					list[i+1]=(short)rect.right;
 			}
 			break;
 		case YPOS:
@@ -447,12 +447,13 @@ int convert_coords_list(HWND hwnd,short *list,int count)
 				RECT rect={0};
 				rect.bottom=list[i+1];
 				if(MapDialogRect(hwnd,&rect))
-					list[i+1]=rect.bottom;
+					list[i+1]=(short)rect.bottom;
 			}
 		break;
 		}
 
 	}
+	return 0;
 }
 
 int modify_list(short *list)

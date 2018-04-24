@@ -24,7 +24,7 @@ int acquire_dcc_window(IRC_WINDOW *server_win,int dccid)
 	}
 	return 0;
 }
-int init_dcc_window(void *session,int dccid,char *nick,char *origin,IRC_WINDOW **win)
+int init_dcc_window(void *session,int dccid,const char *nick,const char *origin,IRC_WINDOW **win)
 {
 	int result=FALSE;
 	IRC_WINDOW *server_win,*dcc_win=0;
@@ -38,7 +38,7 @@ int init_dcc_window(void *session,int dccid,char *nick,char *origin,IRC_WINDOW *
 			strncpy(dcc_win->nick,server_win->nick,sizeof(dcc_win->nick));
 			strncpy(dcc_win->channel,nick,sizeof(dcc_win->channel));
 			if(hwnd==0){
-				char *s=nick;
+				const char *s=nick;
 				if(origin && origin[0]!=0)
 					s=origin;
 				hwnd=create_window_type(ghmdiclient,dcc_win,DCC_WINDOW,s);

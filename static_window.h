@@ -220,7 +220,7 @@ int set_scroll_lock(HWND hwnd,int scroll_code)
 						pos=si.nTrackPos;
 					else
 						pos=si.nPos;
-					if((pos+si.nPage) >= (si.nMax-1))
+					if((unsigned int)(pos+si.nPage) >= (unsigned int)(si.nMax-1))
 						scroll_lock=TRUE;
 					else
 						scroll_lock=FALSE;
@@ -432,8 +432,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 	if(len>0 && p->y<(pt.y+20)){
 		offset=SendMessage(hwnd,EM_LINEINDEX,line,0);
 		offset=pos-offset;
-		str[0]=sizeof(str)-1;
-		str[1]=(sizeof(str)-1)>>8;
+		str[0]=(unsigned char)(sizeof(str)-1);
+		str[1]=(unsigned char)((sizeof(str)-1)>>8);
 		str[sizeof(str)-1]=0;
 		cpy=SendMessage(hwnd,EM_GETLINE,line,str);
 		if(cpy>0 && cpy<sizeof(str)){
@@ -481,8 +481,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				if(multi)
 				for(i=1;i<20;i++){
 					int j,end=FALSE,slen;
-					str[0]=sizeof(str)-1;
-					str[1]=(sizeof(str)-1)>>8;
+					str[0]=(unsigned char)(sizeof(str)-1);
+					str[1]=(unsigned char)((sizeof(str)-1)>>8);
 					cpy=SendMessage(hwnd,EM_GETLINE,line+i,str);
 					str[cpy]=0;
 					slen=strlen(str);

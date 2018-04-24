@@ -325,7 +325,7 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 //	printf("%08X state=%08X\n",rnd,di->itemState);
 	if(di->CtlID!=0){
 		for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
-			if(irc_windows[i].button_id==di->CtlID){
+			if(irc_windows[i].button_id==(int)di->CtlID){
 				win=&irc_windows[i];
 				if(di->itemState==(ODS_FOCUS|ODS_SELECTED)){
 					irc_windows[i].pressed=!irc_windows[i].pressed;
@@ -342,7 +342,7 @@ int draw_button(HWND hwnd,DRAWITEMSTRUCT *di)
 		if(count>1){
 			for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
 				if(irc_windows[i].hwnd!=0)
-					if(irc_windows[i].button_id!=di->CtlID){
+					if(irc_windows[i].button_id!=(int)di->CtlID){
 						if(irc_windows[i].pressed){
 							last_win=&irc_windows[i];
 							redraw=&irc_windows[i];

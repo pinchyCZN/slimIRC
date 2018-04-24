@@ -309,7 +309,7 @@ int irc_connect6 (irc_session_t * session,
 	mbstowcs(tmp,session->server,sizeof(tmp));
 
 #if defined (_WIN32)
-	if ( WSAStringToAddressW( (LPSTR)tmp, AF_INET6, NULL, (struct sockaddr *)&saddr, &addrlen ) == SOCKET_ERROR )
+	if ( WSAStringToAddressW( (LPWSTR)tmp, AF_INET6, NULL, (struct sockaddr *)&saddr, &addrlen ) == SOCKET_ERROR )
 	{
 		HMODULE hWsock;
 		int resolvesuccess = 0;

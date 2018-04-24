@@ -762,7 +762,7 @@ BOOL setup_mdi_classes(HINSTANCE hinstance)
 		result=FALSE;
 	return result;
 }
-int create_window_type(HWND hmdiclient,IRC_WINDOW *win,int type,char *nick)
+int create_window_type(HWND hmdiclient,IRC_WINDOW *win,int type,const char *nick)
 {
 	int maximized=0,style,handle;
 	char title[256]={0};
