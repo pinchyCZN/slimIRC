@@ -340,8 +340,10 @@ int post_message(HWND hwnd,char *str)
 			tmp[sizeof(tmp)-1]=0;
 			_snprintf(msg,sizeof(msg),"<%s> %s",win->nick,tmp);
 			msg[sizeof(msg)-1]=0;
-			add_line_mdi(win,msg);
-			irc_cmd_msg(win->session,channel,tmp);
+			if(0==irc_cmd_msg(win->session,channel,tmp))
+				add_line_mdi(win,msg);
+			else
+				add_line_mdi_nolog(win,"failed to post message");
 		}
 	}
 	return TRUE;
