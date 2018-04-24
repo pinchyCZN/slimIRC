@@ -150,7 +150,7 @@ int sanitize_fname(char *str,int len)
 		str[len-1]=0;
 	return TRUE;
 }
-int log_str(char *chan,char *network,char *str)
+int log_str(const char *chan,const char *network,const char *str)
 {
 	LOG_FILE *log;
 	int result=FALSE;

@@ -954,7 +954,7 @@ int add_history(char *str)
 	return TRUE;
 }
 
-int add_line_mdi_nolog(IRC_WINDOW *win,char *str)
+int add_line_mdi_nolog(IRC_WINDOW *win,const char *str)
 {
 	int len,selecting;
 	CHARRANGE chr={0};
@@ -976,7 +976,7 @@ int add_line_mdi_nolog(IRC_WINDOW *win,char *str)
 		SendMessage(win->hstatic,WM_VSCROLL,SB_BOTTOM,0);
 	return TRUE;
 }
-int add_line_mdi(IRC_WINDOW *win,char *str)
+int add_line_mdi(IRC_WINDOW *win,const char *str)
 {
 	add_line_mdi_nolog(win,str);
 	if(win->type==CHANNEL_WINDOW || win->type==PRIVMSG_WINDOW)
