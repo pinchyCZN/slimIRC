@@ -49,68 +49,34 @@ int valid_text(char *str)
 	}
 	return FALSE;
 }
-int post_long_message(HWND hwnd,char *str)
+struct POST_MSG{
+	IRC_WINDOW *win;
+	char *msg;
+};
+static int post_thread_busy=0;
+unsigned __stdcall post_msg_thread(void *param)
 {
-	IRC_WINDOW *win=0;
+	struct POST_MSG *pmsg=(struct POST_MSG *)param;
+	IRC_WINDOW *win;
 	DWORD tick,delta;
 	int timeout=0;
-	unsigned int i,len;
-	int count,line_index,lines;
-	char msg[512];
-	char tmp[40];
 	char channel[40];
-	const char *hfmt="len=%-10i lines=%-10i\r\n";
-	len=strlen(str);
-	_snprintf(msg,sizeof(msg),hfmt,0,0);
-	lines=count=line_index=0;
-	for(i=0;i<len;i++){
-		char a=str[i];
-		int is_cr;
-		is_cr='\n'==a;
-		if('\r'==a)
-			continue;
-		if(is_cr && i<(len-1)){
-			lines++;
-		}
-		if(count<sizeof(tmp)){
-			if(!is_cr){
-				tmp[count++]=a;
-			}
-		}
-		if(is_cr)
-			line_index=0;
-		else
-			line_index++;
-		if(i==(len-1) || is_cr || sizeof(msg)==line_index){
-			if(lines<5 && count>0){
-				if(count<sizeof(tmp))
-					tmp[count]=0;
-				tmp[sizeof(tmp)-1]=0;
-				_snprintf(msg,sizeof(msg),"%s%s%s\r\n",msg,tmp,count>=sizeof(tmp)?"...":"");
-				count=0;
-				line_index=0;
-			}
-		}
-	}
-	_snprintf(tmp,sizeof(tmp),hfmt,len,lines+1);
-	tmp[sizeof(tmp)-1]=0;
-	for(i=0;i<sizeof(tmp);i++){
-		char a;
-		a=tmp[i];
-		if(0==a)
-			break;
-		if(i<sizeof(msg))
-			msg[i]=a;
-	}
-	msg[sizeof(msg)-1]=0;
-	if(IDOK!=MessageBoxA(hwnd,msg,"Warning: Ok to post?",MB_OKCANCEL))
-		return 0;
+	int lines,count;
+	unsigned int i,len;
+	char *str;
+	char msg[512];
 
-	win=find_window_by_hwnd(hwnd);
-	if(win!=0){
-		if(win->session==0 || (!irc_is_connected(win->session)))
-			return FALSE;
-	}
+	if(0==pmsg)
+		goto EXIT_PMSG;
+	if(0==pmsg->msg)
+		goto EXIT_PMSG;
+	if(0==pmsg->win)
+		goto EXIT_PMSG;
+
+	win=pmsg->win;
+	str=pmsg->msg;
+	len=strlen(str);
+
 	if(win->type==PRIVMSG_WINDOW)
 		extract_nick(win->channel,channel,sizeof(channel));
 	else
@@ -142,13 +108,16 @@ int post_long_message(HWND hwnd,char *str)
 						_snprintf(mdi_msg,sizeof(mdi_msg),"<%s> %s",win->nick,msg);
 						mdi_msg[sizeof(mdi_msg)-1]=0;
 						add_line_mdi(win,mdi_msg);
+						Sleep(1000);
 						break;
 					}else{
-						Sleep(20);
+						Sleep(50);
 					}
 					delta=GetTickCount()-tick;
-					if(delta>5000){
-						printf("timeout posting long message\n");
+					if(delta>60000){
+						const char *tmsg="timeout posting long message";
+						add_line_mdi_nolog(win,tmsg);
+						printf("%s\n",tmsg);
 						timeout=1;
 						break;
 					}
@@ -163,11 +132,101 @@ int post_long_message(HWND hwnd,char *str)
 		if(timeout)
 			break;
 	}
+
+EXIT_PMSG:
+	if(pmsg){
+		if(pmsg->msg)
+			free(pmsg->msg);
+		free(pmsg);
+	}
+	post_thread_busy=0;
+	_endthreadex(0);
+	return 0;
+}
+int post_long_message(HWND hwnd,char *str)
+{
+	IRC_WINDOW *win=0;
+	unsigned int i,len;
+	int count,line_index,lines;
+	char msg[512];
+	char tmp[40];
+	const char *hfmt="len=%-10i lines=%-10i busy=%i\r\n";
+	len=strlen(str);
+	_snprintf(msg,sizeof(msg),hfmt,0,0,0);
+	lines=count=line_index=0;
+	for(i=0;i<len;i++){
+		char a=str[i];
+		int is_cr;
+		is_cr='\n'==a;
+		if('\r'==a)
+			continue;
+		if(is_cr && i<(len-1)){
+			lines++;
+		}
+		if(count<sizeof(tmp)){
+			if(!is_cr){
+				tmp[count++]=a;
+			}
+		}
+		if(is_cr)
+			line_index=0;
+		else
+			line_index++;
+		if(i==(len-1) || is_cr || sizeof(msg)==line_index){
+			if(lines<5 && count>0){
+				if(count<sizeof(tmp))
+					tmp[count]=0;
+				tmp[sizeof(tmp)-1]=0;
+				_snprintf(msg,sizeof(msg),"%s%s%s\r\n",msg,tmp,count>=sizeof(tmp)?"...":"");
+				count=0;
+				line_index=0;
+			}
+		}
+	}
+	_snprintf(tmp,sizeof(tmp),hfmt,len,lines+1,post_thread_busy);
+	tmp[sizeof(tmp)-1]=0;
+	for(i=0;i<sizeof(tmp);i++){
+		char a;
+		a=tmp[i];
+		if(0==a)
+			break;
+		if(i<sizeof(msg))
+			msg[i]=a;
+	}
+	msg[sizeof(msg)-1]=0;
+	if(IDOK!=MessageBoxA(hwnd,msg,"Warning: Ok to post?",MB_OKCANCEL))
+		return 0;
+
+	win=find_window_by_hwnd(hwnd);
+	if(win!=0){
+		if(win->session==0 || (!irc_is_connected(win->session)))
+			return FALSE;
+	}
+	if(post_thread_busy){
+		add_line_mdi_nolog(win,"posting thread busy");
+	}else{
+		void *tmp;
+		struct POST_MSG *pmsg;
+		pmsg=malloc(sizeof(struct POST_MSG));
+		if(pmsg){
+			pmsg->msg=strdup(str);
+			pmsg->win=win;
+			post_thread_busy=1;
+			tmp=_beginthreadex(NULL,0,post_msg_thread,pmsg,0,NULL);
+			if(0==tmp){
+				add_line_mdi_nolog(win,"failed to create posting thread");
+				post_thread_busy=0;
+				if(pmsg->msg)
+					free(pmsg->msg);
+				free(pmsg);
+			}
+		}
+	}
 	return 1;
 }
 int post_message(HWND hwnd,char *str)
 {
-	int i;
+	unsigned int i;
 	IRC_WINDOW *win=0;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
