@@ -725,7 +725,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			str=malloc(str_len);
 			if(str){
 				GetWindowText(hedit,str,str_len);
-				post_long_message(hwnd,str);
+				post_long_message(hwnd,str,TRUE);
 				free(str);
 			}
 			SetWindowText(hedit,"");

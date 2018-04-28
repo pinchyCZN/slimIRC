@@ -3,13 +3,9 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	static IRC_WINDOW *win=0;
 	static int cur_sel=0;
 	static char *help_strs[]={
-		"/msg","/me","/ctcp (nick VERSION|FINGER|PING|TIME)","/discon (disconnect)","/recon (reconnect)",
-		"/help lua (list lua commands)","/lua -create (make new script file)",
-		"/lua xzy (call lua user_function with xzy paramter)","/flushlogs (flush all open file logs)",
 		"/debug console [on|off]] [debug ?]",
 		"F2 view ascii art",
 		"list current channels"
-
 	};
 	if(FALSE){
 		static DWORD tick=0;
@@ -25,7 +21,16 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			int i;
 			HWND hlist=GetDlgItem(hwnd,IDC_LIST);
 			win=lparam;
-			for(i=0;i<sizeof(help_strs)/sizeof(char*);i++){
+			for(i=0;i<100;i++){
+				const char *cmd=0,*desc=0;
+				char tmp[80];
+				if(!get_cmd_info(i,&cmd,&desc))
+					break;
+				_snprintf(tmp,sizeof(tmp),"/%s %s",cmd,desc);
+				tmp[sizeof(tmp)-1]=0;
+				SendMessage(hlist,LB_ADDSTRING,0,tmp);
+			}
+			for(i=0;i<sizeof(help_strs)/sizeof(char *);i++){
 				SendMessage(hlist,LB_ADDSTRING,0,help_strs[i]);
 			}
 			SendMessage(hlist,LB_SETCURSEL,cur_sel,0);

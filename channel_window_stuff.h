@@ -54,6 +54,8 @@ struct POST_MSG{
 	char *msg;
 };
 static int post_thread_busy=0;
+static int post_speed=1000;
+static int post_stop=0;
 unsigned __stdcall post_msg_thread(void *param)
 {
 	struct POST_MSG *pmsg=(struct POST_MSG *)param;
@@ -66,6 +68,7 @@ unsigned __stdcall post_msg_thread(void *param)
 	char *str;
 	char msg[512];
 
+	post_stop=0;
 	if(0==pmsg)
 		goto EXIT_PMSG;
 	if(0==pmsg->msg)
@@ -83,7 +86,6 @@ unsigned __stdcall post_msg_thread(void *param)
 		strncpy(channel,win->channel,sizeof(channel));
 
 
-	tick=GetTickCount();
 	lines=count=0;
 	for(i=0;i<len;i++){
 		char a=str[i];
@@ -101,20 +103,23 @@ unsigned __stdcall post_msg_thread(void *param)
 				msg[count]=0;
 			msg[sizeof(msg)-1]=0;
 			if(valid_text(msg)){
+				tick=GetTickCount();
 				while(1){
+					if(post_stop)
+						break;
 					if(0==win->hwnd || 0==win->session)
 						break;
 					if(0==irc_cmd_msg(win->session,channel,msg)){
 						_snprintf(mdi_msg,sizeof(mdi_msg),"<%s> %s",win->nick,msg);
 						mdi_msg[sizeof(mdi_msg)-1]=0;
 						add_line_mdi(win,mdi_msg);
-						Sleep(1000);
+						Sleep(post_speed);
 						break;
 					}else{
 						Sleep(50);
 					}
 					delta=GetTickCount()-tick;
-					if(delta>60000){
+					if(delta>7000){
 						const char *tmsg="timeout posting long message";
 						add_line_mdi_nolog(win,tmsg);
 						printf("%s\n",tmsg);
@@ -127,10 +132,14 @@ unsigned __stdcall post_msg_thread(void *param)
 		}
 		if(is_cr)
 			lines++;
-		if(lines>250)
+		if(lines>1000)
 			break;
 		if(timeout)
 			break;
+		if(post_stop){
+			add_line_mdi_nolog(win,"post thread stopped");
+			break;
+		}
 	}
 
 EXIT_PMSG:
@@ -143,9 +152,8 @@ EXIT_PMSG:
 	_endthreadex(0);
 	return 0;
 }
-int post_long_message(HWND hwnd,char *str)
+int long_msg_warning(HWND hwnd,char *str)
 {
-	IRC_WINDOW *win=0;
 	unsigned int i,len;
 	int count,line_index,lines;
 	char msg[512];
@@ -194,9 +202,16 @@ int post_long_message(HWND hwnd,char *str)
 			msg[i]=a;
 	}
 	msg[sizeof(msg)-1]=0;
-	if(IDOK!=MessageBoxA(hwnd,msg,"Warning: Ok to post?",MB_OKCANCEL))
-		return 0;
+	return MessageBoxA(hwnd,msg,"Warning: Ok to post?",MB_OKCANCEL);
+}
+int post_long_message(HWND hwnd,char *str,int show_warning)
+{
+	IRC_WINDOW *win=0;
 
+	if(show_warning){
+		if(IDOK!=long_msg_warning(hwnd,str))
+			return FALSE;
+	}
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
 		if(win->session==0 || (!irc_is_connected(win->session)))
@@ -222,11 +237,162 @@ int post_long_message(HWND hwnd,char *str)
 			}
 		}
 	}
-	return 1;
+	return TRUE;
+}
+int cmd_me(IRC_WINDOW *win,char *str)
+{
+	char channel[40],notice[256];
+	if(win->type==PRIVMSG_WINDOW)
+		extract_nick(win->channel,channel,sizeof(channel));
+	else
+		strncpy(channel,win->channel,sizeof(channel));
+
+	if(0==irc_cmd_me(win->session,channel,str+4)){
+		_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
+		notice[sizeof(notice)-1]=0;
+		add_line_mdi(win,notice);
+	}
+	return 0;
+}
+int cmd_ctcp(IRC_WINDOW *win,char *str)
+{
+	char channel[40],msg[512];
+	sscanf(str+sizeof("/ctcp ")-1,"%39s %511[^\n\r]s",channel,msg);
+	channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
+	irc_cmd_ctcp_request(win->session,channel,msg);
+	echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+	return 0;
+}
+int cmd_dcc(IRC_WINDOW *win,char *str)
+{
+	IRC_WINDOW *dcc_win=0;
+	char tmp[512];
+	tmp[0]=0;
+	sscanf(str+sizeof("/dcc ")-1,"%32s",tmp);
+	dcc_chat_init(win->session,tmp,&dcc_win);
+	if(dcc_win){
+		extern void dcc_event_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length);
+		if(0!=irc_dcc_chat(dcc_win->session,dcc_win,tmp,dcc_event_callback,&dcc_win->dccid))
+			add_line_mdi_nolog(dcc_win,"DCC CHAT FAILED");
+	}
+	echo_server_window(win->session,"DCC CHAT :%s",tmp);
+	return 0;
+}
+int cmd_msg(IRC_WINDOW *win,char *str)
+{
+	char channel[40],msg[512];
+	channel[0]=0;msg[0]=0;
+	sscanf(str+sizeof("/msg ")-1,"%39s %511[^\n\r]s",channel,msg);
+	channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
+	if(msg[0]!=0){
+		irc_cmd_msg(win->session,channel,msg);
+		echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
+	}
+	if(channel[0]!='#')
+		initiate_privmsg(win->hwnd,channel);
+	return 0;
+}
+int cmd_discon(IRC_WINDOW *win,char *str)
+{
+	IRC_WINDOW *ser=find_window_by_network(win->network);
+	if(ser!=0){
+		ser->disconnect=TRUE;
+		irc_disconnect(ser->session);
+	}
+	return 0;
+}
+int cmd_recon(IRC_WINDOW *win,char *str)
+{
+	irc_disconnect(win->session);
+	return 0;
+}
+int cmd_help(IRC_WINDOW *win,char *str)
+{
+	char *tmp=str+sizeof("/help")-1;
+	if(strstri(tmp,"lua"))
+		lua_help(add_line_mdi_nolog,win);
+	else
+		show_help(win);
+	return 0;
+}
+int cmd_lua(IRC_WINDOW *win,char *str)
+{
+	char arg[20];
+	char *tmp=str+sizeof("/lua")-1;
+	arg[0]=0;
+	sscanf(tmp,"%19s",arg);
+	if(strstri(arg,"-create")){
+		lua_create_default_file(add_line_mdi_nolog,win);
+	}else{
+		char *params[3]={win->channel,str+sizeof("/lua ")-1,(char*)win};
+		lua_process_event(win->session,"USER_CALLED",win->nick,&params,3);
+	}
+	return 0;
+}
+int cmd_flushlogs(IRC_WINDOW *win,char *str)
+{
+	flush_all_logs();
+	add_line_mdi_nolog(win,"log files flushed");
+	return 0;
+}
+int cmd_stop(IRC_WINDOW *win,char *str)
+{
+	post_stop=1;
+	return 0;
+}
+int cmd_speed(IRC_WINDOW *win,char *str)
+{
+	char *tmp=str+sizeof("/speed")-1;
+	char arg[20];
+	unsigned int val;
+	arg[0]=0;
+	sscanf(tmp,"%19s",arg);
+	if(arg[0]!=0){
+		val=strtoul(arg,0,10);
+		if(val>=100 && val<=10000){
+			post_speed=val;
+			goto PRINT;
+		}
+	}else{
+PRINT:
+		_snprintf(arg,sizeof(arg),"speed=%i",post_speed);
+		arg[sizeof(arg)-1]=0;
+		add_line_mdi_nolog(win,arg);
+	}
+	return 0;
+}
+struct COMMAND{
+	const char *cmd;
+	const char *desc;
+	int arg_count;
+	int (*func)(IRC_WINDOW *win,char *cline);
+};
+struct COMMAND commands[]={
+	{"me","",1,cmd_me},
+	{"ctcp","nick VERSION|FINGER|PING|TIME",1,cmd_ctcp},
+	{"dcc","",1,cmd_dcc},
+	{"msg","",1,cmd_msg},
+	{"discon","",0,cmd_discon},
+	{"recon","",0,cmd_recon},
+	{"help","[lua]",-1,cmd_help},
+	{"lua","[-create] make default file [userfunc]",1,cmd_lua},
+	{"flushlogs","",0,cmd_flushlogs},
+	{"stop","stop posting long message",0,cmd_stop},
+	{"speed","milliseconds delay",-1,cmd_speed},
+};
+int get_cmd_info(int index,const char **cmd,const char **desc)
+{
+	int size=sizeof(commands)/sizeof(struct COMMAND);
+	if(index>=size)
+		return FALSE;
+	if(cmd)
+		*cmd=commands[index].cmd;
+	if(desc)
+		*desc=commands[index].desc;
+	return TRUE;
 }
 int post_message(HWND hwnd,char *str)
 {
-	unsigned int i;
 	IRC_WINDOW *win=0;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
@@ -241,90 +407,45 @@ int post_message(HWND hwnd,char *str)
 		trim_return(str);
 		handle_debug(str);
 		{
-			unsigned int len;
+			unsigned int i,len;
 			char msg[512+20],tmp[512];
 			char channel[40]={0};
-			if(win->session==0)
-				return FALSE;
-			if(win->type==PRIVMSG_WINDOW)
+
+			if('/'==str[0]){
+				for(i=0;i<sizeof(commands)/sizeof(struct COMMAND);i++){
+					int match=FALSE;
+					char *tmp=str+1;
+					struct COMMAND *cmd=&commands[i];
+					len=strlen(cmd->cmd);
+					if(0==strnicmp(cmd->cmd,tmp,len)){
+						char a=tmp[len];
+						match=TRUE;
+						if(cmd->arg_count<=0){
+							if(!(' '==a || 0==a))
+								match=FALSE;
+						}else if(!(' '==a)){
+							match=FALSE;
+						}
+					}
+					if(!match)
+						continue;
+					cmd->func(win,str);
+					return TRUE;
+				}
+			}
+
+			if(win->type==SERVER_WINDOW){
+				char *tmp=str;
+				if('/'==str[0])
+					tmp++;
+				irc_send_raw(win->session,tmp);
+				return TRUE;
+			}else if(win->type==PRIVMSG_WINDOW)
 				extract_nick(win->channel,channel,sizeof(channel));
 			else
 				strncpy(channel,win->channel,sizeof(channel));
-			len=strlen(str);
-			if(len>4 && str[0]=='/' && str[1]!='/'){
-				if(strnicmp(str,"/me",3)==0){
-					char notice[256];
-					irc_cmd_me(win->session,channel,str+4);
-					_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
-					notice[sizeof(notice)-1]=0;
-					add_line_mdi(win,notice);
-				}
-				else if(strnicmp(str,"/ctcp ",sizeof("/ctcp ")-1)==0){
-					channel[0]=0;msg[0]=0;
-					sscanf(str+sizeof("/ctcp ")-1,"%39s %511[^\n\r]s",channel,msg);
-					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
-					irc_cmd_ctcp_request(win->session,channel,msg);
-					echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
-				}
-				else if(strnicmp(str,"/dcc ",sizeof("/dcc ")-1)==0){
-					IRC_WINDOW *dcc_win=0;
-					tmp[0]=0;
-					sscanf(str+sizeof("/dcc ")-1,"%32s",tmp);
-					dcc_chat_init(win->session,tmp,&dcc_win);
-					if(dcc_win){
-						extern void dcc_event_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length);
-						if(0!=irc_dcc_chat(dcc_win->session,dcc_win,tmp,dcc_event_callback,&dcc_win->dccid))
-							add_line_mdi_nolog(dcc_win,"DCC CHAT FAILED");
-					}
-					echo_server_window(win->session,"DCC CHAT :%s",tmp);
-				}
-				else if(strnicmp(str,"/msg ",sizeof("/msg ")-1)==0){
-					channel[0]=0;msg[0]=0;
-					sscanf(str+sizeof("/msg ")-1,"%39s %511[^\n\r]s",channel,msg);
-					channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
-					if(msg[0]!=0){
-						irc_cmd_msg(win->session,channel,msg);
-						echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
-					}
-					if(channel[0]!='#')
-						initiate_privmsg(hwnd,channel);
-				}
-				else if(strnicmp(str,"/discon",sizeof("/discon")-1)==0){
-					IRC_WINDOW *ser=find_window_by_network(win->network);
-					if(ser!=0){
-						ser->disconnect=TRUE;
-						irc_disconnect(ser->session);
-					}
-				}
-				else if(strnicmp(str,"/recon",sizeof("/recon")-1)==0){
-					irc_disconnect(win->session);
-				}
-				else if(strnicmp(str,"/help lua",sizeof("/help lua")-1)==0){
-					lua_help(add_line_mdi_nolog,win);
-				}
-				else if(strnicmp(str,"/help",sizeof("/help")-1)==0){
-					show_help(win);
-				}
-				else if(strnicmp(str,"/lua -create",sizeof("/lua -create")-1)==0){
-					lua_create_default_file(add_line_mdi_nolog,win);
-				}
-				else if(strnicmp(str,"/lua ",sizeof("/lua ")-1)==0){
-					char *params[3]={win->channel,str+sizeof("/lua ")-1,(char*)win};
-					lua_process_event(win->session,"USER_CALLED",win->nick,&params,3);
-				}
-				else if(strnicmp(str,"/flushlogs",sizeof("/flushlogs")-1)==0){
-					flush_all_logs();
-					add_line_mdi_nolog(win,"log files flushed");
-				}
-				else
-					irc_send_raw(win->session,str+1);
-				return TRUE;
-			}
-			else if(win->type==SERVER_WINDOW){
-				irc_send_raw(win->session,str);
-				return TRUE;
-			}
 
+			len=strlen(str);
 			for(i=0;i<len;i++){
 				char a=str[i];
 				if('\r'==a)
