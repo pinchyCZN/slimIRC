@@ -14,7 +14,7 @@ static HWND hstatic;
 int client_width=0,client_height=0;
 int default_color=FALSE;
 char *vgargb=0;
-char *fontname=0;
+char *fontname="Consolas";
 
 int color_lookup[]={
 	//RRGGBB
@@ -507,10 +507,146 @@ do_draw:
 	}
 	return 0;
 }
-int draw_unicode(HDC hdc,int line,int line_count)
+int get_complete_line(HWND hwnd,int start,WCHAR *out,int out_count,int *lines)
 {
-	char str[768];
-	int i,offset=3;
+	int result=0;
+	int line=0,offset=0;
+	while(1){
+		int len,cpy,remain;
+		char tmp[512+2+3];
+		char *data=tmp+3;
+		len=sizeof(tmp)-3;
+		((short*)(data))[0]=len;
+		cpy=SendMessage(hwnd,EM_GETLINE,start+line,data);
+		if(cpy<=0)
+			break;
+		tmp[0]=(char)0xEF;
+		tmp[1]=(char)0xBB;
+		tmp[2]=(char)0xBF;
+		tmp[sizeof(tmp)-1]=0;
+		if(cpy<(sizeof(tmp)+3))
+			tmp[cpy+3]=0;
+		remain=out_count-offset;
+		if(remain<=0)
+			break;
+		len=MultiByteToWideChar(CP_UTF8,0,tmp,cpy+3,out+offset,remain);
+		if(len>0)
+			offset+=len;
+		line++;
+		{
+			int i,done=FALSE;
+			for(i=0;i<cpy;i++){
+				char a=tmp[3+i];
+				if(a==0)
+					break;
+				if(a=='\r' || a=='\n'){
+					done=TRUE;
+					break;
+				}
+			}
+			if(done)
+				break;
+		}
+	}
+	*lines=line;
+	result=offset;
+	return result;
+}
+int set_colors(HDC hdc,int fg,int bg)
+{
+	int table_size=sizeof(color_lookup)/sizeof(int);
+	fg%=table_size;
+	bg%=table_size;
+	SetTextColor(hdc,get_BGR(color_lookup[fg]));
+	SetBkColor(hdc,get_BGR(color_lookup[bg]));
+	return 1;
+}
+int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
+{
+	int result=0;
+	int start,end;
+	int xpos;
+	if(default_color){
+		set_colors(hdc,MIRC_FG,MIRC_BG);
+	}else{
+		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
+		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
+	}
+	start=0;
+	xpos=0;
+	{
+		int i,state=0,draw=FALSE;
+		int fg=MIRC_FG,bg=MIRC_BG;
+		for(i=0;i<len;i++){
+			WCHAR a=wstr[i];
+			int is_end=i==(len-1);
+			if(a==3){
+				end=i;
+				draw=TRUE;
+				state=1;
+				fg=0;
+			}
+			else if(is_end){
+				draw=TRUE;
+				end=i+1;
+			}
+			else if(1==state){
+				draw=FALSE;
+				if(a>='0' && a<='9'){
+					fg*=10;
+					fg+=a-'0';
+				}else if(a==','){
+					state=2;
+					bg=0;
+				}else{
+					state=0;
+					start=i;
+					set_colors(hdc,fg,bg);
+				}
+			}else if(2==state){
+				draw=FALSE;
+				if(a>='0' && a<='9'){
+					bg*=10;
+					bg+=a-'0';
+				}else{
+					state=0;
+					start=i;
+					set_colors(hdc,fg,bg);
+				}
+			}
+			if(draw){
+				RECT rect;
+				SIZE size={0};
+				int count;
+				count=end-start;
+				if(count>0){
+					WCHAR *tmp=wstr+start;
+					GetTextExtentPoint32W(hdc,tmp,count,&size);
+					if(size.cy<=0)
+						size.cy=8;
+					rect.left=xpos;
+					rect.right=rect.left+size.cx;
+					rect.top=ypos*size.cy;
+					rect.bottom=rect.top+size.cy;
+					*bottom=rect.bottom;
+					if(rect.left>=wrect.right)
+						break;
+					if(rect.top>=wrect.bottom)
+						break;
+					DrawTextExW(hdc,tmp,count,&rect,0,NULL);
+					xpos=rect.right;
+				}
+				draw=FALSE;
+			}
+		}
+	}
+	return result;
+}
+int draw_unicode(HWND hwnd,HDC hdc,int line)
+{
+	int count;
+	int y;
+	RECT wrect;
 	HFONT hfont=0,hfold=0;
 	clear_screen(hdc);
 	if(fontname){
@@ -524,36 +660,24 @@ int draw_unicode(HDC hdc,int line,int line_count)
 		if(hfont)
 			hfold=SelectObject(hdc,hfont);
 	}
-	if(default_color){
-		SetBkColor(hdc,get_BGR(color_lookup[MIRC_BG]));
-		SetTextColor(hdc,get_BGR(color_lookup[MIRC_FG]));
-	}else{
-		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
-		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
-	}
-	for(i=0;i<line_count;i++){
-		int cpy;
-		memset(str,0,sizeof(str));
-		((short*)(str+offset))[0]=sizeof(str)-offset;
-		cpy=SendMessage(hstatic,EM_GETLINE,line+i,str+offset);
-		if(cpy>0 && cpy<(sizeof(str)/sizeof(WCHAR))){
-			WCHAR tmp[1024];
-			SIZE size={0};
-			RECT rect={0};
-			int len;
-			str[0]=(char)0xEF;
-			str[1]=(char)0xBB;
-			str[2]=(char)0xBF;
-			cpy+=offset;
-			len=MultiByteToWideChar(CP_UTF8,0,str,cpy,tmp,sizeof(tmp)/sizeof(WCHAR));
-			if(len>0){
-				GetTextExtentPoint32W(hdc,tmp,len,&size);
-				rect.right=size.cx;
-				rect.top=i*size.cy;
-				rect.bottom=rect.top+size.cy;
-				DrawTextExW(hdc,tmp,len,&rect,0,NULL);
-			}
+	GetClientRect(hwnd,&wrect);
+	y=0;
+	count=0;
+	while(1){
+		int len,lcount=0;
+		WCHAR wstr[1024];
+		const int wstr_count=sizeof(wstr)/sizeof(WCHAR);
+		len=get_complete_line(hstatic,line+count,wstr,wstr_count,&lcount);
+		if(len<=0){
+			break;
+		}else{
+			int bottom=0;
+			draw_line(hdc,wrect,wstr,len,y,&bottom);
+			y++;
+			if(bottom>=wrect.bottom)
+				break;
 		}
+		count+=lcount;
 	}
 	if(hfold){
 		SelectObject(hdc,hfold);
@@ -644,6 +768,11 @@ static BOOL CALLBACK select_font(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				int i;
 				for(i=0;i<sizeof(fonts)/sizeof(char*);i++)
 					SendMessage(hlist,CB_ADDSTRING,0,fonts[i]);
+				if(fontname){
+					int r=SendMessage(hlist,CB_FINDSTRING,0,fontname);
+					if(r>=0)
+						selected_font=r;
+				}
 				SendMessage(hlist,CB_SETCURSEL,selected_font,0);
 				SetFocus(hlist);
 			}
@@ -759,6 +888,8 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case VK_F3:
 			if(view_utf8)
 				DialogBoxParam(ghinstance,MAKEINTRESOURCE(IDD_USER_INPUT),hwnd,select_font,hwnd);
+			else
+				InvalidateRect(hwnd,NULL,TRUE);
 			break;
 		case VK_F5:
 			{
@@ -766,6 +897,9 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				pos=line-pos;
 				SendMessage(hstatic,EM_LINESCROLL,0,pos);
 			}
+			break;
+		default:
+			InvalidateRect(hwnd,NULL,TRUE);
 			break;
 		}
 		break;
@@ -858,7 +992,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
 		if(view_utf8)
-			draw_unicode(hdc,line,vlines);
+			draw_unicode(hwnd,hdc,line);
 		else
 			draw_edit_art(hdc,line,vlines);
 		EndPaint(hwnd,&ps);
