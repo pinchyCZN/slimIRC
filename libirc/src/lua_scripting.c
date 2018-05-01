@@ -99,15 +99,18 @@ static int lua_send_privmsg(lua_State *L)
 }
 static int lua_find_channel_window(lua_State *L)
 {
-	const void *session;
-	const char *channel;
 	void *result=0;
 	if(lua_gettop(L)==2){
-		//(void *session,char *channel)
+		const void *session;
+		const char *nch;
+		//(void *session,char *nch)
 		session=lua_touserdata(L,1);
-		channel=lua_tostring(L,2);
-		if(session && channel)
-			result=find_channel_window(session,channel);
+		nch=lua_tostring(L,2);
+		if(session && nch){
+			result=find_channel_window(session,nch);
+			if(0==result)
+				result=find_privmsg_window(session,nch);
+		}
 	}
 	lua_pushlightuserdata(L,result);
 	return 1;
@@ -287,7 +290,19 @@ static int lua_bring_window_top(lua_State *L)
 	lua_pushinteger(L,result);
 	return 1;
 }
-
+static int lua_highlight_button(lua_State *L)
+{
+	int result=LIBIRC_ERR_INVAL;
+	if(lua_gettop(L)==1){
+		const void *win;
+		//(void *win)
+		win=lua_touserdata(L,1);
+		if(win)
+			result=highlight_button_text(win);
+	}
+	lua_pushinteger(L,result);
+	return 1;
+}
 typedef struct{
 	char *lua_name;
 	int(*lua_func)(lua_State *L);
@@ -311,6 +326,7 @@ LUA_C_FUNC_MAP lua_map[]={
 	{"beep",lua_beep,"(freq,duration)"},
 	{"flash_window",lua_flash_window,"(count)"},
 	{"bring_win_top",lua_bring_window_top,""},
+	{"highlight_button",lua_highlight_button,"(win)"},
 	0
 };
 int lua_register_c_functions(lua_State *L)

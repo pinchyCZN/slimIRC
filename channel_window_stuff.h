@@ -9,7 +9,17 @@ int find_channel_window(void *session,const char *channel)
 	}
 	return 0;
 }
-
+int find_privmsg_window(void *session,const char *nick)
+{
+	int i;
+	for(i=0;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+		if(irc_windows[i].session==session)
+			if(irc_windows[i].type==PRIVMSG_WINDOW)
+				if(_stricmp(irc_windows[i].nick,nick)==0)
+					return &irc_windows[i];
+	}
+	return 0;
+}
 int update_chat_sessions(void *session)
 {
 	int i;
