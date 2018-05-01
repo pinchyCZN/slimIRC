@@ -326,38 +326,29 @@ int handle_lua_web_click(HWND hwnd,char *url)
 }
 int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
 {
-	int i,index=0,len,ret,cursor_set=FALSE;
+	int i,index,begin,cursor_set=FALSE;
 	char n[20]={0};
 	if(win->hlist==0)
 		return cursor_set;
-	len=strlen(nick);
-//	if(nick[0]!='<' || nick[len-1]!='>')
-//		return cursor_set;
-	for(i=0;i<len;i++){
-		if(nick[i]=='<')
-			;
-		else if(nick[i]=='>')
+	i=index=begin=0;
+	while(1){
+		char a=nick[i++];
+		if(0==a)
 			break;
-		else
-			n[index++]=nick[i];
-		if(index>=sizeof(n)-1)
-			break;
+		if(begin){
+			if(a=='>')
+				break;
+			n[index++]=a;
+			if(index>=sizeof(n)-1)
+				break;
+		}
+		else if(a=='<')
+			begin=TRUE;
 	}
 	n[index++]=0;
-	ret=find_nick_in_list(win->hlist,n);
-	/*
-	_snprintf(n2,sizeof(n2),"%s",n);
-	ret=SendMessage(win->hlist,LB_FINDSTRINGEXACT,-1,n2);
-	if(ret==LB_ERR){
-		_snprintf(n2,sizeof(n2),"@%s",n);
-		ret=SendMessage(win->hlist,LB_FINDSTRINGEXACT,-1,n2);
-		if(ret==LB_ERR){
-			_snprintf(n2,sizeof(n2),"+%s",n);
-			ret=SendMessage(win->hlist,LB_FINDSTRINGEXACT,-1,n2);
-		}
-	}
-	*/
-	if(ret!=LB_ERR){
+	i=find_nick_in_list(win->hlist,n);
+
+	if(i!=LB_ERR){
 		char str[256];
 		POINT screen={0};
 		SetCursor(LoadCursor(NULL,IDC_HAND));
