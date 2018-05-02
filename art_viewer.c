@@ -507,49 +507,46 @@ do_draw:
 	}
 	return 0;
 }
-int get_complete_line(HWND hwnd,int start,WCHAR *out,int out_count,int *lines)
+int get_complete_line(HWND hwnd,int line_start,WCHAR *out,int out_count,int *lines)
 {
 	int result=0;
-	int line=0,offset=0;
+	char tmp[512+2+3];
+	int line_index=0,len=0;
 	while(1){
-		int len,cpy,remain;
-		char tmp[512+2+3];
-		char *data=tmp+3;
-		len=sizeof(tmp)-3;
-		((short*)(data))[0]=len;
-		cpy=SendMessage(hwnd,EM_GETLINE,start+line,data);
+		int i,done=FALSE;
+		int remain,cpy;
+		char *data=tmp+3+len;
+		remain=sizeof(tmp)-3-len;
+		if((remain-1)<=0)
+			break;
+		((short *)(data))[0]=remain;
+		cpy=SendMessage(hwnd,EM_GETLINE,line_start+line_index,data);
 		if(cpy<=0)
 			break;
-		tmp[0]=(char)0xEF;
-		tmp[1]=(char)0xBB;
-		tmp[2]=(char)0xBF;
-		tmp[sizeof(tmp)-1]=0;
-		if(cpy<(sizeof(tmp)+3))
-			tmp[cpy+3]=0;
-		remain=out_count-offset;
-		if(remain<=0)
-			break;
-		len=MultiByteToWideChar(CP_UTF8,0,tmp,cpy+3,out+offset,remain);
-		if(len>0)
-			offset+=len;
-		line++;
-		{
-			int i,done=FALSE;
-			for(i=0;i<cpy;i++){
-				char a=tmp[3+i];
-				if(a==0)
-					break;
-				if(a=='\r' || a=='\n'){
-					done=TRUE;
-					break;
-				}
-			}
-			if(done)
+		line_index++;
+		len+=cpy;
+		for(i=0;i<cpy;i++){
+			char a=data[i];
+			if(a=='\r' || a=='\n'){
+				done=TRUE;
 				break;
+			}
 		}
+		if(done)
+			break;
 	}
-	*lines=line;
-	result=offset;
+	if(lines)
+		*lines=line_index;
+	if(len==0)
+		return 0;
+
+	tmp[0]=(char)0xEF;
+	tmp[1]=(char)0xBB;
+	tmp[2]=(char)0xBF;
+	tmp[sizeof(tmp)-1]=0;
+	if(len<(sizeof(tmp)-3))
+		tmp[len+3]=0;
+	result=MultiByteToWideChar(CP_UTF8,0,tmp,len+3,out,out_count);
 	return result;
 }
 int set_colors(HDC hdc,int fg,int bg)
