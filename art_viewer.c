@@ -580,7 +580,9 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 		for(i=0;i<len;i++){
 			WCHAR a=wstr[i];
 			int is_end=i==(len-1);
-			if(a==3){
+			if(a==0xFEFF){ //BOM
+				continue;
+			}else if(a==3){
 				end=i;
 				draw=TRUE;
 				state=1;
@@ -600,9 +602,11 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 					fg+=a-'0';
 					count++;
 					if(count==2){
-						state=0;
-						start=i+1;
-						set_colors(hdc,fg,bg);
+						if(wstr[i+1]!=','){
+							state=0;
+							start=i+1;
+							set_colors(hdc,fg,bg);
+						}
 					}
 				}else if(a==','){
 					state=2;
