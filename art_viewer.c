@@ -575,7 +575,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 	start=0;
 	xpos=0;
 	{
-		int i,state=0,draw=FALSE;
+		int i,state=0,draw=FALSE,count=0;
 		int fg=MIRC_FG,bg=MIRC_BG;
 		for(i=0;i<len;i++){
 			WCHAR a=wstr[i];
@@ -585,19 +585,29 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				draw=TRUE;
 				state=1;
 				fg=0;
+				count=0;
 			}
 			else if(is_end){
 				draw=TRUE;
 				end=i+1;
+				if(state>0)
+					draw=FALSE;
 			}
 			else if(1==state){
 				draw=FALSE;
 				if(a>='0' && a<='9'){
 					fg*=10;
 					fg+=a-'0';
+					count++;
+					if(count==2){
+						state=0;
+						start=i+1;
+						set_colors(hdc,fg,bg);
+					}
 				}else if(a==','){
 					state=2;
 					bg=0;
+					count=0;
 				}else{
 					state=0;
 					start=i;
@@ -608,6 +618,12 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				if(a>='0' && a<='9'){
 					bg*=10;
 					bg+=a-'0';
+					count++;
+					if(count==2){
+						state=0;
+						start=i+1;
+						set_colors(hdc,fg,bg);
+					}
 				}else{
 					state=0;
 					start=i;
