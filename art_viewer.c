@@ -434,20 +434,17 @@ do_draw:
 						break;
 					case 1:
 						if(isdigit(current_char)){
-							if(count==0)
+							count++;
+							if(count>=3){
+								state=0;
+								goto do_draw;
+							}
+							if(count==1)
 								cf=0;
 							cf*=10;
 							cf+=current_char-'0';
 							if(cf>(sizeof(color_lookup)/sizeof(int)))
 								cf=MIRC_FG;
-							count++;
-							if(count>=2){
-								char a=str[j+1];
-								if(a!=','){
-									count=0;
-									state=0;
-								}
-							}
 						}
 						else if(current_char==','){
 							count=0;
@@ -589,7 +586,6 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				end=i;
 				draw=TRUE;
 				state=1;
-				fg=0;
 				count=0;
 			}
 			else if(is_end){
@@ -601,21 +597,19 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			else if(1==state){
 				draw=FALSE;
 				if(a>='0' && a<='9'){
-					fg*=10;
-					fg+=a-'0';
 					count++;
-					if(count==2){
-						WCHAR t=wstr[i+1];
-						if((t==0xFEFF && ','!=wstr[i+2])
-							|| (t!=0xFEFF && ','!=t)){
-								state=0;
-								start=i+1;
-								set_colors(hdc,fg,bg);
-						}
+					if(count>=3){
+						state=0;
+						start=i;
+						set_colors(hdc,fg,bg);
+					}else{
+						if(count==1)
+							fg=0;
+						fg*=10;
+						fg+=a-'0';
 					}
 				}else if(a==','){
 					state=2;
-					bg=0;
 					count=0;
 				}else{
 					state=0;
@@ -625,13 +619,16 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			}else if(2==state){
 				draw=FALSE;
 				if(a>='0' && a<='9'){
-					bg*=10;
-					bg+=a-'0';
 					count++;
-					if(count==2){
+					if(count>=3){
 						state=0;
-						start=i+1;
+						start=i;
 						set_colors(hdc,fg,bg);
+					}else{
+						if(count==1)
+							bg=0;
+						bg*=10;
+						bg+=a-'0';
 					}
 				}else{
 					state=0;
