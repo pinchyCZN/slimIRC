@@ -452,11 +452,14 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				int multi=TRUE;
 				i=0;
 				while(1){
-					if(start[i]=='\r' || start[i]=='\n'){
+					char a=start[i];
+					if(a==0){
+						break;
+					}else if(a=='\r' || a=='\n'){
 						multi=FALSE;
 						break;
 					}
-					else if(start[i]<=' '){
+					else if(a<=' '){
 						multi=FALSE;
 						start[i]=0;
 						break;
