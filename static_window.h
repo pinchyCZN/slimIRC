@@ -346,6 +346,8 @@ int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
 			begin=TRUE;
 	}
 	n[index++]=0;
+	if(n[0]==0)
+		return cursor_set;
 	i=find_nick_in_list(win->hlist,n);
 
 	if(i!=LB_ERR){
