@@ -447,9 +447,9 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 			}
 			if(start!=0){
 				unsigned char *match=0;
-				int multi=TRUE,start_len,mt_len;
-				start_len=strlen(start);
-				for(i=0;i<start_len;i++){
+				int multi=TRUE;
+				i=0;
+				while(1){
 					if(start[i]=='\r' || start[i]=='\n'){
 						multi=FALSE;
 						break;
@@ -459,30 +459,35 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 						start[i]=0;
 						break;
 					}
+					i++;
 				}
 				strncpy(mouse_target,start,sizeof(mouse_target));
 				mouse_target[sizeof(mouse_target)-1]=0;
-				mt_len=strlen(mouse_target);
-				for(i=0;i<mt_len;i++){
-					if(mouse_target[i]<=' '){
+				i=0;
+				while(1){
+					char a=mouse_target[i];
+					if(a<=' '){
 						mouse_target[i]=0;
 						break;
 					}
+					i++;
 				}
 				if(multi)
 				for(i=1;i<20;i++){
-					int j,end=FALSE,slen;
+					int j,end=FALSE;
 					str[0]=(unsigned char)(sizeof(str)-1);
 					str[1]=(unsigned char)((sizeof(str)-1)>>8);
 					cpy=SendMessage(hwnd,EM_GETLINE,line+i,str);
 					str[cpy]=0;
-					slen=strlen(str);
-					for(j=0;j<slen;j++){
-						if(str[j]<=' '){
+					j=0;
+					while(1){
+						char a=str[j];
+						if(a<=' '){
 							str[j]=0;
 							end=TRUE;
 							break;
 						}
+						j++;
 					}
 					_snprintf(mouse_target,sizeof(mouse_target)-1,"%s%s",mouse_target,str);
 					if(end)
