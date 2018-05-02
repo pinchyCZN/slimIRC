@@ -64,7 +64,11 @@ struct POST_MSG{
 	char *msg;
 };
 static int post_thread_busy=0;
+#ifdef _DEBUG
+static int post_speed=100;
+#else
 static int post_speed=1000;
+#endif
 static int post_stop=0;
 unsigned __stdcall post_msg_thread(void *param)
 {

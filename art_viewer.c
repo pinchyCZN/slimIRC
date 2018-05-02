@@ -441,9 +441,12 @@ do_draw:
 							if(cf>(sizeof(color_lookup)/sizeof(int)))
 								cf=MIRC_FG;
 							count++;
-							if(count>=3){
-								count=0;
-								state=0;
+							if(count>=2){
+								char a=str[j+1];
+								if(a!=','){
+									count=0;
+									state=0;
+								}
 							}
 						}
 						else if(current_char==','){
@@ -602,10 +605,12 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 					fg+=a-'0';
 					count++;
 					if(count==2){
-						if(wstr[i+1]!=','){
-							state=0;
-							start=i+1;
-							set_colors(hdc,fg,bg);
+						WCHAR t=wstr[i+1];
+						if((t==0xFEFF && ','!=wstr[i+2])
+							|| (t!=0xFEFF && ','!=t)){
+								state=0;
+								start=i+1;
+								set_colors(hdc,fg,bg);
 						}
 					}
 				}else if(a==','){
