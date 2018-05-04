@@ -163,7 +163,8 @@ int draw_char(HDC hdc,unsigned char *font,unsigned char a,int x,int y,int cf,int
 int clear_screen(HDC hdc)
 {
 	int back_ground=BLACKNESS;
-	if(default_color)
+	int c=GetSysColor(COLOR_WINDOW);
+	if(c&0x00808080)
 		back_ground=WHITENESS;
 	BitBlt(hdc,0,0,client_width,client_height,hdc,0,0,back_ground);
 	return 0;
@@ -566,7 +567,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 	if(default_color){
 		set_colors(hdc,MIRC_FG,MIRC_BG);
 	}else{
-		SetBkColor(hdc,GetSysColor(COLOR_BACKGROUND));
+		SetBkColor(hdc,GetSysColor(COLOR_WINDOW));
 		SetTextColor(hdc,GetSysColor(COLOR_WINDOWTEXT));
 	}
 	start=0;
@@ -862,10 +863,11 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		}
 		calc_scrollbar(hwnd,line);
-		default_color=0;
 		view_utf8=0;
-		color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
-		color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
+		if(!default_color){
+			color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_WINDOW));
+			color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
+		}
 		old_win_proc=SetWindowLong(GetDlgItem(hwnd,IDC_SCROLLBAR),GWL_WNDPROC,subclass_proc);
 		create_vga_font();
 		set_title(hwnd,view_utf8,default_color,line);
@@ -929,7 +931,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			color_lookup[MIRC_FG]=0;
 		}
 		else{
-			color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_BACKGROUND));
+			color_lookup[MIRC_BG]=get_RGB(GetSysColor(COLOR_WINDOW));
 			color_lookup[MIRC_FG]=get_RGB(GetSysColor(COLOR_WINDOWTEXT));
 		}
 		set_title(hwnd,view_utf8,default_color,line);
