@@ -493,6 +493,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 							break;
 						}
 						j++;
+						if(j>=cpy)
+							break;
 					}
 					_snprintf(mouse_target,sizeof(mouse_target)-1,"%s%s",mouse_target,str);
 					if(end)
