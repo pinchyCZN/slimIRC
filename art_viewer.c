@@ -1,5 +1,6 @@
-#if _WIN32_WINNT<0x400
-#define _WIN32_WINNT 0x400
+#if WINVER<0x500
+#define WINVER 0x500
+#define _WIN32_WINNT 0x500
 #endif
 #include <windows.h>
 #include <richedit.h>
@@ -843,25 +844,64 @@ static LRESULT CALLBACK subclass_proc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lp
 	return CallWindowProc(old_win_proc,hwnd,msg,wparam,lparam);
 }
 
+static restore_window(HWND hwnd,WINDOWPLACEMENT *wp)
+{
+	int result=FALSE;
+	int w,h;
+	int show=SW_SHOWNORMAL;
+	HMONITOR hmon;
+	w=wp->rcNormalPosition.right-wp->rcNormalPosition.left;
+	h=wp->rcNormalPosition.bottom-wp->rcNormalPosition.top;
+	if(w<=30 || h<=30)
+		return result;
+	if(SW_SHOWMAXIMIZED==wp->showCmd)
+		show=SW_SHOWMAXIMIZED;
+	hmon=MonitorFromRect(&wp->rcNormalPosition,MONITOR_DEFAULTTONEAREST);
+	if(hmon){
+		MONITORINFO mi={0};
+		mi.cbSize=sizeof(mi);
+		if(GetMonitorInfo(hmon,&mi)){
+			int x,y;
+			x=wp->rcNormalPosition.left;
+			y=wp->rcNormalPosition.top;
+			clamp_window_size(&x,&y,&w,&h,&mi.rcWork);
+			wp->rcNormalPosition.left=x;
+			wp->rcNormalPosition.top=y;
+			wp->rcNormalPosition.right=x+w;
+			wp->rcNormalPosition.bottom=y+h;
+			wp->showCmd=show;
+			wp->flags=0;
+			wp->length=sizeof(WINDOWPLACEMENT);
+			result=SetWindowPlacement(hwnd,wp);
+		}
+	}
+	return result;
+}
+static save_window_pos(HWND hwnd,WINDOWPLACEMENT *wp)
+{
+	wp->length=sizeof(WINDOWPLACEMENT);
+	return GetWindowPlacement(hwnd,wp);
+}
 BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	static HWND grippy=0;
 	static int line=0;
 	static int vlines=30;
 	static int view_utf8=0;
+	static WINDOWPLACEMENT wp={0};
 	PAINTSTRUCT ps;
 	HDC hdc;
 	switch(msg){
 	case WM_INITDIALOG:
 		grippy=create_grippy(hwnd);
 		line=SendMessage(hstatic,EM_GETFIRSTVISIBLELINE,0,0);
-		{
+		if(!restore_window(hwnd,&wp)){
 			RECT rect={0};
 			if(GetWindowRect(GetParent(hstatic),&rect)!=0){
 				SetWindowPos(hwnd,NULL,rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,SWP_NOZORDER);
 			}
-			SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		}
+		SendMessage(GetDlgItem(hwnd,IDC_SCROLLBAR),SBM_SETRANGE,0,100);
 		calc_scrollbar(hwnd,line);
 		view_utf8=0;
 		if(!default_color){
@@ -941,6 +981,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		switch(LOWORD(wparam)){
 		case IDCANCEL:
 			free_vga_font();
+			save_window_pos(hwnd,&wp);
 			EndDialog(hwnd,0);
 			break;
 		}
@@ -1021,6 +1062,7 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_CLOSE:
 	case WM_QUIT:
 		free_vga_font();
+		save_window_pos(hwnd,&wp);
 		EndDialog(hwnd,0);
 		break;	
 	}
