@@ -127,8 +127,8 @@ chan_modes:
 		if(mouse_wheel==0)
 			handle_static_links(hwnd,&rmb_pos,WM_CONTEXTMENU);
 		mouse_wheel=0;
+		strncpy(cmd_target,mouse_target,sizeof(cmd_target));
 		cmd_target[sizeof(cmd_target)-1]=0;
-		strncpy(cmd_target,mouse_target,sizeof(cmd_target)-1);
 		return 0;
 		break;
 	case WM_RBUTTONDOWN:
@@ -324,28 +324,51 @@ int handle_lua_web_click(HWND hwnd,char *url)
 	}
 	return result;
 }
-int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
+int get_nick(unsigned char *str,char *nick,int size)
 {
-	int i,index,begin,cursor_set=FALSE;
-	char n[20]={0};
-	if(win->hlist==0)
-		return cursor_set;
-	i=index=begin=0;
+	int i,index,begin,found;
+	i=index=begin=found=0;
 	while(1){
-		char a=nick[i++];
+		char a=str[i++];
 		if(0==a)
 			break;
 		if(begin){
-			if(a=='>')
+			if(a=='>'){
+				found=TRUE;
 				break;
-			n[index++]=a;
-			if(index>=sizeof(n)-1)
+			}
+			if(index>=size)
 				break;
+			nick[index++]=a;
 		}
 		else if(a=='<')
 			begin=TRUE;
 	}
-	n[index++]=0;
+	if(!found){
+		i=index=0;
+		while(1){
+			char a=str[i++];
+			if(0==a)
+				break;
+			if(index>=size)
+				break;
+			nick[index++]=a;
+		}
+	}
+	if(size>0){
+		if(index<size)
+			nick[index]=0;
+		nick[size-1]=0;
+	}
+	return index;
+}
+int handle_nick_links(IRC_WINDOW *win,unsigned char *nick,int mouse_button)
+{
+	int i,cursor_set=FALSE;
+	char n[20]={0};
+	if(win->hlist==0)
+		return cursor_set;
+	get_nick(nick,n,sizeof(n));
 	if(n[0]==0)
 		return cursor_set;
 	i=find_nick_in_list(win->hlist,n);
@@ -476,6 +499,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 						break;
 					}
 					i++;
+					if(i>=sizeof(mouse_target))
+						break;
 				}
 				if(multi)
 				for(i=1;i<20;i++){
