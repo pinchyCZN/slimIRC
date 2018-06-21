@@ -119,7 +119,16 @@ int color_lookup[]={
 	0xE2E2E2,
 	0xFFFFFF
 };
-enum{MIRC_BOLD=2,MIRC_COLOR=3,MIRC_UNDERLINE=31,MIRC_REVERSE=22,MIRC_PLAIN=15,MIRC_BG=0,MIRC_FG=1};
+enum{
+	MIRC_BG=0,
+	MIRC_FG=1,
+	MIRC_BOLD=2,
+	MIRC_COLOR=3,
+	MIRC_PLAIN=15,
+	MIRC_REVERSE=22,
+	MIRC_ITALIC=29,
+	MIRC_UNDERLINE=31,
+};
 int get_RGB(DWORD bgr)
 {
 	BYTE r,g,b;
@@ -414,6 +423,11 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					cf=MIRC_FG;
 					cb=MIRC_BG;
 				}
+				else if(current_char==MIRC_UNDERLINE 
+					|| current_char==MIRC_BOLD
+					|| current_char==MIRC_ITALIC){
+					state=0;
+				}
 				else{
 					if(current_char<' ')
 						current_char=' ';
@@ -560,6 +574,43 @@ int set_colors(HDC hdc,int fg,int bg)
 	SetBkColor(hdc,get_BGR(color_lookup[bg]));
 	return 1;
 }
+int draw_section(HDC hdc,RECT *wrect,WCHAR *wstr,int *_xpos,int *_ypos,int *_bottom,int *_start,int *_end)
+{
+	RECT rect;
+	SIZE size={0};
+	int count;
+	int xpos,ypos,bottom,start,end;
+	xpos=*_xpos;
+	ypos=*_ypos;
+	bottom=*_bottom;
+	start=*_start;
+	end=*_end;
+	count=end-start;
+	if(count>0){
+		WCHAR *tmp=wstr+start;
+		GetTextExtentPoint32W(hdc,tmp,count,&size);
+		if(size.cy<=0)
+			size.cy=8;
+		rect.left=xpos;
+		rect.right=rect.left+size.cx;
+		rect.top=ypos*size.cy;
+		rect.bottom=rect.top+size.cy;
+		bottom=rect.bottom;
+		if(rect.left>=wrect->right)
+			return FALSE;
+		if(rect.top>=wrect->bottom)
+			return FALSE;
+		DrawTextExW(hdc,tmp,count,&rect,0,NULL);
+		xpos=rect.right;
+	}
+	start=end+1;
+	*_xpos=xpos;
+	*_ypos=ypos;
+	*_bottom=bottom;
+	*_start=start;
+	*_end=end;
+	return TRUE;;
+}
 int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 {
 	int result=0;
@@ -581,11 +632,34 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			int is_end=i==(len-1);
 			if(a==0xFEFF){ //BOM
 				continue;
-			}else if(a==3){
+			}else if(MIRC_COLOR==a){
 				end=i;
 				draw=TRUE;
 				state=1;
 				count=0;
+			}
+			else if(MIRC_BOLD==a 
+				|| MIRC_UNDERLINE==a
+				|| MIRC_ITALIC==a){
+				end=i;
+				draw=TRUE;
+				state=0;
+			}
+			else if(MIRC_PLAIN==a){
+				end=i;
+				fg=MIRC_FG;
+				bg=MIRC_BG;
+				draw=TRUE;
+				state=0;
+			}
+			else if(MIRC_REVERSE==a){
+				end=i;
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+					break;
+				fg=MIRC_BG;
+				bg=MIRC_FG;
+				set_colors(hdc,fg,bg);
+				state=0;
 			}
 			else if(is_end){
 				draw=TRUE;
@@ -636,27 +710,8 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				}
 			}
 			if(draw){
-				RECT rect;
-				SIZE size={0};
-				int count;
-				count=end-start;
-				if(count>0){
-					WCHAR *tmp=wstr+start;
-					GetTextExtentPoint32W(hdc,tmp,count,&size);
-					if(size.cy<=0)
-						size.cy=8;
-					rect.left=xpos;
-					rect.right=rect.left+size.cx;
-					rect.top=ypos*size.cy;
-					rect.bottom=rect.top+size.cy;
-					*bottom=rect.bottom;
-					if(rect.left>=wrect.right)
-						break;
-					if(rect.top>=wrect.bottom)
-						break;
-					DrawTextExW(hdc,tmp,count,&rect,0,NULL);
-					xpos=rect.right;
-				}
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+					break;
 				draw=FALSE;
 			}
 		}
