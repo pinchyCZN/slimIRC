@@ -400,6 +400,7 @@ int draw_edit_art(HDC hdc,int line,int line_count)
 					x=0;
 					y+=12;
 					out_line++;
+					state=count=0;
 					if(out_line>=line_count)
 						return 0;
 					continue;
@@ -647,9 +648,11 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			}
 			else if(MIRC_PLAIN==a){
 				end=i;
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+					break;
 				fg=MIRC_FG;
 				bg=MIRC_BG;
-				draw=TRUE;
+				set_colors(hdc,fg,bg);
 				state=0;
 			}
 			else if(MIRC_REVERSE==a){
