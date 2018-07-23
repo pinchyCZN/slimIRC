@@ -635,7 +635,8 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				continue;
 			}else if(MIRC_COLOR==a){
 				end=i;
-				draw=TRUE;
+				if(0==state)
+					draw=TRUE;
 				state=1;
 				count=0;
 			}
