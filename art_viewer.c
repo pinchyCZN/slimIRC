@@ -643,6 +643,13 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			else if(MIRC_BOLD==a 
 				|| MIRC_UNDERLINE==a
 				|| MIRC_ITALIC==a){
+				if(state!=0){
+					if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+						break;
+					start=i+1;
+					state=0;
+					set_colors(hdc,fg,bg);
+				}
 				end=i;
 				draw=TRUE;
 				state=0;
