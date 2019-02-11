@@ -62,6 +62,7 @@ enum {
 	CMD_TSEARCH,
 	CMD_CLEAR,
 	CMD_CLEARTYPED,
+	CMD_COPYTEXT,
 	CMD_CHANMODES,
 	CMD_OPENURL,
 	CMD_COPYURL,
@@ -1519,6 +1520,7 @@ int create_popup_menus()
 	if(static_menu=CreatePopupMenu()){
 		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_CHANMODES,"chan modes");
 		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_TSEARCH,"text search");
+		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_COPYTEXT,"copy text");
 		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);
 		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_STRING,CMD_CLEAR,"clear buffer");
 		InsertMenu(static_menu,0xFFFFFFFF,MF_BYPOSITION|MF_SEPARATOR,0,0);

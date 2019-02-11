@@ -1025,6 +1025,46 @@ BOOL CALLBACK art_viewer(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				SendMessage(hstatic,EM_LINESCROLL,0,pos);
 			}
 			break;
+		case 'C':
+			if(GetKeyState(VK_CONTROL)&0x8000){
+				char *buf;
+				int buf_size=4*1024*1024;
+				buf=calloc(buf_size,1);
+				if(buf){
+					int i,line_count=0,offset=0;
+					for(i=0;i<5000;i++){
+						int cpy;
+						int max_len=2048;
+						buf[offset]=(char)(max_len-1);
+						buf[offset+1]=(char)(max_len-1)>>8;
+						cpy=SendMessage(hstatic,EM_GETLINE,line+i,buf+offset);
+						if(cpy>0){
+							int j;
+							for(j=0;j<cpy;j++){
+								char a;
+								int pos=offset+j;
+								if(pos>=buf_size)
+									break;
+								a=buf[pos];
+								if('\r'==a){
+									line_count++;
+								}
+							}
+							offset+=cpy;
+							if((offset+max_len)>=buf_size)
+								break;
+							if(line_count>vlines)
+								break;
+						}else{
+							break;
+						}
+					}
+					buf[buf_size-1]=0;
+					copy_str_clipboard(buf);
+					free(buf);
+				}
+			}
+			break;
 		default:
 			InvalidateRect(hwnd,NULL,TRUE);
 			break;

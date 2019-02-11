@@ -94,6 +94,19 @@ LRESULT CALLBACK  static_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case CMD_TSEARCH:
 			SendMessage(GetParent(hwnd),WM_APP,0x6,0);
 			break;
+		case CMD_COPYTEXT:
+			{
+				char *buf;
+				int buf_size=16*1024*1024;
+				buf=calloc(buf_size,1);
+				if(buf){
+					GetWindowText(hwnd,buf,buf_size);
+					buf[buf_size-1]=0;
+					copy_str_clipboard(buf);
+					free(buf);
+				}
+			}
+			break;
 		case CMD_TEST:
 			break;
 		case CMD_CLEARTYPED:
