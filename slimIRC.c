@@ -528,7 +528,7 @@ int set_single_instance(int set)
 BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	extern short settings_list_anchors[];
-	extern int show_joins,log_enable,lua_script_enable;
+	extern int show_joins,show_parts,log_enable,lua_script_enable;
 	static HWND grippy=0;
 	static int help_active=FALSE;
 	int debug;
@@ -557,6 +557,8 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		get_ini_value("SETTINGS","SHOW_JOINS",&show_joins);
 		CheckDlgButton(hwnd,IDC_SHOWJOINS,show_joins);
+		get_ini_value("SETTINGS","SHOW_PARTS",&show_parts);
+		CheckDlgButton(hwnd,IDC_SHOWPARTS,show_parts);
 		get_ini_value("SETTINGS","ENABLE_LOG",&log_enable);
 		CheckDlgButton(hwnd,IDC_ENABLELOG,log_enable);
 		{
@@ -642,6 +644,12 @@ BOOL CALLBACK settings_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				else
 					show_joins=0;
 				write_ini_value("SETTINGS","SHOW_JOINS",show_joins);
+
+				if(IsDlgButtonChecked(hwnd,IDC_SHOWPARTS)==BST_CHECKED)
+					show_parts=1;
+				else
+					show_parts=0;
+				write_ini_value("SETTINGS","SHOW_PARTS",show_parts);
 
 				if(IsDlgButtonChecked(hwnd,IDC_ENABLELOG)==BST_CHECKED)
 					log_enable=1;

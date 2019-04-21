@@ -594,6 +594,7 @@ int quit_irc_event(void *session,char *nick)
 	}
 	return TRUE;
 }
+int show_parts=FALSE;
 int part_channel_event(void *session,const char *origin,const char *channel,const char *msg)
 {
 	IRC_WINDOW *win;
@@ -603,8 +604,10 @@ int part_channel_event(void *session,const char *origin,const char *channel,cons
 		char nick[20]={0};
 		extract_nick(origin,nick,sizeof(nick));
 		update_nick_in_list(win->hlist,nick,0);
-		_snprintf(quitmsg,sizeof(quitmsg),"* %s has left %s%s%s",nick,channel,strlen(msg)>0?" saying:":"",msg);
-		add_line_mdi(win,quitmsg);
+		if(show_parts){
+			_snprintf(quitmsg,sizeof(quitmsg),"* %s has left %s%s%s",nick,channel,strlen(msg)>0?" saying:":"",msg);
+			add_line_mdi(win,quitmsg);
+		}
 		return TRUE;
 	}
 	return FALSE;
