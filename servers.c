@@ -6,8 +6,7 @@
 
 #include "Commctrl.h"
 #include "resource.h"
-#define MAX_NETWORKS 100
-#define MAX_SERVERS 15
+#define MAX_SERVERS 30
 #define MAX_CHANNELS 100
 typedef struct {
 	char *name;
