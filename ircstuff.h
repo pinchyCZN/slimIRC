@@ -329,12 +329,38 @@ void event_mode(irc_session_t * session, const char * event, const char * origin
 	}
 	//Event "MODE", origin: "p123!~234324@127.0.0.1", params: 3 [#1|+o|u05]
 }
+void event_notice(irc_session_t * session, const char * event, const char * origin, const char ** params, unsigned int count)
+{
+	IRC_WINDOW *win=0;
+	char nick[20]={0};
+	char str[768];
+	unsigned int i;
+	dump_event(session,event,origin,params,count);
+	_snprintf(str,sizeof(str),"%s %s",event,origin);
+	for(i=0;i<count;i++)
+		_snprintf(str,sizeof(str),"%s %s",str,params[i]);
+	echo_server_window(session,str);
+	extract_nick(origin,nick,sizeof(nick));
+	win=find_msg_window(session,nick);
+	if(win!=0){
+		_snprintf(str,sizeof(str),"<%s>",nick);
+		for(i=0;i<count;i++)
+			_snprintf(str,sizeof(str),"%s %s",str,params[i]);
+		str[sizeof(str)-1]=0;
+		add_line_mdi(win,str);
+	}
+}
 void report_server_window(irc_session_t *session,const char * event,const char *origin,const char **params,unsigned int count)
 {
+	unsigned int i;
+	char str[768];
 	dump_event(session,event,origin,params,count);
-	echo_server_window(session,"%s %s %s %s %s %s %s %s %s",event,origin,
-		count>0?params[0]:"",count>1?params[1]:"",count>2?params[2]:"",count>3?params[3]:"",
-		count>4?params[4]:"",count>5?params[5]:"",count>6?params[6]:"");
+	_snprintf(str,sizeof(str),"%s %s",event,origin);
+	for(i=0;i<count;i++){
+		_snprintf(str,sizeof(str),"%s %s",str,params[i]);
+	}
+	str[sizeof(str)-1]=0;
+	echo_server_window(session,"%s",str);
 }
 int irc_slap(irc_session_t *session,char *channel,char *nick)
 {
@@ -505,7 +531,7 @@ int create_session(irc_callbacks_t *callbacks)
 	callbacks->event_channel = event_channel;
 	callbacks->event_channel_notice = event_ctcp_action;
 	callbacks->event_privmsg = event_privmsg;
-	callbacks->event_notice = report_server_window;
+	callbacks->event_notice = event_notice;
 	callbacks->event_invite = report_server_window;
 	callbacks->event_umode = report_server_window;
 	callbacks->event_ctcp_rep = report_server_window;
