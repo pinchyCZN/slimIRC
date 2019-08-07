@@ -120,7 +120,7 @@ static char * libirc_colorparser_irc2code (const char * source, int strip)
 {
 	unsigned int mask = 0, destlen = 0;
 	char * destline = 0, *d = 0;
-	const char *p;
+	const unsigned char *p;
 	int current_bg = 0;
 
     /*
