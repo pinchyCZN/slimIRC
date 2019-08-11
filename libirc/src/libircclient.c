@@ -1298,7 +1298,9 @@ int lua_process_event(irc_session_t *session,
 int is_lua_active(irc_session_t *session)
 {
 	extern int lua_script_enable;
-	if(session->lua_context && lua_script_enable)
+	if(0==session)
+		return FALSE;
+	else if(session->lua_context && lua_script_enable)
 		return TRUE;
 	else
 		return FALSE;

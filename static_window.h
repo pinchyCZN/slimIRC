@@ -318,7 +318,7 @@ int handle_lua_web_click(HWND hwnd,char *url)
 	IRC_WINDOW *win;
 	int result=FALSE;
 	win=find_window_by_hwnd(hwnd);
-	if(win!=0){
+	if(win!=0 && win->session!=0){
 		if(lua_script_enable && is_lua_active(win->session)){
 			char *params[2]={win->channel,0};
 			char str[1024]={0};
