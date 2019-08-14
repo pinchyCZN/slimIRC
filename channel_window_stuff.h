@@ -634,7 +634,9 @@ int list_names_event(void *session,const char *channel,const char *names)
 			char n[20];
 			len=strlen(names);
 			for(i=0;i<=len;i++){
-				if(names[i]>' '){
+				BYTE a;
+				a=names[i];
+				if(!isspace(a)){
 					if(index<sizeof(n)-1)
 						n[index++]=names[i];
 				}
@@ -652,33 +654,6 @@ int list_names_event(void *session,const char *channel,const char *names)
 	return TRUE;
 }
 
-int get_subitem(char *list,char *out,int max,int item)
-{
-	int i,len,index=0,word=0,white=TRUE;
-	int found=FALSE;
-	len=strlen(list);
-	for(i=0;i<len;i++){
-		if(list[i]>' '){
-			if(word==item){
-				out[index++]=list[i];
-				found=TRUE;
-			}
-			white=FALSE;
-		}
-		else{ //whitespace
-			if(white==FALSE)
-				word++;
-			white=TRUE;
-		}
-		if(word>item)
-			break;
-		if(index>=max-1)
-			break;
-	}
-	if(found)
-		out[index++]=0;
-	return found;
-}
 
 int update_nick_list(IRC_WINDOW *win,const char **params,int count)
 {
