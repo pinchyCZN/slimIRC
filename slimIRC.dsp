@@ -117,7 +117,7 @@ SOURCE=.\libirc\src\portable.c
 
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
 
-# PROP Ignore_Default_Tool 1
+# PROP Exclude_From_Build 1
 
 !ENDIF 
 
@@ -132,7 +132,7 @@ SOURCE=.\libirc\src\ssl.c
 
 !ELSEIF  "$(CFG)" == "slimIRC - Win32 Debug"
 
-# PROP Ignore_Default_Tool 1
+# PROP Exclude_From_Build 1
 
 !ENDIF 
 
