@@ -448,13 +448,13 @@ int post_message(HWND hwnd,char *str)
 				}
 			}
 
-			if(win->type==SERVER_WINDOW){
+			if(SERVER_WINDOW==win->type || '/'==str[0]){
 				char *tmp=str;
 				if('/'==str[0])
 					tmp++;
 				irc_send_raw(win->session,tmp);
 				return TRUE;
-			}else if(win->type==PRIVMSG_WINDOW)
+			}else if(PRIVMSG_WINDOW==win->type)
 				extract_nick(win->channel,channel,sizeof(channel));
 			else
 				strncpy(channel,win->channel,sizeof(channel));
