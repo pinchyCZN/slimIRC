@@ -611,13 +611,12 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			switch(HIWORD(wparam)){
 			case EN_CHANGE:
 				{
-				char str[MAX_EDIT_LENGTH]={0};
-				str[MAX_EDIT_LENGTH-1]=0;
-				GetWindowText(lparam,str,sizeof(str)-1);
-				strncpy(edit_buffer[0],str,sizeof(edit_buffer[0]));
-				edit_buffer[0][sizeof(edit_buffer[0])-1]=0;
-				scroll_history_pos=0;
-				tab_continue=FALSE;
+					char str[MAX_EDIT_LENGTH]={0};
+					GetWindowText(lparam,str,sizeof(str)-1);
+					strncpy(edit_buffer[0],str,sizeof(edit_buffer[0]));
+					edit_buffer[0][sizeof(edit_buffer[0])-1]=0;
+					scroll_history_pos=0;
+					tab_continue=FALSE;
 				}
 				break;
 			case EN_VSCROLL:
@@ -688,7 +687,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 					if(tab_continue)
 						tab_next(hwnd,tab_word,tab_pos);
 					else
-						tab_completion(hwnd);
+						tab_completion(hwnd,&tab_pos);
 					break;
 				case VK_HOME:
 					scroll=SB_TOP;
@@ -1187,54 +1186,106 @@ int find_next_nick(HWND hlist,char *substr,int last)
 		return min;
 	return LB_ERR;
 }
+void handle_next_nick(IRC_WINDOW *win,char *substr,int pos)
+{
+	static int last=-1;
+	int index;
+	int attempts=0;
+	char str[MAX_EDIT_LENGTH]={0};
+	int res;
+	res=GetWindowText(win->hedit,str,sizeof(str)-1);
+	if(res<=0)
+		return;
+	do{
+		index=find_next_nick(win->hlist,substr,last);
+		attempts++;
+		if(last==-1)
+			break;
+		if(index==LB_ERR)
+			last=-1;
+		else
+			break;
+	}while(attempts<2);
+	if(index!=LB_ERR){
+		char nick[20]={0};
+		if(SendMessage(win->hlist,LB_GETTEXT,index,nick)>0){
+			int len;
+			last=index;
+			extract_list_nick(nick,nick,sizeof(nick));
+			len=strlen(nick);
+			printf("oldstr=%s\n",str);
+			replace_word(str,sizeof(str),nick,pos);
+			printf("newstr=%s\n",str);
+			SetWindowText(win->hedit,str);
+			SendMessage(win->hedit,EM_SETSEL,pos+len,pos+len);
+		}
+	}
+	else
+		last=-1;
+}
+
+void handle_next_chan(IRC_WINDOW *win,char *substr,int pos)
+{
+	static int last=-1;
+	int attempts=0;
+	char str[MAX_EDIT_LENGTH]={0};
+	int res;
+	int len,substr_len;
+	char *chan=0;
+	res=GetWindowText(win->hedit,str,sizeof(str)-1);
+	if(res<=0)
+		return;
+	substr_len=strlen(substr);
+	do{
+		int i;
+		i=last;
+		if(last<0)
+			i=0;
+		for(  ;i<sizeof(irc_windows)/sizeof(IRC_WINDOW);i++){
+			char *tmp=irc_windows[i].channel;
+			res=strnicmp(tmp,substr,substr_len);
+			if(0==res){
+				last=i+1;
+				chan=tmp;
+				break;
+			}
+		}
+		if(chan || last<0)
+			break;
+		else
+			last=-1;
+		attempts++;
+	}while(attempts<2);
+	if(0==chan){
+		last=-1;
+		return;
+	}
+	printf("oldstr=%s\n",str);
+	replace_word(str,sizeof(str),chan,pos);
+	printf("newstr=%s\n",str);
+	SetWindowText(win->hedit,str);
+	len=strlen(chan);
+	SendMessage(win->hedit,EM_SETSEL,pos+len,pos+len);
+}
 int tab_next(HWND hwnd,char *substr,int pos)
 {
 	IRC_WINDOW *win;
-	int index;
-	static int last=-1;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
-		char str[MAX_EDIT_LENGTH]={0};
-		str[sizeof(str)-1]=0;
-		if(GetWindowText(win->hedit,str,sizeof(str)-1)>0){
-			int attempts=0;
-			do{
-				index=find_next_nick(win->hlist,substr,last);
-				attempts++;
-				if(last==-1)
-					break;
-				if(index==LB_ERR)
-					last=-1;
-				else
-					break;
-			}while(attempts<2);
-			if(index!=LB_ERR){
-				char nick[20]={0};
-				if(SendMessage(win->hlist,LB_GETTEXT,index,nick)>0){
-					int len;
-					last=index;
-					extract_list_nick(nick,nick,sizeof(nick));
-					len=strlen(nick);
-					printf("oldstr=%s\n",str);
-					replace_word(str,sizeof(str),nick,tab_pos);
-					printf("newstr=%s\n",str);
-					SetWindowText(win->hedit,str);
-					SendMessage(win->hedit,EM_SETSEL,pos+len,pos+len);
-				}
-			}
-			else
-				last=-1;
+		if('#'==substr[0]){
+			handle_next_chan(win,substr,pos);
+		}else{
+			handle_next_nick(win,substr,pos);
 		}
 	}
 	return tab_continue;
 }
-int tab_completion(HWND hwnd)
+int tab_completion(HWND hwnd,int *pos)
 {
 	IRC_WINDOW *win;
 	win=find_window_by_hwnd(hwnd);
 	if(win!=0){
 		char str[MAX_EDIT_LENGTH]={0};
-		str[sizeof(str)-1]=0;
 		if(GetWindowText(win->hedit,str,sizeof(str)-1)>0){
 			int start=0,end=0;
 			SendMessage(win->hedit,EM_GETSEL,&start,&end);
@@ -1242,10 +1293,10 @@ int tab_completion(HWND hwnd)
 				start=end;
 
 			tab_word[0]=0;
-			if(get_substr(str,start,tab_word,sizeof(tab_word),&tab_pos)){
+			if(get_substr(str,start,tab_word,sizeof(tab_word),pos)){
 				tab_continue=TRUE;
 				printf("substr=%s\n",tab_word);
-				tab_next(hwnd,tab_word,tab_pos);
+				tab_next(hwnd,tab_word,*pos);
 			}
 		}
 	}
