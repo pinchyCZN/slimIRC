@@ -470,7 +470,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 			int i,found=FALSE;
 			mouse_target[0]=0;
 			for(i=0;i<=offset;i++){
-				if(str[offset-i]<=' '){
+				unsigned char a=str[offset-i];
+				if(isspace(a)){
 					if(i==0){
 						found=FALSE;
 						break;
@@ -488,14 +489,14 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				int multi=TRUE;
 				i=0;
 				while(1){
-					char a=start[i];
+					unsigned char a=start[i];
 					if(a==0){
 						break;
 					}else if(a=='\r' || a=='\n'){
 						multi=FALSE;
 						break;
 					}
-					else if(a<=' '){
+					else if(isspace(a)){
 						multi=FALSE;
 						start[i]=0;
 						break;
@@ -506,8 +507,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 				mouse_target[sizeof(mouse_target)-1]=0;
 				i=0;
 				while(1){
-					char a=mouse_target[i];
-					if(a<=' '){
+					unsigned char a=mouse_target[i];
+					if(isspace(a)){
 						mouse_target[i]=0;
 						break;
 					}
@@ -524,8 +525,8 @@ int handle_static_links(HWND hwnd,POINTL *p,int mouse_button)
 					str[cpy]=0;
 					j=0;
 					while(1){
-						char a=str[j];
-						if(a<=' '){
+						unsigned char a=str[j];
+						if(isspace(a)){
 							str[j]=0;
 							end=TRUE;
 							break;
