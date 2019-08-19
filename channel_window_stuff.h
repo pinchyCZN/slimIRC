@@ -423,7 +423,7 @@ int post_message(HWND hwnd,char *str)
 		{
 			unsigned int i,len;
 			char msg[512+20],tmp[512];
-			char channel[40]={0};
+			char channel[80]={0};
 
 			if('/'==str[0]){
 				for(i=0;i<sizeof(commands)/sizeof(struct COMMAND);i++){
@@ -456,8 +456,10 @@ int post_message(HWND hwnd,char *str)
 				return TRUE;
 			}else if(PRIVMSG_WINDOW==win->type)
 				extract_nick(win->channel,channel,sizeof(channel));
-			else
+			else{
 				strncpy(channel,win->channel,sizeof(channel));
+				channel[sizeof(channel)-1]=0;
+			}
 
 			len=strlen(str);
 			for(i=0;i<len;i++){
