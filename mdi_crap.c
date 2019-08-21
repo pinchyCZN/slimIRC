@@ -137,6 +137,75 @@ int strstri(const char *s1,const char *s2)
 				return (s1+i);
 	return NULL;
 }
+int line_count(char *str)
+{
+	int index=0,count=0,has_data=FALSE;
+	while(1){
+		unsigned char a=str[index++];
+		if(0==a){
+			if(has_data)
+				count++;
+			break;
+		}
+		else if('\n'==a){
+			count++;
+			has_data=FALSE;
+		}else if('\r'!=a){
+			has_data=TRUE;
+		}
+	}
+	return count;
+}
+int trim_return(char *str)
+{
+	int i,len;
+	len=strlen(str);
+	for(i=len-1;i>0;i--){
+		if((unsigned char)str[i]>=' ')
+			break;
+		else
+			str[i]=0;
+	}
+	return TRUE;
+}
+int valid_text(char *str)
+{
+	int i,len;
+	len=strlen(str);
+	for(i=0;i<len;i++){
+		if((unsigned char)str[i]>=' ')
+			return TRUE;
+	}
+	return FALSE;
+}
+char *seek_next_word(char *str)
+{
+	char *result=0;
+	int index=0;
+	int state=0;
+	if(0==str){
+		return result;
+	}
+	while(1){
+		unsigned char a=str[index];
+		if(0==a){
+			result=str+index;
+			break;
+		}
+		if(0==state){
+			if(isspace(a)){
+				state=1;
+			}
+		}else{
+			if(!isspace(a)){
+				result=str+index;
+				break;
+			}
+		}
+		index++;
+	}
+	return result;
+}
 int get_subitem(char *list,char *out,int max,int item)
 {
 	int i,len,index=0,word=0,white=TRUE;
@@ -623,19 +692,19 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				{
 					HWND hedit=lparam;
 					char str[MAX_EDIT_LENGTH]={0};
-					int i,len,lines=0;
+					int len,lines=0;
 					GetWindowText(hedit,str,sizeof(str));
+					trim_return(str);
 					len=strlen(str);
-					for(i=0;i<len;i++){
-						if(str[i]=='\n')
-							lines++;
-					}
+					lines=line_count(str);
 					if(lines>=2 || len>=(MAX_EDIT_LENGTH-1)){
 						PostMessage(hwnd,WM_APP+1,0,hedit);
 						break;
 					}
-					post_message(hwnd,str);
-					add_history(str);
+					if(valid_text(str)){
+						post_message(hwnd,str);
+						add_history(str);
+					}
 					SetWindowText(hedit,"");
 
 				}
@@ -752,6 +821,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 			str=malloc(str_len);
 			if(str){
 				GetWindowText(hedit,str,str_len);
+				trim_return(str);
 				post_long_message(hwnd,str,TRUE);
 				free(str);
 			}

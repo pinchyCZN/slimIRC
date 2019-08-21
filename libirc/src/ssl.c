@@ -102,7 +102,7 @@ static int libirc_ssl_init(ssl_context *ssl)
 static int libirc_ssl_disconnect(ssl_context *ssl,int *socket)
 {
 	ssl_close_notify(ssl);
-	net_close(ssl->p_recv);
+	net_close((int)ssl->p_recv);
 	ssl_free(ssl);
 	socket[0]=-1;
 	return 0;

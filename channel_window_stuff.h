@@ -37,28 +37,6 @@ int update_chat_sessions(void *session)
 	}
 	return TRUE;
 }
-int trim_return(char *str)
-{
-	int i,len;
-	len=strlen(str);
-	for(i=len-1;i>0;i--){
-		if((unsigned char)str[i]>=' ')
-			break;
-		else
-			str[i]=0;
-	}
-	return TRUE;
-}
-int valid_text(char *str)
-{
-	int i,len;
-	len=strlen(str);
-	for(i=0;i<len;i++){
-		if((unsigned char)str[i]>=' ')
-			return TRUE;
-	}
-	return FALSE;
-}
 struct POST_MSG{
 	IRC_WINDOW *win;
 	char *msg;
@@ -261,8 +239,8 @@ int cmd_me(IRC_WINDOW *win,char *str)
 	else
 		strncpy(channel,win->channel,sizeof(channel));
 
-	if(0==irc_cmd_me(win->session,channel,str+4)){
-		_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str+4);
+	if(0==irc_cmd_me(win->session,channel,str)){
+		_snprintf(notice,sizeof(notice),"* %s %s",win->nick,str);
 		notice[sizeof(notice)-1]=0;
 		add_line_mdi(win,notice);
 	}
@@ -270,8 +248,14 @@ int cmd_me(IRC_WINDOW *win,char *str)
 }
 int cmd_ctcp(IRC_WINDOW *win,char *str)
 {
+	char *arg1,*arg2;
 	char channel[40],msg[512];
-	sscanf(str+sizeof("/ctcp ")-1,"%39s %511[^\n\r]s",channel,msg);
+	arg1=str;
+	arg2=seek_next_word(str);
+	if(0==arg1 || 0==arg2)
+		return 0;
+	sscanf(arg1,"%39s",channel);
+	sscanf(arg2,"%511[^\n\r]s",msg);
 	channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
 	irc_cmd_ctcp_request(win->session,channel,msg);
 	echo_server_window(win->session,"PRIVMSG %s :%s",channel,msg);
@@ -281,8 +265,10 @@ int cmd_dcc(IRC_WINDOW *win,char *str)
 {
 	IRC_WINDOW *dcc_win=0;
 	char tmp[512];
+	if(0==str)
+		return 0;
 	tmp[0]=0;
-	sscanf(str+sizeof("/dcc ")-1,"%32s",tmp);
+	sscanf(str,"%32s",tmp);
 	dcc_chat_init(win->session,tmp,&dcc_win);
 	if(dcc_win){
 		extern void dcc_event_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length);
@@ -294,9 +280,15 @@ int cmd_dcc(IRC_WINDOW *win,char *str)
 }
 int cmd_msg(IRC_WINDOW *win,char *str)
 {
+	char *arg1,*arg2;
 	char channel[40],msg[512];
+	arg1=str;
+	arg2=seek_next_word(str);
+	if(0==arg1 || 0==arg2)
+		return 0;
 	channel[0]=0;msg[0]=0;
-	sscanf(str+sizeof("/msg ")-1,"%39s %511[^\n\r]s",channel,msg);
+	sscanf(arg1,"%39s",channel);
+	sscanf(arg2,"%511[^\n\r]s",msg);
 	channel[sizeof(channel)-1]=0;msg[sizeof(msg)-1]=0;
 	if(msg[0]!=0){
 		irc_cmd_msg(win->session,channel,msg);
@@ -322,8 +314,7 @@ int cmd_recon(IRC_WINDOW *win,char *str)
 }
 int cmd_help(IRC_WINDOW *win,char *str)
 {
-	char *tmp=str+sizeof("/help")-1;
-	if(strstri(tmp,"lua"))
+	if(str && strstri(str,"lua"))
 		lua_help(add_line_mdi_nolog,win);
 	else
 		show_help(win);
@@ -331,14 +322,12 @@ int cmd_help(IRC_WINDOW *win,char *str)
 }
 int cmd_lua(IRC_WINDOW *win,char *str)
 {
-	char arg[20];
-	char *tmp=str+sizeof("/lua")-1;
-	arg[0]=0;
-	sscanf(tmp,"%19s",arg);
-	if(strstri(arg,"-create")){
+	if(0==str)
+		return 0;
+	if(strstri(str,"-create")){
 		lua_create_default_file(add_line_mdi_nolog,win);
 	}else{
-		char *params[3]={win->channel,str+sizeof("/lua ")-1,(char*)win};
+		char *params[3]={win->channel,str,(char*)win};
 		lua_process_event(win->session,"USER_CALLED",win->nick,&params,3);
 	}
 	return 0;
@@ -354,45 +343,48 @@ int cmd_stop(IRC_WINDOW *win,char *str)
 	post_stop=1;
 	return 0;
 }
+int cmd_clear(IRC_WINDOW *win,char *str)
+{
+	SetWindowText(win->hstatic,"");
+	return 0;
+}
 int cmd_speed(IRC_WINDOW *win,char *str)
 {
-	char *tmp=str+sizeof("/speed")-1;
-	char arg[20];
-	unsigned int val;
-	arg[0]=0;
-	sscanf(tmp,"%19s",arg);
-	if(arg[0]!=0){
-		val=strtoul(arg,0,10);
-		if(val>=100 && val<=10000){
-			post_speed=val;
-			goto PRINT;
+	char tmp[40]={0};
+	if(str){
+		unsigned char a;
+		a=str[0];
+		if(isdigit(a)){
+			int val;
+			val=strtoul(str,0,10);
+			if(val>=100 && val<=10000){
+				post_speed=val;
+			}
 		}
-	}else{
-PRINT:
-		_snprintf(arg,sizeof(arg),"speed=%i",post_speed);
-		arg[sizeof(arg)-1]=0;
-		add_line_mdi_nolog(win,arg);
 	}
+	_snprintf(tmp,sizeof(tmp),"speed=%i",post_speed);
+	tmp[sizeof(tmp)-1]=0;
+	add_line_mdi_nolog(win,tmp);
 	return 0;
 }
 struct COMMAND{
 	const char *cmd;
 	const char *desc;
-	int arg_count;
 	int (*func)(IRC_WINDOW *win,char *cline);
 };
 struct COMMAND commands[]={
-	{"me","",1,cmd_me},
-	{"ctcp","nick VERSION|FINGER|PING|TIME",1,cmd_ctcp},
-	{"dcc","",1,cmd_dcc},
-	{"msg","",1,cmd_msg},
-	{"discon","",0,cmd_discon},
-	{"recon","",0,cmd_recon},
-	{"help","[lua]",-1,cmd_help},
-	{"lua","[-create] make default file [userfunc]",1,cmd_lua},
-	{"flushlogs","",0,cmd_flushlogs},
-	{"stop","stop posting long message",0,cmd_stop},
-	{"speed","milliseconds delay",-1,cmd_speed},
+	{"me","",cmd_me},
+	{"ctcp","nick VERSION|FINGER|PING|TIME",cmd_ctcp},
+	{"dcc","",cmd_dcc},
+	{"msg","",cmd_msg},
+	{"discon","",cmd_discon},
+	{"recon","",cmd_recon},
+	{"help","[lua]",cmd_help},
+	{"lua","[-create] {make default file} [userfunc]",cmd_lua},
+	{"flushlogs","",cmd_flushlogs},
+	{"stop","{stop posting long message}",cmd_stop},
+	{"speed","{milliseconds delay}",cmd_speed},
+	{"clear","{clear channel display}",cmd_clear},
 };
 int get_cmd_info(int index,const char **cmd,const char **desc)
 {
@@ -427,24 +419,17 @@ int post_message(HWND hwnd,char *str)
 
 			if('/'==str[0]){
 				for(i=0;i<sizeof(commands)/sizeof(struct COMMAND);i++){
-					int match=FALSE;
 					char *tmp=str+1;
 					struct COMMAND *cmd=&commands[i];
 					len=strlen(cmd->cmd);
 					if(0==strnicmp(cmd->cmd,tmp,len)){
 						char a=tmp[len];
-						match=TRUE;
-						if(cmd->arg_count<=0){
-							if(!(' '==a || 0==a))
-								match=FALSE;
-						}else if(!(' '==a)){
-							match=FALSE;
+						if(0==a || ' '==a){
+							tmp=seek_next_word(str);
+							cmd->func(win,tmp);
+							return TRUE;
 						}
 					}
-					if(!match)
-						continue;
-					cmd->func(win,str);
-					return TRUE;
 				}
 			}
 
@@ -633,19 +618,21 @@ int list_names_event(void *session,const char *channel,const char *names)
 		HWND hwnd=win->hwnd;
 		if(hwnd!=0){
 			int i,len,index=0;
-			char n[20];
+			char n[40];
 			len=strlen(names);
 			for(i=0;i<=len;i++){
 				BYTE a;
+				int space=FALSE;
 				a=names[i];
-				if(!isspace(a)){
+				space=isspace(a);
+				if(!space){
 					if(index<sizeof(n)-1)
-						n[index++]=names[i];
+						n[index++]=a;
 				}
-				else{
-					n[index++]=0;
-					index=0;
-					if(strlen(n)>0){
+				if(space || i==(len-1)){
+					if(index!=0){
+						n[index++]=0;
+						index=0;
 						add_nick(win,n);
 					}
 				}
