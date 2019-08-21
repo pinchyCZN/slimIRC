@@ -81,13 +81,16 @@ BOOL CALLBACK help_dlg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					if(len< sizeof(str)){
 						SendMessage(hlist,LB_GETTEXT,sel,str);
 						str[sizeof(str)-1]=0;
-						if(str[0]!=0 && str[0]=='/'){
-							int i;
-							len=strlen(str);
-							for(i=0;i<len;i++){
-								if(str[i]=='('){
-									str[i]=0;
-									break;
+						if(str[0]=='/'){
+							char *start=strchr(str,'{');
+							if(start){
+								char *end=strchr(start,'}');
+								if(end){
+									SIZE_T x=start-str;
+									if(x<sizeof(str)){
+										x=sizeof(str)-(start-str);
+										strncpy(start,end+1,x);
+									}
 								}
 							}
 							SetWindowText(win->hedit,str);
