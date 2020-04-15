@@ -88,6 +88,14 @@ unsigned __stdcall post_msg_thread(void *param)
 		if(!is_cr){
 			if(count<sizeof(msg))
 				msg[count++]=a;
+			if(count>=sizeof(msg)){
+				for(i++;i<len;i++){
+					a=str[i];
+					is_cr='\n'==a;
+					if(is_cr)
+						break;
+				}
+			}
 		}
 		if(i==(len-1) || is_cr || count>=sizeof(msg)){
 			char mdi_msg[512+20];
