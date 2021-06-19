@@ -365,7 +365,7 @@ int cmd_speed(IRC_WINDOW *win,char *str)
 		if(isdigit(a)){
 			int val;
 			val=strtoul(str,0,10);
-			if(val>=100 && val<=10000){
+			if(val>=100 && val<=60000){
 				post_speed=val;
 			}
 		}
