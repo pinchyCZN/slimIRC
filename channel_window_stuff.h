@@ -371,6 +371,7 @@ int cmd_postfile(IRC_WINDOW *win,char *str)
 	}
 	fread(buf,1,len,f);
 	post_long_message(win->hwnd,buf,TRUE);
+	free(buf);
 EXIT:
 	fclose(f);
 	return 0;
