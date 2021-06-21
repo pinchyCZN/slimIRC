@@ -346,6 +346,35 @@ int cmd_flushlogs(IRC_WINDOW *win,char *str)
 	add_line_mdi_nolog(win,"log files flushed");
 	return 0;
 }
+int cmd_postfile(IRC_WINDOW *win,char *str)
+{
+	FILE *f;
+	int len;
+	char *buf;
+	if(0==str){
+		return 0;
+	}
+	f=fopen(str,"rb");
+	if(0==f){
+		char tmp[256];
+		_snprintf(tmp,sizeof(tmp),"unable to open file: %s",str);
+		add_line_mdi_nolog(win,tmp);
+		return 0;
+	}
+	fseek(f,0,SEEK_END);
+	len=ftell(f);
+	fseek(f,0,SEEK_SET);
+	buf=calloc(len+1,1);
+	if(0==buf){
+		add_line_mdi_nolog(win,"unable to alloc buf");
+		goto EXIT;
+	}
+	fread(buf,1,len,f);
+	post_long_message(win->hwnd,buf,TRUE);
+EXIT:
+	fclose(f);
+	return 0;
+}
 int cmd_stop(IRC_WINDOW *win,char *str)
 {
 	post_stop=1;
@@ -390,6 +419,7 @@ struct COMMAND commands[]={
 	{"help","[lua]",cmd_help},
 	{"lua","[-create] {make default file} [userfunc]",cmd_lua},
 	{"flushlogs","",cmd_flushlogs},
+	{"postfile","{post ascii file}",cmd_postfile},
 	{"stop","{stop posting long message}",cmd_stop},
 	{"speed","{milliseconds delay}",cmd_speed},
 	{"clear","{clear channel display}",cmd_clear},
