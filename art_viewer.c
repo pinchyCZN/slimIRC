@@ -644,7 +644,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				|| MIRC_UNDERLINE==a
 				|| MIRC_ITALIC==a){
 				if(state!=0){
-					if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+					if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,bottom,&start,&end))
 						break;
 					start=i+1;
 					state=0;
@@ -656,7 +656,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			}
 			else if(MIRC_PLAIN==a){
 				end=i;
-				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,bottom,&start,&end))
 					break;
 				fg=MIRC_FG;
 				bg=MIRC_BG;
@@ -665,7 +665,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 			}
 			else if(MIRC_REVERSE==a){
 				end=i;
-				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,bottom,&start,&end))
 					break;
 				fg=MIRC_BG;
 				bg=MIRC_FG;
@@ -721,7 +721,7 @@ int draw_line(HDC hdc,RECT wrect,WCHAR *wstr,int len,int ypos,int *bottom)
 				}
 			}
 			if(draw){
-				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,&bottom,&start,&end))
+				if(!draw_section(hdc,&wrect,wstr,&xpos,&ypos,bottom,&start,&end))
 					break;
 				draw=FALSE;
 			}
